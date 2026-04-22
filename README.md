@@ -3,12 +3,12 @@
 > Practical Microsoft 365 security frameworks for identity, endpoint, and Defender XDR — with the business case built in.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Last Commit](https://img.shields.io/github/last-commit/DerekMorgan2/M365-Security-Frameworks)
-![Stars](https://img.shields.io/github/stars/DerekMorgan2/M365-Security-Frameworks?style=social)
+![Last Commit](https://img.shields.io/github/last-commit/dmorgan-chc/M365-Security-Frameworks)
+![Stars](https://img.shields.io/github/stars/dmorgan-chc/M365-Security-Frameworks?style=social)
 
 ## Why this repo exists
 
-Most Microsoft 365 security frameworks in the community answer **how** to configure a control. Very few answer **why the business should fund it**. This repo pairs production-grade technical artifacts — Conditional Access policies, Intune compliance baselines, Defender XDR detection rules — with a plain-language business case for each, so security architects can deploy the control *and* defend the investment to their CFO.
+Most Microsoft 365 security frameworks in the community answer **how** to configure a control. Very few answer **why** the business should allow it, fund it, and measure its return. This repo pairs production-grade technical artifacts — Conditional Access policies, Intune compliance baselines, Defender XDR detection rules — with a plain-language business case for each, so security architects can deploy the control *and* defend the investment to executive leaders, the C-suite, and board members.
 
 Every framework in this repo includes:
 
@@ -29,7 +29,7 @@ Every framework in this repo includes:
 
 ```powershell
 # Clone the repo
-git clone https://github.com/DerekMorgan2/M365-Security-Frameworks.git
+git clone https://github.com/dmorgan-chc/M365-Security-Frameworks.git
 cd M365-Security-Frameworks
 
 # Navigate to the framework you want to deploy
