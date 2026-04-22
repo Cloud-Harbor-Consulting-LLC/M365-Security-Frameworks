@@ -1,0 +1,35 @@
+{
+  "displayName": "CA-SIG002-AllUsers-RequireStepUpOnRisk",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": ["All"],
+      "excludeApplications": []
+    },
+    "clientAppTypes": ["all"],
+    "signInRiskLevels": ["medium", "high"]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": ["mfa"]
+  },
+  "sessionControls": {
+    "signInFrequency": {
+      "value": 0,
+      "type": "hours",
+      "frequencyInterval": "everyTime",
+      "isEnabled": true
+    }
+  }
+}
