@@ -29,7 +29,7 @@ Every framework in this repo includes:
 
 ```powershell
 # Clone the repo
-git clone https://github.com/dmorgan-chc/M365-Security-Frameworks.git
+git clone https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks.git
 cd M365-Security-Frameworks
 
 # Navigate to the framework you want to deploy
