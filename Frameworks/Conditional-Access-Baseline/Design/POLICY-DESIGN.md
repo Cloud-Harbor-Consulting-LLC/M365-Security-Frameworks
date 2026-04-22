@@ -129,8 +129,212 @@ Policies should be staged, enforced, and promoted in the following order. Each s
 
 ---
 
-## 6. What's next
+## 6. Per-policy design specifications
 
-The following section of this document specifies the full design for each of the six starter policies: `CA-COV001`, `CA-COV002`, `CA-SIG001`, `CA-AUT001`, `CA-AUT002`, and `CA-SIG002`. Each spec covers intent, scope, conditions, grant/block controls, exclusions, validation steps, and the corresponding JSON template path.
+Each of the six starter policies is specified below. Every spec follows the same structure: intent, principle mapping, scope, conditions, controls, license requirements, validation steps, and the JSON template path.
 
-*(Per-policy specifications to be added in the next commit.)*
+---
+
+### 6.1 `CA-COV001-AllUsers-BlockLegacyAuth`
+
+**Intent:** Block authentication requests using legacy (non-modern) protocols. Legacy authentication — basic auth, POP, IMAP, SMTP AUTH, older Exchange clients — does not support MFA and is the single largest vector for password-spray attacks against Entra ID.
+
+**Principle mapping:** Primary — COV (Identity-wide coverage). This policy establishes the coverage floor by eliminating the authentication paths that would bypass every other policy.
+
+**Scope**
+- Included users: All users
+- Excluded users: `CA-Persona-EmergencyAccess`
+- Included cloud apps: All cloud apps
+- Excluded cloud apps: None
+
+**Conditions**
+- Client apps: Exchange ActiveSync clients, Other clients
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Not evaluated
+- User risk: Not evaluated
+
+**Controls**
+- Grant: Block access
+- Session: None
+
+**License requirements:** Entra ID P1 (minimum)
+
+**Validation in report-only**
+- Review sign-in logs filtered by Client app = Exchange ActiveSync and Client app = Other clients to confirm whether these paths are active in your tenant
+- Identify any service accounts or legacy applications still using basic auth; migrate to modern auth or scope them under a workload-identity policy BEFORE promoting to enforced
+- Confirm zero unexplained sign-in failures during the soak period
+
+**JSON template:** `../Policies/CA-COV001-AllUsers-BlockLegacyAuth.json` (planned)
+
+---
+
+### 6.2 `CA-COV002-AllUsers-RequireMFA`
+
+**Intent:** Require multi-factor authentication for every interactive user sign-in to every cloud app. Establishes MFA as the floor beneath every other policy in the baseline.
+
+**Principle mapping:** Primary — COV (Identity-wide coverage). Layered beneath CA-COV001 to ensure any authentication that clears the legacy-auth block is still MFA-protected.
+
+**Scope**
+- Included users: All users
+- Excluded users: `CA-Persona-EmergencyAccess`, `CA-Persona-WorkloadIdentities`
+- Included cloud apps: All cloud apps
+- Excluded cloud apps: None
+
+**Conditions**
+- Client apps: Browser, Mobile apps and desktop clients
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Not evaluated
+- User risk: Not evaluated
+
+**Controls**
+- Grant: Require multifactor authentication
+- Session: None
+
+**License requirements:** Entra ID P1 (minimum)
+
+**Validation in report-only**
+- Run the "Users registered for MFA" report; ensure every user has at least one MFA method registered before enforcement
+- Soak for 14 days to capture low-frequency sign-ins (monthly reports, quarterly tools, dormant accounts)
+- Confirm the `CA-Persona-EmergencyAccess` exclusion is intact — if the policy accidentally applies to break-glass accounts, the tenant can be locked out
+
+**JSON template:** `../Policies/CA-COV002-AllUsers-RequireMFA.json` (planned)
+
+---
+
+### 6.3 `CA-AUT001-PrivAccounts-RequirePhishResistantMFA`
+
+**Intent:** Require phishing-resistant MFA (FIDO2, Windows Hello for Business, or certificate-based authentication) for every sign-in by a privileged account. Replaces standard MFA — which can be phished via AiTM proxies — for the accounts attackers target first.
+
+**Principle mapping:** Primary — AUT (Authentication Strengths). Secondary — SIG, because the control is gated on identity-role signal.
+
+**Scope**
+- Included users: `CA-Persona-GlobalAdmins`
+- Excluded users: `CA-Persona-EmergencyAccess`
+- Included cloud apps: All cloud apps
+- Excluded cloud apps: None
+
+**Conditions**
+- Client apps: All
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Not evaluated
+- User risk: Not evaluated
+
+**Controls**
+- Grant: Require authentication strength — Phishing-resistant MFA
+- Session: None
+
+**License requirements:** Entra ID P1 (Authentication Strengths is a P1 feature)
+
+**Validation in report-only**
+- Confirm every member of `CA-Persona-GlobalAdmins` has a registered phishing-resistant credential (FIDO2 key, Windows Hello, or certificate) BEFORE enforcement — lockout risk is highest here
+- Provision backup FIDO2 keys for each admin; keep one secured offline
+- Verify break-glass accounts are NOT members of `CA-Persona-GlobalAdmins`
+
+**JSON template:** `../Policies/CA-AUT001-PrivAccounts-RequirePhishResistantMFA.json` (planned)
+
+---
+
+### 6.4 `CA-AUT002-PrivRoles-RequirePhishResistantMFA`
+
+**Intent:** Require phishing-resistant MFA at the moment a user activates a privileged directory role through Privileged Identity Management (PIM) or signs in with an already-elevated session. Extends CA-AUT001 to the Just-In-Time activation path where standing admin membership has been replaced by on-demand activation.
+
+**Principle mapping:** Primary — AUT (Authentication Strengths). Secondary — SIG, because the control responds dynamically to the user's effective role at sign-in.
+
+**Scope**
+- Included users: All users
+- Excluded users: `CA-Persona-EmergencyAccess`
+- Included cloud apps: All cloud apps
+- Excluded cloud apps: None
+- Directory role condition (minimum): Global Administrator, Privileged Role Administrator, Security Administrator, User Administrator, Conditional Access Administrator, Exchange Administrator, SharePoint Administrator, Helpdesk Administrator, Billing Administrator, Application Administrator, Cloud Application Administrator, Authentication Administrator. Expand based on your privileged role inventory.
+
+**Conditions**
+- Client apps: All
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Not evaluated
+- User risk: Not evaluated
+
+**Controls**
+- Grant: Require authentication strength — Phishing-resistant MFA
+- Session: None
+
+**License requirements:** Entra ID P2 (required for PIM); P1 minimum for Authentication Strengths
+
+**Validation in report-only**
+- Inventory all directory roles in use via `Get-MgDirectoryRole` in Microsoft Graph PowerShell; confirm the condition list covers every privileged role you assign
+- Validate that any user who might activate a role has a phishing-resistant credential registered
+- Test the full PIM activation flow with a pilot user before enforcement
+
+**JSON template:** `../Policies/CA-AUT002-PrivRoles-RequirePhishResistantMFA.json` (planned)
+
+---
+
+### 6.5 `CA-SIG001-SensApps-RequireCompliantDevice`
+
+**Intent:** Require that the sign-in originate from an Intune-compliant or Hybrid Azure AD-joined device when accessing sensitive applications. Ties high-value access to endpoints whose health posture is known and managed.
+
+**Principle mapping:** Primary — SIG (Layered signals). Combines application-sensitivity signal with device-state signal to make access conditional on both identity assurance AND endpoint integrity.
+
+**Scope**
+- Included users: `CA-Persona-InternalUsers`
+- Excluded users: `CA-Persona-EmergencyAccess`, `CA-Persona-WorkloadIdentities`
+- Included cloud apps: Sensitive Apps set — typically includes Microsoft Admin portals, Azure Management, Microsoft Intune, Microsoft 365 admin center, Exchange Online Admin, SharePoint Admin, and any in-house finance/HR/crown-jewel SaaS
+- Excluded cloud apps: None
+
+**Conditions**
+- Client apps: Browser, Mobile apps and desktop clients
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Not evaluated
+- User risk: Not evaluated
+
+**Controls**
+- Grant: Require device to be marked as compliant OR Require Hybrid Azure AD joined device (use OR to support mixed modern and legacy compliance postures)
+- Session: None
+
+**License requirements:** Entra ID P1 + Microsoft Intune (or Hybrid join via Active Directory)
+
+**Validation in report-only**
+- Confirm every user in `CA-Persona-InternalUsers` has at least one device registered and marked compliant in Intune (or Hybrid-joined) BEFORE enforcement
+- Run the Intune compliance dashboard; remediate non-compliant devices in the pilot group before tenant-wide rollout
+- Validate the sensitive-app scope matches your organization's crown-jewel app list — do not over-scope in the first release
+
+**JSON template:** `../Policies/CA-SIG001-SensApps-RequireCompliantDevice.json` (planned)
+
+---
+
+### 6.6 `CA-SIG002-AllUsers-RequireStepUpOnRisk`
+
+**Intent:** Enforce step-up authentication when Entra ID Identity Protection evaluates a sign-in as medium or high risk. Converts risk intelligence into an adaptive control rather than relying on static allow/deny.
+
+**Principle mapping:** Primary — SIG (Layered signals). Consumes Identity Protection sign-in risk and responds dynamically.
+
+**Scope**
+- Included users: All users
+- Excluded users: `CA-Persona-EmergencyAccess`, `CA-Persona-WorkloadIdentities`
+- Included cloud apps: All cloud apps
+- Excluded cloud apps: None
+
+**Conditions**
+- Client apps: All
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: Medium, High
+- User risk: Not evaluated here (handled separately in a future CA-SIG policy addressing user-risk remediation)
+
+**Controls**
+- Grant: Require authentication strength — Multifactor authentication (consider Phishing-resistant MFA for high-risk sign-ins based on your tenant's false-positive tolerance)
+- Session: Sign-in frequency — every time (forces re-auth on risky sessions)
+
+**License requirements:** Entra ID P2 (Identity Protection is a P2 feature)
+
+**Validation in report-only**
+- Review Identity Protection risk detections for the prior 30 days to understand false-positive volume in your tenant
+- Tune exclusions for known service-account sign-in patterns that legitimately trigger risk detections
+- Soak for 14 days minimum; risk detections surface unevenly, and a shorter soak can miss edge cases
+- Confirm self-service password reset and MFA registration are both deployed — risky sign-ins must have a remediation path
+
+**JSON template:** `../Policies/CA-SIG002-AllUsers-RequireStepUpOnRisk.json` (planned)
