@@ -5,7 +5,7 @@
     "users": {
       "includeUsers": [],
       "excludeUsers": [],
-      "includeGroups": ["REPLACE_WITH_INTERNAL_USERS_PERSONA_GROUP_OBJECT_ID"],
+      "includeGroups": ["REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID"],
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
@@ -15,8 +15,7 @@
     },
     "applications": {
       "includeApplications": [
-        "Office365",
-        "c44b4083-3bb0-49c1-b47d-974e53cbdf3c"
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013"
       ],
       "excludeApplications": []
     },
