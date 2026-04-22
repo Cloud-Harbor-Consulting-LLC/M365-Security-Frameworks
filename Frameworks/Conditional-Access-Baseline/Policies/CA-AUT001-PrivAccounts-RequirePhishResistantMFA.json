@@ -5,7 +5,7 @@
     "users": {
       "includeUsers": [],
       "excludeUsers": [],
-      "includeGroups": ["REPLACE_WITH_GLOBAL_ADMINS_PERSONA_GROUP_OBJECT_ID"],
+      "includeGroups": ["REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID"],
       "excludeGroups": ["REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"],
       "includeRoles": [],
       "excludeRoles": []
@@ -17,10 +17,10 @@
     "clientAppTypes": ["all"]
   },
   "grantControls": {
-    "operator": "OR",
+    "operator": "AND",
     "builtInControls": [],
     "authenticationStrength": {
-      "id": "00000000-0000-0000-0000-000000000004"
+      "id": "REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID"
     }
   }
 }
