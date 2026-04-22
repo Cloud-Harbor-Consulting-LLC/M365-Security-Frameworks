@@ -1,0 +1,26 @@
+# Secrets & credentials — NEVER commit these
+*.secret
+*.secrets
+.env
+.env.*
+credentials.json
+client-secret.txt
+*.pem
+*.pfx
+
+# PowerShell artifacts
+*.ps1xml.bak
+PSScriptAnalyzerSettings.psd1.bak
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs & temp
+*.log
+tmp/
+temp/
