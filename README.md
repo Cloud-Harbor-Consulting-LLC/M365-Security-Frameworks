@@ -3,8 +3,8 @@
 > Practical Microsoft 365 security frameworks for identity, endpoint, and Defender XDR — with the business case built in.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Last Commit](https://img.shields.io/github/last-commit/dmorgan-chc/M365-Security-Frameworks)
-![Stars](https://img.shields.io/github/stars/dmorgan-chc/M365-Security-Frameworks?style=social)
+![Last Commit](https://img.shields.io/github/last-commit/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks)
+![Stars](https://img.shields.io/github/stars/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks?style=social)
 
 ## Why this repo exists
 
