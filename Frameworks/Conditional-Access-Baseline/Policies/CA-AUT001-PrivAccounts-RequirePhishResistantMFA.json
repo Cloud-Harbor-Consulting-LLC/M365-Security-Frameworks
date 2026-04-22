@@ -1,0 +1,26 @@
+{
+  "displayName": "CA-AUT001-PrivAccounts-RequirePhishResistantMFA",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": [],
+      "excludeUsers": [],
+      "includeGroups": ["REPLACE_WITH_GLOBAL_ADMINS_PERSONA_GROUP_OBJECT_ID"],
+      "excludeGroups": ["REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": ["All"],
+      "excludeApplications": []
+    },
+    "clientAppTypes": ["all"]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": [],
+    "authenticationStrength": {
+      "id": "00000000-0000-0000-0000-000000000004"
+    }
+  }
+}
