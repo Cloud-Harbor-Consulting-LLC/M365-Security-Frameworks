@@ -1,0 +1,35 @@
+{
+  "displayName": "CA-SIG001-SensApps-RequireCompliantDevice",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": [],
+      "excludeUsers": [],
+      "includeGroups": ["REPLACE_WITH_INTERNAL_USERS_PERSONA_GROUP_OBJECT_ID"],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": [
+        "Office365",
+        "c44b4083-3bb0-49c1-b47d-974e53cbdf3c"
+      ],
+      "excludeApplications": []
+    },
+    "clientAppTypes": [
+      "browser",
+      "mobileAppsAndDesktopClients"
+    ]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": [
+      "compliantDevice",
+      "domainJoinedDevice"
+    ]
+  }
+}
