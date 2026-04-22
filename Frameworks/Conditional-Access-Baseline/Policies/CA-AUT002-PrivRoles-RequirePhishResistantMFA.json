@@ -1,17 +1,5 @@
 {
-  "displayName": "CA-AUT substitution needed.
-
----
-
-### Policy 4 of 6 — CA-AUT002-PrivRoles-RequirePhishResistantMFA
-
-**File path:**
-
-Frameworks/Conditional-Access-Baseline/Policies/CA-AUT002-PrivRoles-RequirePhishResistantMFA.json
-
-**Commit message:**
-
-Add CA-002-PrivRoles-RequirePhishResistantMFA",
+  "displayName": "CA-002-PrivRoles-RequirePhishResistantMFA"
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "users": {
