@@ -6,6 +6,8 @@
 ![Last Commit](https://img.shields.io/github/last-commit/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks)
 ![Stars](https://img.shields.io/github/stars/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks?style=social)
 
+> **Release history:** see [CHANGELOG.md](./CHANGELOG.md).
+
 ## Why this repo exists
 
 Most Microsoft 365 security frameworks in the community answer **how** to configure a control. Very few answer **why** the business should allow it, fund it, and measure its return. This repo pairs production-grade technical artifacts — Conditional Access policies, Intune compliance baselines, Defender XDR detection rules — with a plain-language business case for each, so security architects can deploy the control *and* defend the investment to executive leaders, the C-suite, and board members.
