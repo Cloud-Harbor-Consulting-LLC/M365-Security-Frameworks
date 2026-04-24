@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Planned for v1.1 of the **Conditional Access Baseline**:
+### Added
+
+- Scripts/Get-CABaselineImpact.ps1 — report-only telemetry tool: analyzes sign-in logs and summarizes what each report-only CA policy would have done if enforced.
+- Scripts/README.md — documentation and promotion rubric for Get-CABaselineImpact.ps1.
+- .github/ISSUE_TEMPLATE/ — bug report, policy request, and documentation fix issue templates.
+- .github/pull_request_template.md — PR checklist aligned to the four design principles.
+- .github/CODEOWNERS — auto-review routing on every PR.
+
+### Planned for v1.1 of the **Conditional Access Baseline**
 
 - Repo hygiene: issue templates, PR template, `CODEOWNERS`, GitHub Project board
 - Report-only telemetry script to quantify impact before enforcement
