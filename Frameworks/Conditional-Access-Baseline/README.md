@@ -51,10 +51,10 @@ Environments operating beyond this baseline should layer **Continuous Access Eva
 
 | Artifact | Purpose | Status |
 |----------|---------|--------|
-| [Policy design doc](./Design/POLICY-DESIGN.md) | Baseline philosophy, naming convention, exclusion-group strategy | ⚪ Planned |
-| [JSON policy templates](./Policies/) | The six importable Conditional Access policies | ⚪ Planned |
-| [Deployment scripts](./Scripts/) | PowerShell automation via Microsoft Graph | ⚪ Planned |
-| [Business case](./Business-Case/ROI-CONDITIONAL-ACCESS.md) | ROI, risk reduction, and audit framing | ⚪ Planned |
+| [Policy design doc](./Design/POLICY-DESIGN.md) | Baseline philosophy, naming convention, exclusion-group strategy | 🟢 Released |
+| [JSON policy templates](./Policies/) | The six importable Conditional Access policies | 🟢 Released |
+| [Deployment scripts](./Scripts/) | PowerShell automation via Microsoft Graph | 🟢 Released |
+| [Business case](./Business-Case/ROI-CONDITIONAL-ACCESS.md) | ROI, risk reduction, and audit framing | 🟢 Released |
 
 ## Personas covered
 
