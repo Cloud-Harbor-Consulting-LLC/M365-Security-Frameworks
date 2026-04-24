@@ -1,0 +1,17 @@
+# Code owners for M365-Security-Frameworks
+# Every PR automatically requests review from the listed owner(s).
+# Syntax: <path-pattern> <owner> [additional owners]
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+*                                           @dmorgan-chc
+
+# Framework ownership
+/Frameworks/Conditional-Access-Baseline/    @dmorgan-chc
+/Scripts/                                   @dmorgan-chc
+
+# Repo governance
+/.github/                                   @dmorgan-chc
+/README.md                                  @dmorgan-chc
+/CHANGELOG.md                               @dmorgan-chc
+/LICENSE                                    @dmorgan-chc
