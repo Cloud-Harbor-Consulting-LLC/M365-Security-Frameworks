@@ -1,0 +1,23 @@
+name: Documentation fix
+description: A correction, clarification, or improvement to documentation.
+title: "[Docs] "
+labels: ["documentation", "triage"]
+body:
+  - type: input
+    id: file
+    attributes:
+      label: File
+      description: Path to the doc (e.g., `Frameworks/Conditional-Access-Baseline/Policy-Design.md`).
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed wording (optional)
+      description: A suggested fix makes the PR faster.

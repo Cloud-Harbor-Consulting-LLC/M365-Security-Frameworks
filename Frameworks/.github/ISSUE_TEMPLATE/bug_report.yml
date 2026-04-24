@@ -1,0 +1,68 @@
+name: Bug report
+description: A policy template, script, or document behaves incorrectly.
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please include enough detail that someone can reproduce the behavior in their own tenant.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - CA policy template (JSON)
+        - Deploy-CABaseline.ps1
+        - Policy-Design.md
+        - ROI-CONDITIONAL-ACCESS.md
+        - Scripts/README.md
+        - Other (explain below)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Framework version
+      description: Release tag or commit SHA you're running (e.g., v1.0.1).
+      placeholder: v1.0.1
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps. Include the exact command line if it's a script issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include error output verbatim. Redact tenant IDs, object IDs, and user principal names.
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: PowerShell version, Microsoft.Graph SDK version, OS.
+      placeholder: |
+        PowerShell: 7.4.1
+        Microsoft.Graph: 2.15.0
+        OS: Windows 11 23H2
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: I verified the issue on the latest release (or `main`).
+          required: true
+        - label: I redacted tenant-specific identifiers from logs and screenshots.
+          required: true

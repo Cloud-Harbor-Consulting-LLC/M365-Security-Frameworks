@@ -1,0 +1,51 @@
+name: Policy request
+description: Propose a new Conditional Access policy or a change to an existing one.
+title: "[Policy] "
+labels: ["policy-request", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New policies must map to one of the four design principles in `Policy-Design.md`. If a request doesn't fit, we'll discuss whether it belongs in a future framework instead.
+  - type: dropdown
+    id: principle
+    attributes:
+      label: Which design principle does this serve?
+      options:
+        - 1. Coverage over cleverness
+        - 2. Signals, not just users
+        - 3. Authentication strength matches risk
+        - 4. Report-only is a first-class state
+        - None — propose as a new principle
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What gap in coverage or risk does this address? Cite a specific attack path, compliance requirement, or real-world incident if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed policy
+      description: Persona(s), conditions, grant controls, session controls. A rough JSON sketch is welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: blast
+    attributes:
+      label: Blast radius and exclusions
+      description: Who gets affected? What exclusions are required (emergency access, service accounts, etc.)?
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: This policy can be deployed in report-only mode first.
+          required: true
+        - label: I've reviewed `Policy-Design.md` and the existing policy set for overlap.
+          required: true
