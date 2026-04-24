@@ -59,13 +59,13 @@
       Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All
 
     Author: Derek Morgan, Cloud Harbor Consulting
-    Repository: https://github.com/dmorgan-chc/M365-Security-Frameworks
+    Repository: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter()]
-    [string]$PolicyPath = (Join-Path $PSScriptRoot '..' 'Policies'),
+    [string]$PolicyPath = (Join-Path $PSScriptRoot 'Policies'),
 
     [Parameter()]
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
@@ -117,9 +117,9 @@ function Test-GraphPrerequisites {
     }
     $context = Get-MgContext
     if (-not $context) {
-        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All"
+        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All,Application.Read.All"
     }
-    $requiredScopes = @('Policy.ReadWrite.ConditionalAccess', 'Group.Read.All', 'Policy.Read.All')
+    $requiredScopes = @('Policy.ReadWrite.ConditionalAccess', 'Group.Read.All', 'Policy.Read.All', 'Application.Read.All')
     $missing = $requiredScopes | Where-Object { $_ -notin $context.Scopes }
     if ($missing) {
         throw "Graph session is missing required scopes: $($missing -join ', '). Reconnect with all required scopes."
@@ -143,7 +143,7 @@ function Resolve-GroupId {
 
 function Resolve-AuthStrengthId {
     param([Parameter(Mandatory)][string]$DisplayName)
-    $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/authenticationStrengths/policies?$select=id,displayName'
+    $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/authenticationStrength/policies?$select=id,displayName'
     $match = @($response.value | Where-Object { $_.displayName -eq $DisplayName })
     if ($match.Count -eq 0) {
         throw "Authentication strength not found in tenant: '$DisplayName'."
@@ -260,7 +260,7 @@ try {
         }
     }
 
-    Write-Status ""
+    Write-Host ""
     Write-Status "Summary:"
     $results | Format-Table -AutoSize
 
