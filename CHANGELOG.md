@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- (test) verifying PR template renders — will be reverted
+
 Planned for v1.1 of the **Conditional Access Baseline**:
 
 - Repo hygiene: issue templates, PR template, `CODEOWNERS`, GitHub Project board
