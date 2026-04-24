@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .github/pull_request_template.md — PR checklist aligned to the four design principles.
 - .github/CODEOWNERS — auto-review routing on every PR.
 
+### Fixed
+
+- Get-CABaselineImpact.ps1 — StrictMode-safe check for `@odata.nextLink` so the script doesn't error on the final page of sign-in results.
+- Get-CABaselineImpact.ps1 — force array semantics around `.Count` accesses so the script works when 0 or 1 sign-ins / records / unique users exist (StrictMode correctness).
+
 ### Planned for v1.1 of the **Conditional Access Baseline**
 
 - Repo hygiene: issue templates, PR template, `CODEOWNERS`, GitHub Project board

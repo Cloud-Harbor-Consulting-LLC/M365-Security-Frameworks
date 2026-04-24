@@ -120,7 +120,7 @@ function Get-SignInsInWindow {
         Write-Status "  Fetching page $page..."
         $response = Invoke-MgGraphRequest -Method GET -Uri $uri
         if ($response.value) { $all.AddRange([object[]]$response.value) }
-        $uri = $response.'@odata.nextLink'
+        $uri = if ($response.ContainsKey('@odata.nextLink')) { $response['@odata.nextLink'] } else { $null }
     }
     return $all
 }
@@ -140,10 +140,10 @@ try {
     Write-Status "Policy filter: displayName contains '$PolicyNameFilter'"
 
     Write-Status "Fetching sign-in logs..."
-    $signIns = Get-SignInsInWindow -Start $StartDate -End $EndDate
+    $signIns = @(Get-SignInsInWindow -Start $StartDate -End $EndDate)
     Write-Status "Retrieved $($signIns.Count) sign-in events" -Level Success
 
-    $records = foreach ($si in $signIns) {
+    $records = @(foreach ($si in $signIns) {
         if (-not $si.appliedConditionalAccessPolicies) { continue }
         foreach ($p in $si.appliedConditionalAccessPolicies) {
             if ($p.displayName -notlike "*$PolicyNameFilter*") { continue }
@@ -158,8 +158,8 @@ try {
                 Result         = $p.result
             }
         }
-    }
-
+    })
+    
     if (-not $records) {
         Write-Status "No policy evaluations matched filter '$PolicyNameFilter' in this window." -Level Warning
         return
@@ -172,7 +172,7 @@ try {
         [pscustomobject]@{
             Policy           = $_.Name
             Evaluations      = $group.Count
-            UniqueUsers      = ($group.UserPrincipal | Sort-Object -Unique).Count
+            UniqueUsers      = @($group.UserPrincipal | Sort-Object -Unique).Count
             WouldBlock       = @($group | Where-Object { $_.Result -eq 'reportOnlyFailure' }).Count
             WouldChallenge   = @($group | Where-Object { $_.Result -eq 'reportOnlyInterrupted' }).Count
             WouldPass        = @($group | Where-Object { $_.Result -eq 'reportOnlySuccess' }).Count
