@@ -116,7 +116,7 @@ Create the missing group or override the parameter with your tenant's actual gro
 The built-in Phishing-resistant MFA authentication strength is missing or has been renamed. Verify with:
 
 ```powershell
-Invoke-MgGraphRequest GET 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/authenticationStrengths/policies'
+Invoke-MgGraphRequest GET 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/authenticationStrength/policies'
 ```
 
 If the built-in is renamed in your tenant, pass the custom name via -AuthStrengthName.
