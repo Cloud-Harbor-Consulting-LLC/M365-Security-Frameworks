@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .github/ISSUE_TEMPLATE/ — bug report, policy request, and documentation fix issue templates.
 - .github/pull_request_template.md — PR checklist aligned to the four design principles.
 - .github/CODEOWNERS — auto-review routing on every PR.
+- Frameworks/Conditional-Access-Baseline/Policies/CA-EXC001-EmergencyAccess-Exclusion.md — written contract documenting that every CA-* policy excludes the Emergency Access persona, plus the operational runbook (alerting, monthly attestation, quarterly recovery drill, rotation).
 
 ### Fixed
 
