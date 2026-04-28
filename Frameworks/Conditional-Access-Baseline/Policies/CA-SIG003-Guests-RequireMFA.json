@@ -1,0 +1,32 @@
+{
+    "displayName": "CA-SIG003-Guests-RequireMFA",
+    "state": "enabledForReportingButNotEnforced",
+    "conditions": {
+        "users": {
+            "includeUsers": [],
+            "excludeGroups": [
+                "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"
+            ],
+            "includeGuestsOrExternalUsers": {
+                "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider",
+                "externalTenants": {
+                    "membershipKind": "all"
+                }
+            }
+        },
+        "applications": {
+            "includeApplications": [
+                "All"
+            ]
+        },
+        "clientAppTypes": [
+            "all"
+        ]
+    },
+    "grantControls": {
+        "operator": "OR",
+        "builtInControls": [
+            "mfa"
+        ]
+    }
+}
