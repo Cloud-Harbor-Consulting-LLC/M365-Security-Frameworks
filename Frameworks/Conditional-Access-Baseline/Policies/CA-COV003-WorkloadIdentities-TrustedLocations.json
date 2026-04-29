@@ -1,0 +1,22 @@
+{
+    "displayName": "CA-COV003-WorkloadIdentities-TrustedLocations",
+    "state": "enabledForReportingButNotEnforced",
+    "conditions": {
+        "clientApplications": {
+            "includeServicePrincipals": ["ServicePrincipalsInMyTenant"],
+            "excludeServicePrincipals": []
+        },
+        "applications": {
+            "includeApplications": ["All"]
+        },
+        "locations": {
+            "includeLocations": ["All"],
+            "excludeLocations": ["REPLACE_WITH_TRUSTED_IPS_LOCATION_ID"]
+        },
+        "clientAppTypes": ["all"]
+    },
+    "grantControls": {
+        "operator": "OR",
+        "builtInControls": ["block"]
+    }
+}

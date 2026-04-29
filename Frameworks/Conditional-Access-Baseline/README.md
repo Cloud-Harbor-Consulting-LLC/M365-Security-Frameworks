@@ -1,6 +1,6 @@
 # Conditional Access Baseline
 
-A defensible Conditional Access baseline for Microsoft Entra ID — seven starter policies that enforce Zero Trust access principles, grounded in the risk-reduction framing published in [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
+A defensible Conditional Access baseline for Microsoft Entra ID — eight starter policies that enforce Zero Trust access principles, grounded in the risk-reduction framing published in [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
 **Status:** 🟢 Released — v1.0.0
 
@@ -34,7 +34,7 @@ CA-[PrinciplePrefix][Number]-[Persona]-[Action]
 
 **Why this convention:** Every policy name is a micro-reminder of which principle it supports. Admins reading the policy list in Entra see the baseline's thesis reflected in the names themselves, and auditors can trace any policy back to a documented principle in three letters.
 
-## The seven starter policies
+## The eight starter policies
 
 | Policy Name | Purpose |
 |-------------|---------|
@@ -45,6 +45,7 @@ CA-[PrinciplePrefix][Number]-[Persona]-[Action]
 | `CA-AUT002-PrivRoles-RequirePhishResistantMFA` | Enforces strong auth at the role-activation layer (PIM path) |
 | `CA-SIG002-AllUsers-RequireStepUpOnRisk` | Responds dynamically to Entra ID Protection signals on medium/high-risk sign-ins |
 | `CA-SIG003-Guests-RequireMFA` | Requires MFA for all external users — B2B collaboration guests, direct-connect users, internal guests, service providers, and other external user types |
+| `CA-COV003-WorkloadIdentities-TrustedLocations` | Blocks service principal sign-ins from outside the tenant's Trusted IPs named location. Requires Workload Identities Premium SKU |
 
 Environments operating beyond this baseline should layer **Continuous Access Evaluation (CAE)** and **Token Protection** to close the session-token gap that static Conditional Access policies leave open.
 
@@ -53,7 +54,7 @@ Environments operating beyond this baseline should layer **Continuous Access Eva
 | Artifact | Purpose | Status |
 |----------|---------|--------|
 | [Policy design doc](./Design/POLICY-DESIGN.md) | Baseline philosophy, naming convention, exclusion-group strategy | 🟢 Released |
-| [JSON policy templates](./Policies/) | The seven importable Conditional Access policies | 🟢 Released |
+| [JSON policy templates](./Policies/) | The eight importable Conditional Access policies | 🟢 Released |
 | [Deployment scripts](./Scripts/) | PowerShell automation via Microsoft Graph | 🟢 Released |
 | [Business case](./Business-Case/ROI-CONDITIONAL-ACCESS.md) | ROI, risk reduction, and audit framing | 🟢 Released |
 
@@ -96,7 +97,7 @@ This baseline is deployed around the people it protects, not around individual t
 ### v1.0 — Foundation (shipped)
 
 - [x] Publish policy design doc (persona model, naming convention, exclusion strategy)
-- [x] Publish seven core JSON policy templates
+- [x] Publish eight core JSON policy templates
 - [x] Publish `Deploy-CABaseline.ps1` with `-WhatIf` and `-ReportOnly` support
 - [x] Publish ROI / business-case document
 - [x] Tag v1.0.0 release
@@ -108,7 +109,7 @@ This baseline is deployed around the people it protects, not around individual t
 - [x] `Get-CABaselineImpact.ps1` — report-only telemetry summarizer (WouldBlock / WouldChallenge / WouldPass / NotApplied)
 - [x] `CA-EXC001-EmergencyAccess-Exclusion.md` — written exclusion contract with monthly attestation and quarterly recovery drill
 - [x] `CA-SIG003-Guests-RequireMFA.json` — MFA for all external user types, honors CA-EXC001
-- [ ] `CA-COV003-WorkloadIdentities` — service principal targeting with IP filters
+- [x] `CA-COV003-WorkloadIdentities` — service principal targeting with IP filters
 - [ ] Persona / ROI doc rollup + tag v1.1.0
 
 ### v1.2 — Candidates (not committed)
