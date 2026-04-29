@@ -4,7 +4,7 @@ This folder contains deployment automation for the Conditional Access Baseline f
 
 | Script | Purpose |
 |--------|---------|
-| Deploy-CABaseline.ps1 | Imports the seven CA-COV, CA-SIG, and CA-AUT policy templates into a Microsoft Entra tenant. Resolves tenant-specific placeholders at runtime, defaults to report-only state, and supports -WhatIf for safe preview. |
+| Deploy-CABaseline.ps1 | Imports the eight CA-COV, CA-SIG, and CA-AUT policy templates into a Microsoft Entra tenant. Resolves tenant-specific placeholders at runtime, defaults to report-only state, and supports -WhatIf for safe preview. |
 | Get-CABaselineImpact.ps1 | Analyzes Entra sign-in logs to report what each report-only CA policy would have done if enforced. Use this before promoting any policy from `enabledForReportingButNotEnforced` to `enabled` state. |
 
 ## Prerequisites
@@ -56,7 +56,7 @@ Runs every read operation — group lookups, authentication strength lookup, tem
 .\Deploy-CABaseline.ps1
 ```
 
-Creates all seven policies in enabledForReportingButNotEnforced state. Policies evaluate every sign-in and log the outcome, but never block or challenge a user. This is the safe default for every first deployment.
+Creates all eight policies in enabledForReportingButNotEnforced state. Policies evaluate every sign-in and log the outcome, but never block or challenge a user. This is the safe default for every first deployment.
 
 #### Enforced deployment (destructive, requires confirmation)
 
@@ -64,7 +64,7 @@ Creates all seven policies in enabledForReportingButNotEnforced state. Policies 
 .\Deploy-CABaseline.ps1 -Enforce
 ```
 
-Creates all seven policies in enabled state. Prompts once for confirmation before touching the tenant. Only run this after:
+Creates all eight policies in enabled state. Prompts once for confirmation before touching the tenant. Only run this after:
 
 1. A full report-only soak period per Policy-Design.md section 5.
 2. Validation that every user in scope has the prerequisites for each policy (MFA registration for CA-COV002, phishing-resistant credentials for CA-AUT001/002, device compliance for CA-SIG001).
@@ -94,11 +94,11 @@ Successful report-only deployment produces output similar to:
 [OK]     REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID -> <guid>
 [OK]     REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID -> <guid>
 [OK]     REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID -> <guid>
-[OK]   Found 7 policy templates in ../Policies
+[OK]   Found 8 policy templates in ../Policies
 [INFO] Processing: CA-AUT001-PrivAccounts-RequirePhishResistantMFA.json
 [OK]     Created: CA-AUT001-PrivAccounts-RequirePhishResistantMFA [<guid>]
 ... (one entry per template) ...
-[INFO] Created: 7, Previewed: 0, Errors: 0
+[INFO] Created: 8, Previewed: 0, Errors: 0
 [INFO] Reminder: Policies are in report-only mode. Soak, validate, and promote to enforced per Policy-Design.md section 5.
 ```
 
@@ -230,5 +230,5 @@ If no sign-ins matched the filter, no records are written. Check the per-policy 
 ## Reference
 
 - Policy-Design.md — baseline philosophy, naming convention, persona model, rollout sequence
-- Policies/ — the seven JSON policy templates consumed by Deploy-CABaseline.ps1
+- Policies/ — the eight JSON policy templates consumed by Deploy-CABaseline.ps1
 - Repo root README — framework overview and business-case positioning
