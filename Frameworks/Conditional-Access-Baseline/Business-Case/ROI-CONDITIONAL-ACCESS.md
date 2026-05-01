@@ -6,12 +6,12 @@
 
 Identity is the modern enterprise perimeter. Over the last five years, industry data from Verizon's annual *Data Breach Investigations Report (DBIR)*, IBM's annual *Cost of a Data Breach Report*, and the *Microsoft Digital Defense Report* consistently ranks stolen or misused credentials as the leading initial access vector for enterprise breaches. Organizations that deploy a mature Conditional Access baseline materially reduce the probability of credential-driven incidents — without adding meaningful user friction when scoped correctly.
 
-This baseline delivers six foundational Conditional Access policies. They are designed to close the access paths attackers exploit most frequently — legacy authentication, unprotected privileged accounts, unmanaged endpoints accessing sensitive data, and high-risk sign-ins — while leaving routine user workflows untouched.
+This baseline delivers eight foundational Conditional Access policies. They are designed to close the access paths attackers exploit most frequently — legacy authentication, unprotected privileged accounts, unmanaged endpoints accessing sensitive data, high-risk sign-ins, unbounded workload-identity sign-in locations, and guest accounts authenticating with home-tenant assurance only — while leaving routine user workflows untouched.
 
 The ask of executive leadership is threefold:
 
 1. **Endorse a phased deployment** that runs each policy in report-only mode for 7 to 14 days before enforcement.
-2. **Fund or confirm Entra ID P1 (minimum) or P2 (recommended)** licensing for all in-scope users.
+2. **Fund or confirm Entra ID P1 (minimum) or P2 (recommended)** licensing for all in-scope users, and the **Workload Identities Premium** add-on for the workload-identity policy.
 3. **Authorize a quarterly review cadence** for the baseline, led jointly by Security and IT Operations.
 
 In return, the organization gets a defensible, auditable identity security posture that addresses the single highest-probability breach vector and aligns with SOC 2, ISO 27001, HIPAA, and PCI-DSS access control requirements.
@@ -38,7 +38,7 @@ MFA is necessary but no longer sufficient. Attackers using AiTM proxy kits (read
 
 ## What the baseline delivers
 
-Six policies, each addressing a specific business risk. The table below summarizes each one in non-technical language.
+Eight policies, each addressing a specific business risk. The table below summarizes each one in non-technical language.
 
 | Policy | Business risk addressed | User impact |
 |--------|------------------------|-------------|
@@ -48,6 +48,8 @@ Six policies, each addressing a specific business risk. The table below summariz
 | Require phishing-resistant MFA for privileged role activations | Extends the protection above to just-in-time privilege elevation via Privileged Identity Management. | Administrators activate elevated roles with phishing-resistant credentials. |
 | Require compliant or hybrid-joined device for sensitive apps | Ensures access to admin portals, email, and crown-jewel SaaS originates from a managed, healthy endpoint. | Users access sensitive apps only from organization-managed or hybrid-joined devices. |
 | Step-up MFA on medium or high-risk sign-ins | Automatically challenges sign-ins that Entra ID Protection scores as risky (impossible travel, unfamiliar location, leaked credentials, anonymous proxy). | An additional MFA prompt when Entra ID detects anomalous behavior — transparent in normal conditions. |
+| Restrict workload-identity sign-ins to trusted locations | Closes the workload-identity coverage gap by blocking service-principal sign-ins from outside approved egress IPs, where stolen client secrets and certificates are most often replayed. | None for legitimate workloads operating from approved network egress; failed sign-ins from unapproved IPs surface as alerts. |
+| Require MFA for guest (B2B) users | Ensures external collaborators authenticating into the tenant meet the organization's MFA floor, not just the home tenant's defaults. | Guests are challenged for MFA at the resource tenant unless their home tenant's MFA claim is trusted via cross-tenant access settings. |
 
 ## Investment required
 
@@ -56,23 +58,27 @@ Six policies, each addressing a specific business risk. The table below summariz
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
 | Entra ID plan | P1 | P2 |
+| Workload identity scoping | Workload Identities Premium add-on | Workload Identities Premium add-on |
 | Why P2 is recommended | N/A | Unlocks Identity Protection (required for risk-based step-up, policy 6) and Privileged Identity Management (required for privileged-role JIT activation) |
 
-**If P1 is already in place for all users,** the incremental licensing cost of this baseline is zero to deploy five of the six policies. Policy 6 (risk-based step-up) requires P2.
+**If P1 is already in place for all users,** the incremental licensing cost of this baseline is zero to deploy five of the eight policies. Policy 6 (risk-based step-up) requires P2. Policy 7 (workload-identity trusted locations) requires the Workload Identities Premium add-on, priced per service principal in scope.
 
 **If P2 is not yet in place,** the incremental cost per user can be calculated against the organization's existing Microsoft 365 agreement:
 
 - [INSERT: CURRENT USERS AT P1 × COST-PER-USER DELTA FROM P1 TO P2]
+- [INSERT: WORKLOAD IDENTITIES PREMIUM SERVICE PRINCIPAL COUNT × COST-PER-SP]
 
 ### Implementation (one-time)
 
 Implementation time varies by organization size and operational maturity. Typical engagement components:
 
-- Persona group design and creation
+- Persona group design and creation (including `CA-Persona-WorkloadIdentities` and `CA-Persona-GuestUsers`)
 - Emergency access account provisioning and documentation
 - Device compliance baseline in Microsoft Intune (prerequisite for policy 5)
 - MFA registration campaign (prerequisite for policy 2)
 - Phishing-resistant method rollout to privileged users (prerequisite for policies 3 and 4)
+- Named Locations registration for approved egress IP ranges (prerequisite for policy 7)
+- Cross-tenant access settings review for B2B partners (prerequisite for policy 8)
 - Report-only soak and validation (minimum 7–14 days per policy, parallelized)
 - Tuning and enforcement
 
@@ -83,8 +89,9 @@ A representative estimate for a mid-market organization (500–5,000 users) is m
 - Baseline review and tuning (~4 hours per quarter)
 - Temporary exclusion audit (~2 hours per quarter)
 - Risk detection tuning for policy 6 (~2 hours per quarter)
+- Workload identity inventory and trusted-location reconciliation for policy 7 (~2 hours per quarter)
 
-**Total annualized operational cost after deployment:** ~32 hours of security-architect time per year.
+**Total annualized operational cost after deployment:** ~40 hours of security-architect time per year.
 
 ## Risk reduction framing
 
@@ -98,6 +105,8 @@ The baseline does not eliminate breach risk — no single control does. It does 
 | Require phishing-resistant MFA for privileged role activations | PIM activation with phishable MFA | Closes the JIT-elevation gap |
 | Require compliant/hybrid-joined device for sensitive apps | Data exfiltration from unmanaged endpoints | Establishes device health as an access condition |
 | Step-up MFA on risky sign-ins | Novel attack patterns (impossible travel, new country, AiTM indicators) | Creates adaptive, signal-driven defense |
+| Restrict workload-identity sign-ins to trusted locations | Replay of stolen client secrets and certificates from attacker-controlled infrastructure | Surfaces unknown service-principal usage in sign-in logs and turns workload egress into an audited control |
+| Require MFA for guest (B2B) users | Compromised external collaborator accounts entering the tenant with weak home-tenant authentication | Aligns guest assurance with internal-user assurance and creates audit evidence for partner-driven access |
 
 ## Compliance and audit alignment
 
@@ -119,13 +128,15 @@ Beyond compliance, the baseline also satisfies the identity-related controls cyb
 
 - Create persona groups and emergency access accounts
 - Deploy Intune device compliance baseline (if not already in place)
-- Import all six policies in report-only mode
+- Inventory workload identities and register approved egress IP ranges as Named Locations
+- Review cross-tenant access settings for B2B partners
+- Import all eight policies in report-only mode
 - Begin MFA registration campaign
 
 ### Phase 2 — Soak and validation (weeks 5 to 8)
 
 - Monitor report-only results for each policy
-- Remediate any findings (users without MFA, services using legacy auth, non-compliant devices)
+- Remediate any findings (users without MFA, services using legacy auth, non-compliant devices, workloads signing in from unregistered IPs, guests without MFA claims)
 - Complete phishing-resistant method rollout to privileged users
 
 ### Phase 3 — Staged enforcement (weeks 9 to 12)
@@ -155,11 +166,11 @@ Conditional Access is Microsoft's Zero Trust policy engine. Deploying a defensib
 
 ## Notes on bracketed placeholders
 
-Three bracketed placeholders in this document should be populated by the deploying organization before this business case is presented to executive leadership:
+Four bracketed placeholders in this document should be populated by the deploying organization before this business case is presented to executive leadership:
 
 - Estimated annual breach-risk exposure (from the organization's risk register or cyber-insurance questionnaire)
 - Current cyber-insurance premium (from the organization's insurance renewal data)
 - Industry average breach cost (from the most recent IBM *Cost of a Data Breach Report*)
-- Incremental P1-to-P2 licensing cost per user (from the organization's Microsoft licensing agreement)
+- Incremental P1-to-P2 licensing cost per user, plus Workload Identities Premium per service principal (from the organization's Microsoft licensing agreement)
 
 These numbers convert a directional business case into a quantified ROI specific to the organization. A template with named industry references ages better than a template with specific percentages that drift as new reports are published.
