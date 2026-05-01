@@ -2,7 +2,7 @@
 
 A defensible Conditional Access baseline for Microsoft Entra ID — eight starter policies that enforce Zero Trust access principles, grounded in the risk-reduction framing published in [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-**Status:** 🟢 Released — v1.0.0
+**Status:** 🟢 Released — v1.1.0
 
 ## Why a baseline first
 
@@ -103,14 +103,15 @@ This baseline is deployed around the people it protects, not around individual t
 - [x] Tag v1.0.0 release
 - [x] v1.0.1 patch — deployer hardening and doc fixes
 
-### v1.1 — Operational maturity & persona completeness (in progress)
+### v1.1 — Operational maturity & persona completeness (shipped)
 
 - [x] Repo governance: issue templates, PR template, CODEOWNERS, branch protection, project board
 - [x] `Get-CABaselineImpact.ps1` — report-only telemetry summarizer (WouldBlock / WouldChallenge / WouldPass / NotApplied)
 - [x] `CA-EXC001-EmergencyAccess-Exclusion.md` — written exclusion contract with monthly attestation and quarterly recovery drill
 - [x] `CA-SIG003-Guests-RequireMFA.json` — MFA for all external user types, honors CA-EXC001
 - [x] `CA-COV003-WorkloadIdentities` — service principal targeting with IP filters
-- [ ] Persona / ROI doc rollup + tag v1.1.0
+- [x] Persona / ROI doc rollup + tag v1.1.0
+- [x] `Deploy-CABaseline.ps1` — `Write-Status` hardened with `[AllowEmptyString()]` to prevent StrictMode regression
 
 ### v1.2 — Candidates (not committed)
 
