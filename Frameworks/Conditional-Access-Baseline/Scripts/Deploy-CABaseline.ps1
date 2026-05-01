@@ -93,7 +93,7 @@ $ErrorActionPreference = 'Stop'
 
 function Write-Status {
     param(
-        [Parameter(Mandatory)][string]$Message,
+        [Parameter(Mandatory)][AllowEmptyString()][string]$Message,
         [ValidateSet('Info', 'Success', 'Warning', 'Error')][string]$Level = 'Info'
     )
     $color = switch ($Level) {
