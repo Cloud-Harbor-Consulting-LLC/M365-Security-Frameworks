@@ -22,7 +22,7 @@ Every framework in this repo includes:
 
 | Framework | Focus Area | Status |
 |-----------|------------|--------|
-| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Entra ID, Zero Trust | 🟢 Released -- v1.0.0 |
+| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Entra ID, Zero Trust | 🟢 Released -- v1.1.0 |
 | [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Endpoint Management | ⚪ Planned (Q3 2026) |
 | [Entra ID Governance Toolkit](./Frameworks/Entra-ID-Governance-Toolkit/) | Identity Governance | ⚪ Planned (Q4 2026) |
 | [Defender XDR Detection Rules](./Frameworks/Defender-XDR-Detection-Rules/) | SIEM & XDR | ⚪ Planned (Q1 2027) |
