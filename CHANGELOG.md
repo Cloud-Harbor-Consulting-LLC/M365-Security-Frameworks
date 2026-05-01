@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-05-01
+
+Operational maturity and persona completeness release for the **Conditional Access Baseline**. Adds the External Guests and Workload Identities personas, a written Emergency Access exclusion contract, a report-only telemetry script, repo governance scaffolding, and a hardened deployer.
+
 ### Added
 
 - Scripts/Get-CABaselineImpact.ps1 — report-only telemetry tool: analyzes sign-in logs and summarizes what each report-only CA policy would have done if enforced.
@@ -29,15 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deploy-CABaseline.ps1 — hardened `Write-Status` against empty-string messages by adding `[AllowEmptyString()]` to the `$Message` parameter. Prevents the StrictMode regression that surfaced in v1.0.1 where `Write-Status ""` (used for blank-line spacing) threw a parameter validation error.
 - Get-CABaselineImpact.ps1 — StrictMode-safe check for `@odata.nextLink` so the script doesn't error on the final page of sign-in results.
 - Get-CABaselineImpact.ps1 — force array semantics around `.Count` accesses so the script works when 0 or 1 sign-ins / records / unique users exist (StrictMode correctness).
-
-### Planned for v1.1 of the **Conditional Access Baseline**
-
-- Repo hygiene: issue templates, PR template, `CODEOWNERS`, GitHub Project board
-- Report-only telemetry script to quantify impact before enforcement
-- Workload Identities persona and baseline policy
-- External Guests (B2B) persona and baseline policy
-- Explicit documented Emergency Access exclusion policy template
-- `Write-Status` function hardened with `[AllowEmptyString()]` to prevent future regressions
 
 ---
 
@@ -101,6 +96,10 @@ First public release of the **Conditional Access Baseline** framework.
 This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund, and Claus Jespersen on Conditional Access design patterns.
 
 ---
+[Unreleased] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...HEAD>
 
-[Unreleased]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/releases/tag/v1.0.0
+[1.1.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.1...v1.1.0>
+
+[1.0.1] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.0...v1.0.1>
+
+[1.0.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/releases/tag/v1.0.0>

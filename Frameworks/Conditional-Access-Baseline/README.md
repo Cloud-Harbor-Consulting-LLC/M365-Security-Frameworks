@@ -2,7 +2,7 @@
 
 A defensible Conditional Access baseline for Microsoft Entra ID — eight starter policies that enforce Zero Trust access principles, grounded in the risk-reduction framing published in [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-**Status:** 🟢 Released — v1.0.0
+**Status:** 🟢 Released — v1.1.0
 
 ## Why a baseline first
 
