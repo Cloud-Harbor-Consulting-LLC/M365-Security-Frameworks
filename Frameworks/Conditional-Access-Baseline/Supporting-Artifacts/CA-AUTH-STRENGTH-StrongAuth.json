@@ -1,0 +1,10 @@
+{
+  "displayName": "StrongAuth",
+  "description": "Phishing-resistant only. Windows Hello for Business or FIDO2 hardware key. Use for sensitive scenarios where the rollout to phishing-resistant credentials is complete and password-backed MFA is no longer acceptable.",
+  "policyType": "custom",
+  "requirementsSatisfied": "mfa",
+  "allowedCombinations": [
+    "windowsHelloForBusiness",
+    "fido2"
+  ]
+}
