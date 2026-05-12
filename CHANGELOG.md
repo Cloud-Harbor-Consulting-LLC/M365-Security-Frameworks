@@ -5,6 +5,8 @@ All notable changes to **M365-Security-Frameworks** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
 ## [Unreleased]
 
 ### Added
@@ -14,10 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/CA-AUTH-STRENGTH-StandardAuth.json — custom authentication strength: Windows Hello for Business, FIDO2, or password + Microsoft Authenticator push. Default strength for general user populations during the rollout to phishing-resistant credentials.
 - Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/CA-AUTH-STRENGTH-StrongAuth.json — custom authentication strength: Windows Hello for Business or FIDO2. Phishing-resistant only.
 - Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/CA-AUTH-STRENGTH-AdminAuth.json — custom authentication strength: FIDO2 only. Narrowest strength in the baseline; for privileged accounts and admin roles.
+- Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/CA-LOCATION-TrustedCountries.json — country-based named location template (`countryNamedLocation`). Default scope: US, `clientIpAddress` lookup, unknown countries excluded. Adopters customize the `countriesAndRegions` list to match their organization's trust posture before bootstrapping.
+- Frameworks/Conditional-Access-Baseline/Scripts/Deploy-CABaseline.ps1 — added `Resolve-NamedLocationId` resolver, new `-SupportingArtifactsPath` and `-TrustedCountriesLocationName` parameters, and a new `REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID` substitution. The deployer now resolves named-location placeholders against `/identity/conditionalAccess/namedLocations` by display name.
+- Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/README.md — added named-locations section and a bootstrapping-artifacts section with the Graph API calls operators run once per tenant to provision custom authentication strengths and named locations before deployment.
 
 ### Fixed
 
-- Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.## [1.1.0] — 2026-05-01
+- Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.
+
+---
+
+## [1.1.0] — 2026-05-01
 
 Operational maturity and persona completeness release for the **Conditional Access Baseline**. Adds the External Guests and Workload Identities personas, a written Emergency Access exclusion contract, a report-only telemetry script, repo governance scaffolding, and a hardened deployer.
 

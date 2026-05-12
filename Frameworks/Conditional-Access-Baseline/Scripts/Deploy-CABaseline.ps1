@@ -3,19 +3,34 @@
     Deploys the Conditional Access Baseline policies to a Microsoft Entra tenant.
 
 .DESCRIPTION
-    Deploy-CABaseline.ps1 imports the six CA-COV, CA-SIG, and CA-AUT policy
+    Deploy-CABaseline.ps1 imports the CA-COV, CA-SIG, and CA-AUT policy
     templates in this framework into the target tenant. The script:
 
     - Resolves tenant-specific placeholders (persona group IDs, authentication
-      strength ID) by looking them up in the tenant at runtime
+      strength IDs, named location IDs) by looking them up in the tenant at
+      runtime
     - Validates every placeholder resolves before submitting any policy
     - Defaults to report-only state (enabledForReportingButNotEnforced); use
       -Enforce to promote to enabled state (requires explicit confirmation)
     - Supports -WhatIf for safe preview before any policy is created
 
+    Supporting artifacts (custom authentication strengths, named locations)
+    referenced by the policy templates must exist in the tenant before running
+    this script. The Supporting-Artifacts folder in this framework contains the
+    JSON templates that document the expected shape of each artifact; operators
+    provision them once via the Graph API (see Supporting-Artifacts/README.md),
+    and this script resolves them by display name at deploy time.
+
 .PARAMETER PolicyPath
     Path to the folder containing the JSON policy templates. Defaults to
     '../Policies' relative to the script's location.
+
+.PARAMETER SupportingArtifactsPath
+    Path to the folder containing JSON templates for supporting artifacts
+    (custom authentication strengths, named locations). Defaults to
+    '../Supporting-Artifacts' relative to the script's location. This folder is
+    not deployed by the script; it documents the expected shape of artifacts
+    that must pre-exist in the tenant.
 
 .PARAMETER EmergencyAccessGroupName
     Display name of the emergency access group. Default: CA-Persona-EmergencyAccess.
@@ -32,6 +47,10 @@
 .PARAMETER AuthStrengthName
     Display name of the authentication strength policy. Default: 'Phishing-resistant MFA'.
 
+.PARAMETER TrustedCountriesLocationName
+    Display name of the trusted-countries named location. Default: 'Trusted Countries'.
+    Template: ../Supporting-Artifacts/CA-LOCATION-TrustedCountries.json.
+
 .PARAMETER Enforce
     Switch. If specified, policies are created in 'enabled' state instead of
     report-only. Destructive — requires explicit confirmation.
@@ -42,21 +61,22 @@
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1
-    Deploy all six policies in report-only mode.
+    Deploy all policies in report-only mode.
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1 -Enforce
-    Deploy all six policies in enabled state. Prompts for confirmation.
+    Deploy all policies in enabled state. Prompts for confirmation.
 
 .NOTES
     Requires:
     - PowerShell 7.0 or later
     - Microsoft.Graph PowerShell SDK 2.x
-    - Graph scopes: Policy.ReadWrite.ConditionalAccess, Group.Read.All, Policy.Read.All
-    - Persona groups must exist in the tenant before running this script
+    - Graph scopes: Policy.ReadWrite.ConditionalAccess, Group.Read.All, Policy.Read.All, Application.Read.All
+    - Persona groups, authentication strengths, and named locations must exist
+      in the tenant before running this script
 
     Connect with:
-      Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All
+      Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All,Application.Read.All
 
     Author: Derek Morgan, Cloud Harbor Consulting
     Repository: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks
@@ -66,6 +86,9 @@
 param(
     [Parameter()]
     [string]$PolicyPath = (Join-Path $PSScriptRoot 'Policies'),
+
+    [Parameter()]
+    [string]$SupportingArtifactsPath = (Join-Path $PSScriptRoot 'Supporting-Artifacts'),
 
     [Parameter()]
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
@@ -81,6 +104,9 @@ param(
 
     [Parameter()]
     [string]$AuthStrengthName = 'Phishing-resistant MFA',
+
+    [Parameter()]
+    [string]$TrustedCountriesLocationName = 'Trusted Countries',
 
     [Parameter()]
     [switch]$Enforce
@@ -151,6 +177,20 @@ function Resolve-AuthStrengthId {
     return $match[0].id
 }
 
+function Resolve-NamedLocationId {
+    param([Parameter(Mandatory)][string]$DisplayName)
+    $uri = 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations?$select=id,displayName'
+    $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+    $match = @($response.value | Where-Object { $_.displayName -eq $DisplayName })
+    if ($match.Count -eq 0) {
+        throw "Named location not found in tenant: '$DisplayName'. Create it before running this script (see Supporting-Artifacts/README.md)."
+    }
+    if ($match.Count -gt 1) {
+        throw "Multiple named locations found with displayName '$DisplayName'. Ensure the name is unique."
+    }
+    return $match[0].id
+}
+
 function Expand-Placeholders {
     param(
         [Parameter(Mandatory)][string]$JsonContent,
@@ -191,11 +231,12 @@ try {
         'REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID'        = Resolve-GroupId -DisplayName $GlobalAdminsGroupName
         'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'       = Resolve-GroupId -DisplayName $InternalUsersGroupName
         'REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID'   = Resolve-AuthStrengthId -DisplayName $AuthStrengthName
+        'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'        = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
     }
     foreach ($key in $substitutions.Keys) {
         Write-Status "  $key -> $($substitutions[$key])" -Level Success
     }
-
+    
     $resolvedPolicyPath = Resolve-Path -Path $PolicyPath -ErrorAction SilentlyContinue
     if (-not $resolvedPolicyPath) {
         throw "Policy path not found: $PolicyPath"
