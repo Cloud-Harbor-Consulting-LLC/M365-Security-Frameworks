@@ -1,0 +1,9 @@
+{
+  "displayName": "AdminAuth",
+  "description": "FIDO2 hardware key only. The narrowest custom auth strength in the baseline. Use for privileged accounts and admin roles. No Windows Hello, no password-backed factors.",
+  "policyType": "custom",
+  "requirementsSatisfied": "mfa",
+  "allowedCombinations": [
+    "fido2"
+  ]
+}
