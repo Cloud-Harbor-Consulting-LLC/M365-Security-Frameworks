@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Frameworks/Conditional-Access-Baseline/Policies/CA-EXC002-ServiceAccounts-Exclusion.md — written contract documenting that every human-targeted CA-* policy excludes the ServiceAccounts persona via `users.excludeGroups`, and that the persona is the inclusion target for the v1.2 compensating control (CA-COV010-ServiceAccounts-BlockUntrustedLocations). Defines persona membership rules, monthly attestation, quarterly sign-in review, and credential rotation procedure. Parallel in structure to CA-EXC001-EmergencyAccess-Exclusion.md.
+
 ### Fixed
 
 - Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.
