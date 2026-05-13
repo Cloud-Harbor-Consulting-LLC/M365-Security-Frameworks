@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Intune Compliance Baseline (ICB) framework skeleton: framework README at Frameworks/Intune-Compliance-Baseline/README.md, platform-led naming convention (ICB-WIN###, ICB-MAC###, ICB-IOS###, ICB-AND###, ICB-LIN###), scope, and roadmap. POLICY-DESIGN.md and the first Windows 10/11 compliance template land in subsequent PRs this week, with the v0.1.0-preview tag scheduled for Fri May 15, 2026.
 - CA-SIG004-Global-MediumUserRisk: graduated medium User Risk response requiring StandardAuth and a password change, with sign-in frequency set to every time. Global persona with the standard Emergency Access / Workload Identities / Service Accounts excludes.
 - CA-SIG005-Global-MediumSignInRisk: graduated medium Sign-In Risk response requiring StandardAuth, with sign-in frequency set to every time. Global persona with the standard Emergency Access / Workload Identities / Service Accounts excludes.
 - CA-AUT003-Global-RegisterDevice policy template (Global persona; userAction urn:user:registerdevice; requires StandardAuth authentication strength; report-only on first deployment; excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts groups).
