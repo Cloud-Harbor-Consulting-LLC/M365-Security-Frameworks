@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CA-AUT003-Global-RegisterDevice policy template (Global persona; userAction urn:user:registerdevice; requires StandardAuth authentication strength; report-only on first deployment; excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts groups).
+- CA-AUT004-Global-RegisterSecurityInfo policy template (Global persona; userAction urn:user:registersecurityinfo; requires StandardAuth authentication strength; report-only on first deployment; excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts groups).
 - CA-COV008-Global-BlockByLocation policy template (Global persona; blocks sign-ins from locations outside the CA-LOCATION-TrustedCountries named-location set; report-only on first deployment; excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts groups).
 - Frameworks/Conditional-Access-Baseline/Policies/CA-EXC002-ServiceAccounts-Exclusion.md — written contract documenting that every human-targeted CA-* policy excludes the ServiceAccounts persona via `users.excludeGroups`, and that the persona is the inclusion target for the v1.2 compensating control (CA-COV010-ServiceAccounts-BlockUntrustedLocations). Defines persona membership rules, monthly attestation, quarterly sign-in review, and credential rotation procedure. Parallel in structure to CA-EXC001-EmergencyAccess-Exclusion.md.
 - Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/ — new folder for tenant-scoped artifacts that CA policy templates depend on (custom authentication strengths, named locations). Includes a README documenting the schema and how `Deploy-CABaseline.ps1` will resolve placeholder IDs against the tenant.

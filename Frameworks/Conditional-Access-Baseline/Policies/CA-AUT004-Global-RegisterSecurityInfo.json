@@ -1,0 +1,25 @@
+{
+  "displayName": "CA-AUT004-Global-RegisterSecurityInfo",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ]
+    },
+    "applications": {
+      "includeUserActions": ["urn:user:registersecurityinfo"]
+    },
+    "clientAppTypes": ["all"]
+  },
+  "grantControls": {
+    "operator": "AND",
+    "builtInControls": [],
+    "authenticationStrength": {
+      "id": "REPLACE_WITH_STANDARD_AUTH_STRENGTH_ID"
+    }
+  }
+}
