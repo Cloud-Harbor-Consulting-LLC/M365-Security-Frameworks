@@ -1,0 +1,40 @@
+{
+  "displayName": "CA-COV004-Global-NoPersistentBrowserSession",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": ["All"],
+      "excludeApplications": []
+    },
+    "platforms": {
+      "includePlatforms": ["all"],
+      "excludePlatforms": ["iOS", "android"]
+    },
+    "clientAppTypes": ["browser"]
+  },
+  "sessionControls": {
+    "persistentBrowser": {
+      "mode": "never",
+      "isEnabled": true
+    },
+    "signInFrequency": {
+      "value": 4,
+      "type": "hours",
+      "authenticationType": "primaryAndSecondaryAuthentication",
+      "frequencyInterval": "timeBased",
+      "isEnabled": true
+    }
+  }
+}
