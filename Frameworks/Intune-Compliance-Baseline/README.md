@@ -1,50 +1,49 @@
-# Intune Compliance Baseline
+# Intune Compliance Baseline (ICB)
 
-> **Status:** Planned — targeted for **Q3 2026**
-> Part of the [M365-Security-Frameworks](../../README.md) project by [Cloud Harbor Consulting](https://www.cloudharborconsulting.cloud).
+> **Status:** Scaffolding. Framework folder, design principles, and first template land across this week. Tagged release v0.1.0-preview is scheduled for Fri May 15, 2026.
 
----
+The Intune Compliance Baseline (ICB) is a public, opinionated set of Microsoft Intune device compliance policy templates and the design principles behind them. It is the second framework in the [M365-Security-Frameworks](../../README.md) repo, alongside the Conditional Access Baseline.
 
-## What this framework will deliver
+ICB defines what "compliant" means at the device layer. The Conditional Access Baseline consumes that signal via the compliant-device grant control. The two frameworks are deliberately separable: an organization can adopt ICB without CA, or CA without ICB, but the combination is where the zero-trust story lands.
 
-A defensible, opinionated Microsoft Intune compliance baseline that defines **what "trusted device" actually means** before Conditional Access enforces it.
+## Scope (week 1)
 
-The Conditional Access Baseline ([`CA-SIG001`](../Conditional-Access-Baseline/Policies/)) requires a compliant or hybrid-joined device for sensitive apps — but that guarantee is only as strong as the compliance policy behind it. This framework fills that gap.
+- Framework skeleton and design principles.
+- First Windows 10/11 compliance policy template (ICB-WIN001), modeled after a real production tenant export and reproducing 9 active settings.
+- Public-facing v0.1.0-preview release tag.
 
-## Design principles (draft)
+## Out of scope (week 1, deferred)
 
-1. **Compliance is a contract, not a checklist** — every rule maps to a specific threat it mitigates
-2. **Platform parity where it matters** — Windows, macOS, iOS, Android treated as first-class, not afterthoughts
-3. **Grace periods with teeth** — non-compliance has a defined path to remediation or access loss
-4. **Signals feed Conditional Access** — every compliance outcome is consumable by CA policies
+- macOS, iOS, Android, and Linux compliance templates.
+- Deployment script (Deploy-ICBaseline.ps1).
+- Cross-framework integration doc covering the Conditional Access "require compliant device" plus ICB handoff.
 
-## Planned scope
+These items land between the v0.1.0-preview release and the Q3 2026 framework-completion target.
 
-- Compliance policy templates (Windows, macOS, iOS, Android)
-- Device configuration profiles for baseline hardening
-- Enrollment restrictions and platform guardrails
-- Scripts for bulk deployment and drift detection
-- Executive ROI document tied to endpoint risk reduction
-- Compliance mapping (SOC 2, ISO 27001, HIPAA, PCI-DSS, NIST 800-53)
+## Naming convention
 
-## Out of scope
+Templates use a platform-led prefix:
 
-- Full MDM/MAM deployment guidance (that's a book, not a framework)
-- App protection policies — planned for a separate Intune App Protection framework
-- Autopilot provisioning — covered elsewhere in the Microsoft ecosystem
+- ICB-WIN### for Windows 10/11
+- ICB-MAC### for macOS
+- ICB-IOS### for iOS and iPadOS
+- ICB-AND### for Android
+- ICB-LIN### for Linux
 
-## Prerequisites (anticipated)
+Numbering starts at 001 per platform. Each template covers one logical compliance posture. Multi-posture stacks are layered via separate template numbers, not via combined templates.
 
-- Microsoft Intune Plan 1 (included in most M365 E3/E5 and Business Premium SKUs)
-- Entra ID P1 or higher for Conditional Access integration
-- PowerShell 7+ and Microsoft Graph PowerShell SDK 2.x
+## Roadmap
 
-## Follow along
+| Template | Status |
+|----------|--------|
+| ICB-WIN001 | Targeted for this week (PR C) |
+| ICB-WIN002 onward | Secure Boot, Code Integrity, OS-version floor, password requirements, EALAM driver, Healthy Device Report. Called out as roadmap items in POLICY-DESIGN.md. |
+| ICB-MAC001, ICB-IOS001, ICB-AND001, ICB-LIN001 | Post-v0.1.0-preview, before Q3 2026 framework completion |
 
-This framework is in the roadmap stage. Watch or star the repo to be notified when v1.0.0 ships.
+## Design principles
 
-Questions, use cases, or requirements you'd like to see covered? [Open an issue](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/issues) — early input shapes the baseline.
+See POLICY-DESIGN.md (lands in PR B) for device personas, platform scope, action-for-noncompliance defaults, and the signal-handoff contract with the Conditional Access Baseline.
 
----
+## Contributing
 
-*Maintained by [Derek Morgan](https://www.linkedin.com/in/derek-morgan-ii-14370775/), Cloud Harbor Consulting.*
+Standard repo contribution conventions apply. See the root [CONTRIBUTING.md](../../CONTRIBUTING.md) and the [PR template](../../.github/pull_request_template.md).
