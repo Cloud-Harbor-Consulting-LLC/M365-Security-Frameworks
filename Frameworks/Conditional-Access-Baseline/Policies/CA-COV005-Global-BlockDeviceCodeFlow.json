@@ -1,0 +1,30 @@
+{
+  "displayName": "CA-COV005-Global-BlockDeviceCodeFlow",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": ["All"],
+      "excludeApplications": []
+    },
+    "authenticationFlows": {
+      "transferMethods": "deviceCodeFlow"
+    },
+    "clientAppTypes": ["all"]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": ["block"]
+  }
+}
