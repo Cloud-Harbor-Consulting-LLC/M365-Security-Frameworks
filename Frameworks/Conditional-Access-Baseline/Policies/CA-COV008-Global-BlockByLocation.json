@@ -1,0 +1,28 @@
+{
+  "displayName": "CA-COV008-Global-BlockByLocation",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ]
+    },
+    "applications": {
+      "includeApplications": ["All"]
+    },
+    "locations": {
+      "includeLocations": ["All"],
+      "excludeLocations": [
+        "REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_OBJECT_ID"
+      ]
+    },
+    "clientAppTypes": ["all"]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": ["block"]
+  }
+}
