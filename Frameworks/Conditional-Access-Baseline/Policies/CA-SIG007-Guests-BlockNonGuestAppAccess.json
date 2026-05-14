@@ -1,0 +1,33 @@
+{
+  "displayName": "CA-SIG007-Guests-BlockNonGuestAppAccess",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeGroups": [
+        "REPLACE_WITH_GUEST_USERS_GROUP_OBJECT_ID"
+      ],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ]
+    },
+    "applications": {
+      "includeApplications": [
+        "All"
+      ],
+      "excludeApplications": [
+        "Office365"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": [
+      "block"
+    ]
+  }
+}
