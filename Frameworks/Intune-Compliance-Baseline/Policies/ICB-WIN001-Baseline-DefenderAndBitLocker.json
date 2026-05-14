@@ -1,0 +1,43 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "displayName": "ICB-WIN001-Baseline-DefenderAndBitLocker",
+  "description": "Intune Compliance Baseline — Windows 10/11 verification template. Confirms the platform-enforced security floor (BitLocker, TPM, Windows Defender AV, Windows Firewall, Defender for Endpoint MTD signal at medium). Surfaces deviceComplianceState only; does not configure the device. See Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md sections 1.2 and 8.1.",
+  "roleScopeTagIds": ["0"],
+  "bitLockerEnabled": true,
+  "storageRequireEncryption": true,
+  "activeFirewallRequired": true,
+  "tpmRequired": true,
+  "antivirusRequired": true,
+  "defenderEnabled": true,
+  "signatureOutOfDate": 1,
+  "rtpEnabled": true,
+  "deviceThreatProtectionEnabled": true,
+  "deviceThreatProtectionRequiredSecurityLevel": "medium",
+  "scheduledActionsForRule": [
+    {
+      "ruleName": "PasswordRequired",
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 168,
+          "notificationTemplateId": "",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}
