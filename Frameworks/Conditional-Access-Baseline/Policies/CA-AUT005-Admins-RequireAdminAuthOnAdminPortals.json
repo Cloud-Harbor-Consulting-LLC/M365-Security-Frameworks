@@ -1,0 +1,48 @@
+{
+  "displayName": "CA-AUT005-Admins-RequireAdminAuthOnAdminPortals",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": [],
+      "excludeUsers": [],
+      "includeGroups": ["REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID"],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [
+        "62e90394-69f5-4237-9190-012177145e10",
+        "e8611ab8-c189-46e8-94e1-60213ab1f814",
+        "194ae4cb-b126-40b2-bd5b-6091b380977d",
+        "7be44c8a-adaf-4e2a-84d6-ab2649e08a13",
+        "158c047a-c907-4556-b7ef-446551a6b5f7",
+        "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3",
+        "fe930be7-5e62-47db-91af-98c3a49a38b1",
+        "966707d0-3269-4727-9be2-8c3a10f19b9d",
+        "c4e39bd9-1100-46d3-8c65-fb160da0071f",
+        "729827e3-9c14-49f7-bb1b-9608f156bbb8",
+        "29232cdf-9323-42fd-ade2-1d097af3e4de",
+        "f28a1f50-f6e7-4571-818b-6a12f2af6b6c",
+        "69091246-20e8-4a56-aa4d-066075b2a7a8",
+        "3a2c62db-5318-420d-8d74-23affee5d9d5"
+      ],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": [
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013",
+        "MicrosoftAdminPortals"
+      ],
+      "excludeApplications": []
+    },
+    "clientAppTypes": ["all"]
+  },
+  "grantControls": {
+    "operator": "AND",
+    "builtInControls": [],
+    "authenticationStrength": {
+      "id": "REPLACE_WITH_ADMIN_AUTH_STRENGTH_ID"
+    }
+  }
+}
