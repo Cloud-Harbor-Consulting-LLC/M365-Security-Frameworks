@@ -40,7 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frameworks/Conditional-Access-Baseline/Policies/CA-COV006-Global-BlockAuthenticationTransfer.json — Global persona auth-flow policy. Blocks Authentication Transfer (cross-device authentication initiated on one device and completed on another, `conditions.authenticationFlows.transferMethods="authenticationTransfer"`) for all users on all applications. Excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts per CA-EXC001 and CA-EXC002. Ships in report-only.
 - Frameworks/Conditional-Access-Baseline/Policies/CA-COV007-Global-BlockUnknownPlatforms.json — Global persona platform-hygiene policy. Blocks sign-ins from device platforms not in the named set (`includePlatforms=["all"]`, `excludePlatforms=["windows","macOS","iOS","android","linux","windowsPhone"]`) for all users on all applications. Excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts per CA-EXC001 and CA-EXC002. Catches sign-ins from spoofed, headless, or obsolete device platforms that fall outside the tenant's supported fleet. Ships in report-only.
 
-### Fixed
+### Changed
+
+- Frameworks/Conditional-Access-Baseline/Design/POLICY-DESIGN.md — documented sections 6.9 through 6.23 (`CA-COV004`, `CA-COV005`, `CA-COV006`, `CA-COV007`, `CA-AUT003`, `CA-AUT004`, `CA-COV008`, `CA-COV009`, `CA-SIG004`, `CA-SIG005`, `CA-AUT005`, `CA-SIG006`, `CA-SIG007`, `CA-COV010`, `CA-SIG008`) per-policy specs; added rollout-sequence rows 9 through 23; added the Service Accounts persona row to section 3 and the `CA-EXC002` reference under section 4.1 (permanent exclusions count updated from 2 to 3); added section 1.5 (v1.2 design refinements) and section 1.6 (Global and Admins scope definitions); updated section 6 intro count from "eight" to "twenty-three" starter policies.### Fixed
 
 - Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.
 
