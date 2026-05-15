@@ -20,12 +20,12 @@ Every framework in this repo includes:
 
 ## Frameworks
 
-| Framework | Focus Area | Status |
-|-----------|------------|--------|
-| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Entra ID, Zero Trust | 🟢 Released -- v1.1.0 |
-| [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Endpoint Management | ⚪ Planned (Q3 2026) |
-| [Entra ID Governance Toolkit](./Frameworks/Entra-ID-Governance-Toolkit/) | Identity Governance | ⚪ Planned (Q4 2026) |
-| [Defender XDR Detection Rules](./Frameworks/Defender-XDR-Detection-Rules/) | SIEM & XDR | ⚪ Planned (Q1 2027) |
+| Framework | Status | Latest | Notes |
+|-----------|--------|--------|-------|
+| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Released | v1.2.0 (2026-05-15) | 23 policies across 5 personas plus workload identities; report-only by default |
+| [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Preview | v0.1.0-preview (2026-05-15) | First Windows 10/11 compliance template + framework design spec; macOS, iOS, Android, Linux templates and Deploy-ICBaseline.ps1 land toward Q3 2026 full-framework completion |
+| Entra ID Governance Toolkit | Planned | — | First Access Reviews automation templates Month 2 Week 2 (May 2026); full framework Q4 2026 |
+| Defender XDR Detection Rules | Planned | — | First custom KQL queries Month 7 Week 2 (Oct 2026); full framework Q1 2027 |
 
 ## Quickstart
 
