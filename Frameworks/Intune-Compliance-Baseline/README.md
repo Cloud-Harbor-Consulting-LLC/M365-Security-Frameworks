@@ -1,24 +1,24 @@
 # Intune Compliance Baseline (ICB)
 
-> **Status:** Scaffolding. Framework folder, design principles, and first template land across this week. Tagged release v0.1.0-preview is scheduled for Fri May 15, 2026.
+> **Status:** v0.1.0-preview shipped Fri May 15, 2026. Framework skeleton, design principles, and first Windows 10/11 template are public. Release history is tracked in the [root CHANGELOG](../../CHANGELOG.md) under v1.2.0.
 
 The Intune Compliance Baseline (ICB) is a public, opinionated set of Microsoft Intune device compliance policy templates and the design principles behind them. It is the second framework in the [M365-Security-Frameworks](../../README.md) repo, alongside the Conditional Access Baseline.
 
 ICB defines what "compliant" means at the device layer. The Conditional Access Baseline consumes that signal via the compliant-device grant control. The two frameworks are deliberately separable: an organization can adopt ICB without CA, or CA without ICB, but the combination is where the zero-trust story lands.
 
-## Scope (week 1)
+## Scope (v0.1.0-preview)
 
 - Framework skeleton and design principles.
 - First Windows 10/11 compliance policy template (ICB-WIN001), modeled after a real production tenant export and reproducing 9 active settings.
-- Public-facing v0.1.0-preview release tag.
+- Public-facing v0.1.0-preview release tag (`icb-v0.1.0-preview`).
 
-## Out of scope (week 1, deferred)
+## Out of scope (v0.1.0-preview)
 
 - macOS, iOS, Android, and Linux compliance templates.
 - Deployment script (Deploy-ICBaseline.ps1).
 - Cross-framework integration doc covering the Conditional Access "require compliant device" plus ICB handoff.
 
-These items land between the v0.1.0-preview release and the Q3 2026 framework-completion target.
+These items land between v0.1.0-preview and the Q3 2026 framework-completion target. The signal contract with Conditional Access v1.2 CA-SIG-* policies is documented in [POLICY-DESIGN.md](./POLICY-DESIGN.md) but remains advisory until ICB v0.1.0 GA.
 
 ## Naming convention
 
@@ -36,13 +36,20 @@ Numbering starts at 001 per platform. Each template covers one logical complianc
 
 | Template | Status |
 |----------|--------|
-| ICB-WIN001 | Targeted for this week (PR C) |
-| ICB-WIN002 onward | Secure Boot, Code Integrity, OS-version floor, password requirements, EALAM driver, Healthy Device Report. Called out as roadmap items in POLICY-DESIGN.md. |
+| ICB-WIN001 | Shipped (v0.1.0-preview) |
+| ICB-WIN002 onward | Secure Boot, Code Integrity, OS-version floor, password requirements, EALAM driver, Healthy Device Report. Called out as roadmap items in [POLICY-DESIGN.md](./POLICY-DESIGN.md). |
 | ICB-MAC001, ICB-IOS001, ICB-AND001, ICB-LIN001 | Post-v0.1.0-preview, before Q3 2026 framework completion |
+
+Release-level milestones:
+
+- **v0.1.0-preview** (2026-05-15, shipped): Skeleton + design doc + ICB-WIN001.
+- **v0.2.0-preview** (target Q3 2026): macOS + Linux templates + Deploy-ICBaseline.ps1.
+- **v0.3.0-preview** (target Q4 2026): iOS + Android templates + CA signal-contract enforcement tests.
+- **v0.1.0 GA** (target Q1 2027): All five platforms + CA signal contract becomes binding.
 
 ## Design principles
 
-See POLICY-DESIGN.md (lands in PR B) for device personas, platform scope, action-for-noncompliance defaults, and the signal-handoff contract with the Conditional Access Baseline.
+See [POLICY-DESIGN.md](./POLICY-DESIGN.md) for device personas, platform scope, action-for-noncompliance defaults, and the signal-handoff contract with the Conditional Access Baseline.
 
 ## Contributing
 
