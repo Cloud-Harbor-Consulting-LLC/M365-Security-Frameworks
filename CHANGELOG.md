@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.2.0] - 2026-05-15
+
 ### Added
 
 - Frameworks/Intune-Compliance-Baseline/Policies/ICB-WIN001-Baseline-DefenderAndBitLocker.json — first ICB Windows 10/11 compliance template. Reproduces the 9 active settings from the May 12 source-of-truth export (BitLocker, storage encryption, firewall, TPM, antivirus, Defender enabled, signature freshness at 1 day, real-time protection, Defender for Endpoint MTD at medium). Includes the graduated-response scheduledActionsForRule block — notify at 0 days, mark noncompliant at 7 days; no retire on corporate Windows per POLICY-DESIGN section 5. Assigns to the ICB-Persona-CorpWindows persona group.
@@ -48,6 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.
+
+### Note on Intune Compliance Baseline timing
+
+The original repo roadmap targeted the Intune Compliance Baseline at Q3 2026 for framework completion. The MVP Strategy publishing calendar (Month 2 Week 2, May 2026) calls for the first Intune compliance policy templates earlier. This release reconciles the two: the framework skeleton and first Windows 10/11 template ship now under the v0.1.0-preview tag (2026-05-15); full framework completion (macOS, iOS, Android, Linux templates, Deploy-ICBaseline.ps1, cross-framework integration doc with the Conditional Access Baseline) remains targeted at Q3 2026.
 
 ---
 
@@ -140,7 +148,9 @@ First public release of the **Conditional Access Baseline** framework.
 This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund, and Claus Jespersen on Conditional Access design patterns.
 
 ---
-[Unreleased] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...HEAD>
+[Unreleased] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.2.0...HEAD>
+
+[1.2.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...v1.2.0>
 
 [1.1.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.1...v1.1.0>
 

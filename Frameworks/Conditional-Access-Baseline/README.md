@@ -1,134 +1,225 @@
 # Conditional Access Baseline
 
-A defensible Conditional Access baseline for Microsoft Entra ID — eight starter policies that enforce Zero Trust access principles, grounded in the risk-reduction framing published in [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
+A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-three policies across five personas plus workload identities, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-**Status:** 🟢 Released — v1.1.0
+**Status:** 🟢 Released — v1.2.0
+
+---
 
 ## Why a baseline first
 
-Conditional Access is Microsoft's Zero Trust policy engine, not a feature. Every sign-in is evaluated against identity, device state, location, risk, and application signals — and a decision is made to allow, block, or challenge. Most Conditional Access failures don't stem from the technology; they stem from policies bolted on without a defensible baseline underneath.
+Conditional Access is Microsoft's Zero Trust policy engine, not a collection of feature toggles. Most tenants accumulate Conditional Access policies the way attics accumulate boxes: one at a time, each with a forgotten owner and a half-remembered justification. The result is a policy set that is broad in count and narrow in coverage, with exclusions that no one reviews and signals that no one tunes.
 
-**Until a baseline exists, adding more Conditional Access policies increases complexity without materially reducing risk.**
+A baseline reverses that pattern. Until a defensible baseline exists, adding more Conditional Access policies increases complexity without materially reducing risk. This framework establishes the floor.
+
+---
 
 ## What a defensible baseline looks like
 
-1. **Identity-wide coverage** — no orphaned identities or applications
-2. **No standing exclusions** — only controlled, time-bound access paths
-3. **Layered signals** — device, location, and risk aligned to real attack paths
-4. **Authentication Strengths** — phishing-resistant MFA for privileged and high-value workloads
+Four principles anchor every design decision in this framework:
+
+1. **Identity-wide coverage.** No orphaned identities, applications, or legacy protocols authenticate outside the scope of Conditional Access. Every user, every guest, every workload identity, and every cloud app is covered by at least one evaluated policy.
+2. **No standing exclusions.** Exclusions are a common attack path. Only two exclusion groups are permanent (emergency access accounts and workload identities, each governed by a hardened separate policy set). All other exclusions are time-bound, auditable, and reviewed.
+3. **Layered signals.** Strong security emerges from combining signals (identity risk, device state, location, application sensitivity), not from any single control. Every signal-driven policy in this baseline evaluates two or more signals in combination.
+4. **Authentication Strengths.** Not all MFA is equal. SMS and voice-call MFA are phishable via adversary-in-the-middle proxies; FIDO2, Windows Hello for Business, and certificate-based authentication are not. Privileged identities and high-value workloads in this baseline are protected by phishing-resistant methods.
+
+The four principles are specified, with rationale and per-policy implementation notes, in [Design/POLICY-DESIGN.md](Design/POLICY-DESIGN.md).
+
+---
 
 ## Naming convention
 
-Every policy in this baseline follows a principle-coded naming scheme that ties each policy back to one of the four defensible-baseline principles above:
+Every policy in this baseline follows the format:
 
-```
-CA-[PrinciplePrefix][Number]-[Persona]-[Action]
-```
+`CA-[PrinciplePrefix][Number]-[Persona]-[Action]`
 
-| Principle | Prefix | Meaning |
-|-----------|--------|---------|
-| Identity-wide coverage | `COV` | Ensures no orphaned identities, apps, or legacy protocols slip past |
-| No standing exclusions | `EXC` | Governs time-bound or controlled access paths (future policies) |
-| Layered signals | `SIG` | Uses device, location, or risk signals to shape access decisions |
-| Authentication Strengths | `AUT` | Enforces phishing-resistant MFA for privileged and high-value workloads |
+| Prefix | Principle | Use when the policy primarily enforces... |
+|--------|-----------|-------------------------------------------|
+| COV | Identity-wide coverage | Blanket coverage of users, apps, or protocols |
+| EXC | No standing exclusions | Time-bound access paths, documented permanent exclusions |
+| SIG | Layered signals | Device, location, or risk signals shaping access decisions |
+| AUT | Authentication Strengths | Phishing-resistant MFA requirements |
 
-**Why this convention:** Every policy name is a micro-reminder of which principle it supports. Admins reading the policy list in Entra see the baseline's thesis reflected in the names themselves, and auditors can trace any policy back to a documented principle in three letters.
+File names mirror policy names. The JSON template for `CA-COV001-AllUsers-BlockLegacyAuth` is `CA-COV001-AllUsers-BlockLegacyAuth.json`.
 
-## The eight starter policies
+---
 
-| Policy Name | Purpose |
-|-------------|---------|
-| `CA-COV001-AllUsers-BlockLegacyAuth` | Eliminates the single largest unsecured protocol surface in Entra ID |
-| `CA-COV002-AllUsers-RequireMFA` | Establishes multi-factor as the floor for every authenticated session |
-| `CA-SIG001-SensApps-RequireCompliantDevice` | Ties access to known, healthy endpoints for high-value workloads |
-| `CA-AUT001-PrivAccounts-RequirePhishResistantMFA` | Protects the identities attackers target first |
-| `CA-AUT002-PrivRoles-RequirePhishResistantMFA` | Enforces strong auth at the role-activation layer (PIM path) |
-| `CA-SIG002-AllUsers-RequireStepUpOnRisk` | Responds dynamically to Entra ID Protection signals on medium/high-risk sign-ins |
-| `CA-SIG003-Guests-RequireMFA` | Requires MFA for all external users — B2B collaboration guests, direct-connect users, internal guests, service providers, and other external user types |
-| `CA-COV003-WorkloadIdentities-TrustedLocations` | Blocks service principal sign-ins from outside the tenant's Trusted IPs named location. Requires Workload Identities Premium SKU |
+## The twenty-three starter policies
 
-Environments operating beyond this baseline should layer **Continuous Access Evaluation (CAE)** and **Token Protection** to close the session-token gap that static Conditional Access policies leave open.
+All twenty-three policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
+
+### Global persona (12)
+
+| Policy | Intent |
+|--------|--------|
+| CA-COV001-AllUsers-BlockLegacyAuth | Block authentication paths that cannot enforce MFA. |
+| CA-COV002-AllUsers-RequireMFA | Require MFA for every interactive sign-in. |
+| CA-COV004-Global-NoPersistentBrowserSession | Disable persistent browser sessions; enforce 4-hour browser sign-in frequency. |
+| CA-COV005-Global-BlockDeviceCodeFlow | Block OAuth 2.0 device code flow. |
+| CA-COV006-Global-BlockAuthenticationTransfer | Block cross-device Authentication Transfer. |
+| CA-COV007-Global-BlockUnknownPlatforms | Block sign-ins from device platforms outside the named fleet. |
+| CA-COV008-Global-BlockByLocation | Block sign-ins from outside the Trusted Countries named-location set. |
+| CA-AUT003-Global-RegisterDevice | Require StandardAuth for the device-registration user action. |
+| CA-AUT004-Global-RegisterSecurityInfo | Require StandardAuth for the security-info registration user action. |
+| CA-SIG002-AllUsers-RequireStepUpOnRisk | Step up MFA on medium and high sign-in risk. |
+| CA-SIG004-Global-MediumUserRisk | Graduated response to medium User Risk: StandardAuth plus password change, SignInFreq every time. |
+| CA-SIG005-Global-MediumSignInRisk | Graduated response to medium Sign-In Risk: StandardAuth, SignInFreq every time. |
+
+### Internal persona (2)
+
+| Policy | Intent |
+|--------|--------|
+| CA-COV009-Internal-RequireCompliantDeviceOnDesktops | Require compliant or hybrid-joined device on Windows, macOS, and Linux. |
+| CA-SIG008-Internal-TokenProtection | Cryptographically bind refresh tokens to the issuing Windows device's TPM-protected key. |
+
+### Admins persona (4)
+
+| Policy | Intent |
+|--------|--------|
+| CA-AUT001-PrivAccounts-RequirePhishResistantMFA | Require phishing-resistant MFA (StrongAuth) for privileged account sign-ins. |
+| CA-AUT002-PrivRoles-RequirePhishResistantMFA | Require phishing-resistant MFA at PIM activation for privileged directory roles. |
+| CA-AUT005-Admins-RequireAdminAuthOnAdminPortals | Require AdminAuth (FIDO2 only) on Azure Service Management and Microsoft Admin Portals. |
+| CA-SIG006-Admins-BlockMediumAndHighSignInRisk | Hard-block admin sign-ins at medium and high sign-in risk (no re-challenge path). |
+
+### Guests persona (2)
+
+| Policy | Intent |
+|--------|--------|
+| CA-SIG003-Guests-RequireMFA | Require MFA for every interactive guest sign-in. |
+| CA-SIG007-Guests-BlockNonGuestAppAccess | Block guest sign-ins to any application outside the Microsoft 365 collaboration set. |
+
+### ServiceAccounts persona (1)
+
+| Policy | Intent |
+|--------|--------|
+| CA-COV010-ServiceAccounts-BlockUntrustedLocations | Block service-account sign-ins originating outside the Trusted Countries named-location set. |
+
+### Workload identities (1)
+
+| Policy | Intent |
+|--------|--------|
+| CA-COV003-WorkloadIdentities-TrustedLocations | Restrict service-principal sign-ins to a defined egress (requires Workload Identities Premium). |
+
+### Sensitive applications (1)
+
+| Policy | Intent |
+|--------|--------|
+| CA-SIG001-SensApps-RequireCompliantDevice | Require compliant or hybrid-joined device for sensitive-app access. |
+
+Per-policy design specs (intent, principle mapping, scope, conditions, controls, license requirements, validation steps) are in [Design/POLICY-DESIGN.md](Design/POLICY-DESIGN.md). Continuous Access Evaluation (CAE) layers on top of every grant policy in this baseline without a redundant configuration step; the post-MFA token-replay threat surface is documented in [Policies/CA-SIG008-Internal-TokenProtection.md](Policies/CA-SIG008-Internal-TokenProtection.md).
+
+---
 
 ## What's included in this framework
 
-| Artifact | Purpose | Status |
-|----------|---------|--------|
-| [Policy design doc](./Design/POLICY-DESIGN.md) | Baseline philosophy, naming convention, exclusion-group strategy | 🟢 Released |
-| [JSON policy templates](./Policies/) | The eight importable Conditional Access policies | 🟢 Released |
-| [Deployment scripts](./Scripts/) | PowerShell automation via Microsoft Graph | 🟢 Released |
-| [Business case](./Business-Case/ROI-CONDITIONAL-ACCESS.md) | ROI, risk reduction, and audit framing | 🟢 Released |
+| Artifact | Path | Purpose |
+|----------|------|---------|
+| Design specification | `Design/POLICY-DESIGN.md` | Principles, naming, persona model, exclusion strategy, rollout sequence, and per-policy design specs. |
+| Policy templates | `Policies/CA-*.json` | One JSON template per policy. All ship in report-only. |
+| Exclusion contracts | `Policies/CA-EXC001-EmergencyAccess-Exclusion.md`, `Policies/CA-EXC002-ServiceAccounts-Exclusion.md` | Written contracts for the two permanent exclusion personas, with attestation and review cadence. |
+| Supporting artifacts | `Supporting-Artifacts/CA-AUTH-STRENGTH-*.json`, `Supporting-Artifacts/CA-LOCATION-*.json` | Tenant-scoped custom authentication strengths (StandardAuth, StrongAuth, AdminAuth) and named locations (Trusted Countries) referenced by the policy templates. |
+| Deployer | `Scripts/Deploy-CABaseline.ps1` | PowerShell 7 + Microsoft Graph SDK 2.x. Placeholder resolution for groups, applications, named locations, and authentication strengths. `-WhatIf` supported. Report-only by default. |
+| Telemetry | `Scripts/Get-CABaselineImpact.ps1` | Report-only analyzer that summarizes what each policy would have done if enforced. |
+| Business case | `Business-Case/ROI-CONDITIONAL-ACCESS.md` | Plain-language ROI document for executive and board-level audiences. |
+
+---
 
 ## Personas covered
 
-This baseline is deployed around the people it protects, not around individual technical controls:
+- Global and Privileged Administrators (`CA-Persona-GlobalAdmins`)
+- Privileged Roles (PIM-activated, dynamic via directory roles)
+- Internal Users (`CA-Persona-InternalUsers`)
+- Guest Users (`CA-Persona-GuestUsers`)
+- Service Accounts (`CA-Persona-ServiceAccounts`)
+- Workload Identities (`CA-Persona-WorkloadIdentities`)
+- Emergency Access Accounts (`CA-Persona-EmergencyAccess`, monitored by alert rule, never members of any other group)
 
-- **Global & Privileged Administrators** — highest-trust, most-targeted accounts
-- **Privileged Roles (PIM-activated)** — just-in-time elevated identities
-- **Internal Users** — standard employee identities
-- **Guest Users** — external collaborators via B2B
-- **Workload Identities** — service principals and managed identities
-- **Emergency Access Accounts** — break-glass accounts (explicitly excluded)
+---
 
 ## Prerequisites
 
-- Microsoft Entra ID P1 (P2 recommended for risk-based policy `CA-SIG002`)
-- Global Administrator or Conditional Access Administrator role to deploy
-- Microsoft Graph PowerShell SDK 2.x installed
-- Two emergency access accounts created and excluded from every policy
-- A pilot group of users before tenant-wide rollout
+- Microsoft Entra ID P1 (minimum). P2 unlocks Identity Protection (required for `CA-SIG002`, `CA-SIG004`, `CA-SIG005`, `CA-SIG006`) and Privileged Identity Management (required for `CA-AUT002`).
+- Microsoft Entra Workload Identities Premium (required for `CA-COV003`).
+- Microsoft Intune (required for `CA-SIG001` and `CA-COV009`; hybrid Azure AD join is an accepted alternative for both).
+- PowerShell 7 and the Microsoft Graph SDK 2.x for the deployer.
+- Persona groups created in Entra ID and populated before deployment.
+- Two emergency-access accounts provisioned per `Policies/CA-EXC001-EmergencyAccess-Exclusion.md`.
+- ServiceAccounts persona group populated per `Policies/CA-EXC002-ServiceAccounts-Exclusion.md`.
+- Three custom authentication strengths (StandardAuth, StrongAuth, AdminAuth) created in the tenant from the templates in `Supporting-Artifacts/`.
+- Trusted Countries named location created in the tenant from the template in `Supporting-Artifacts/CA-LOCATION-TrustedCountries.json` and tailored to the organization's approved geographies.
+
+---
 
 ## Deployment workflow
 
-> ⚠️ **Do not deploy to production without a pilot.** Conditional Access misconfigurations are the #1 cause of self-inflicted lockouts in Entra ID. Always stage in report-only mode first.
+1. Review `Design/POLICY-DESIGN.md` end to end.
+2. Create the persona groups and populate them.
+3. Provision the two emergency-access accounts; populate the `CA-Persona-EmergencyAccess` group; configure the sign-in alert rule.
+4. Provision the ServiceAccounts persona group; complete the attestation in `CA-EXC002-ServiceAccounts-Exclusion.md`.
+5. Create the three custom authentication strengths and the Trusted Countries named location in the tenant from the templates in `Supporting-Artifacts/`.
+6. Open every policy template in `Policies/` and replace the `REPLACE_WITH_*_OBJECT_ID` placeholders with the actual object IDs from your tenant. The deployer resolves group, application, named-location, and authentication-strength placeholders automatically if the corresponding artifacts exist with matching display names.
+7. Run the deployer in report-only mode:
 
-```powershell
-# High-level flow (detailed steps publish with v1.0.0)
+    ```powershell
+    Connect-MgGraph -Scopes "Policy.ReadWrite.ConditionalAccess","Policy.Read.All","Group.Read.All","Application.Read.All","Policy.ReadWrite.AuthenticationMethod"
+    ./Scripts/Deploy-CABaseline.ps1 -WhatIf
+    ./Scripts/Deploy-CABaseline.ps1
+    ```
 
+8. Soak each policy in report-only for the minimum duration specified in `Design/POLICY-DESIGN.md` section 5. Use `Scripts/Get-CABaselineImpact.ps1` to summarize what each policy would have done if enforced.
+9. Promote policies to enforcement in the documented rollout sequence, one at a time, after the soak window closes and the impact analysis is clean.
 
-# 1. Create exclusion groups (emergency access, pilot users)
-# 2. Import CA-COV001 through CA-SIG002 in report-only mode
-# 3. Monitor sign-in logs for 7–14 days
-# 4. Promote policies from report-only to enforced, one at a time
-# 5. Tenant-wide rollout
-```
+---
 
 ## Roadmap
 
-### v1.0 — Foundation (shipped)
+### v1.0 — shipped (2026-04-22)
 
-- [x] Publish policy design doc (persona model, naming convention, exclusion strategy)
-- [x] Publish eight core JSON policy templates
-- [x] Publish `Deploy-CABaseline.ps1` with `-WhatIf` and `-ReportOnly` support
-- [x] Publish ROI / business-case document
-- [x] Tag v1.0.0 release
-- [x] v1.0.1 patch — deployer hardening and doc fixes
+- [x] Six starter policies (CA-COV001, CA-COV002, CA-AUT001, CA-AUT002, CA-SIG001, CA-SIG002)
+- [x] Design specification (POLICY-DESIGN.md)
+- [x] Deployer (`Deploy-CABaseline.ps1`)
+- [x] Business case (ROI-CONDITIONAL-ACCESS.md)
+- [x] Repository foundation (LICENSE, CONTRIBUTING, SECURITY, root README)
 
-### v1.1 — Operational maturity & persona completeness (shipped)
+### v1.1 — shipped (2026-05-01)
 
-- [x] Repo governance: issue templates, PR template, CODEOWNERS, branch protection, project board
-- [x] `Get-CABaselineImpact.ps1` — report-only telemetry summarizer (WouldBlock / WouldChallenge / WouldPass / NotApplied)
-- [x] `CA-EXC001-EmergencyAccess-Exclusion.md` — written exclusion contract with monthly attestation and quarterly recovery drill
-- [x] `CA-SIG003-Guests-RequireMFA.json` — MFA for all external user types, honors CA-EXC001
-- [x] `CA-COV003-WorkloadIdentities` — service principal targeting with IP filters
-- [x] Persona / ROI doc rollup + tag v1.1.0
-- [x] `Deploy-CABaseline.ps1` — `Write-Status` hardened with `[AllowEmptyString()]` to prevent StrictMode regression
+- [x] CA-SIG003 Guests-RequireMFA
+- [x] CA-COV003 WorkloadIdentities-TrustedLocations
+- [x] CA-EXC001 EmergencyAccess written exclusion contract
+- [x] `Get-CABaselineImpact.ps1` report-only telemetry
+- [x] Repo governance (issue templates, PR template, CODEOWNERS)
+- [x] POLICY-DESIGN.md and ROI-CONDITIONAL-ACCESS.md persona and workload rollups
 
-### v1.2 — Candidates (not committed)
+### v1.2 — shipped (2026-05-15)
 
-- [ ] Terms-of-Use acceptance policy for B2B guests
-- [ ] Dedicated `CA-Persona-ExternalGuests` group + sign-in frequency controls
-- [ ] CAE and Token Protection layering doc for post-baseline environments
-- [ ] Workload identity IP allow-listing patterns and CI/CD examples
+- [x] 15 new policies (Global, Internal, Admins, Guests, ServiceAccounts)
+- [x] CA-EXC002 ServiceAccounts written exclusion contract
+- [x] Three custom authentication-strength templates (StandardAuth, StrongAuth, AdminAuth)
+- [x] CA-LOCATION-TrustedCountries named-location template
+- [x] Supporting-Artifacts folder with bootstrapping README
+- [x] Deployer extended with named-location resolver
+- [x] POLICY-DESIGN.md v1.2 rollup (23 policies, five active personas, expanded rollout sequence)
+- [x] ROI-CONDITIONAL-ACCESS.md v1.2 rollup (23-policy ROI framing, ~40 hours/year operational cost)
+- [x] CAE and Token Protection layering note (CA-SIG008 paired design doc)
+
+### v1.3 — Candidates (not committed)
+
+- [ ] Terms-of-Use enforcement for B2B guests (Entra ID Premium ToU feature)
+- [ ] CAE and Token Protection layering doc for post-baseline environments (deeper-than-CA-SIG008 treatment, covering EXO + SPO + Teams client matrix and replay-resistance trade-offs)
+- [ ] Workload identity IP allow-listing patterns and CI/CD examples (Workload Identities Premium SKU)
+- [ ] Cross-framework integration doc (CA "require compliant device" plus Intune Compliance Baseline signal handoff)
+
+---
 
 ## References
 
-This baseline is grounded in my own consulting experience and the risk-reduction framing from the [Cloud Harbor Consulting blog](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it). It also acknowledges community prior art:
+- Microsoft Learn. [Conditional Access architecture](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-policies).
+- Microsoft Learn. [Authentication strengths](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths).
+- Microsoft Learn. [Continuous Access Evaluation](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation).
+- Cloud Harbor Consulting. [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-- Microsoft's [Conditional Access architecture](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-policies) guidance
-- Joey Verlinden's [ConditionalAccessBaseline](https://github.com/j0eyv/ConditionalAccessBaseline)
-- Daniel Chronlund's [Conditional Access design baseline](https://danielchronlund.com/)
-- Claus Jespersen's Microsoft Conditional Access framework
+---
 
 ## License
 
-MIT — see repo root [LICENSE](../../LICENSE).
+MIT. See [LICENSE](../../LICENSE).
