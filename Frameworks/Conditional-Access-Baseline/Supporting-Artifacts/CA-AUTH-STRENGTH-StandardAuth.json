@@ -1,6 +1,6 @@
 {
   "displayName": "StandardAuth",
-  "description": "Phishing-resistant first, with a password + Microsoft Authenticator push fallback. Default strength for general user populations during the rollout to phishing-resistant credentials.",
+  "description": "Phishing-resistant first, with a password + Microsoft Authenticator push fallback.",
   "policyType": "custom",
   "requirementsSatisfied": "mfa",
   "allowedCombinations": [
