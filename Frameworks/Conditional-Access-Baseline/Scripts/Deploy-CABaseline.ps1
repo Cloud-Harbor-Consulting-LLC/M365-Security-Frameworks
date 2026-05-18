@@ -94,6 +94,12 @@ param(
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
 
     [Parameter()]
+    [string]$GuestUsersGroupName = 'CA-Persona-GuestUsers',
+
+    [Parameter()]
+    [string]$ServiceAccountsGroupName = 'CA-Persona-ServiceAccounts',
+
+    [Parameter()]
     [string]$WorkloadIdentitiesGroupName = 'CA-Persona-WorkloadIdentities',
 
     [Parameter()]
@@ -101,6 +107,15 @@ param(
 
     [Parameter()]
     [string]$InternalUsersGroupName = 'CA-Persona-InternalUsers',
+
+    [Parameter()]
+    [string]$StandardAuthStrengthName = 'StandardAuth',
+
+    [Parameter()]
+    [string]$StrongAuthStrengthName = 'StrongAuth',
+
+    [Parameter()]
+    [string]$AdminAuthStrengthName = 'AdminAuth',
 
     [Parameter()]
     [string]$AuthStrengthName = 'Phishing-resistant MFA',
@@ -230,8 +245,14 @@ try {
         'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID'  = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
         'REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID'        = Resolve-GroupId -DisplayName $GlobalAdminsGroupName
         'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'       = Resolve-GroupId -DisplayName $InternalUsersGroupName
+        'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'     = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
+        'REPLACE_WITH_GUEST_USERS_GROUP_OBJECT_ID'         = Resolve-GroupId -DisplayName $GuestUsersGroupName
         'REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID'   = Resolve-AuthStrengthId -DisplayName $AuthStrengthName
+        'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_OBJECT_ID' = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
         'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'        = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
+        'REPLACE_WITH_STANDARD_AUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
+        'REPLACE_WITH_STRONG_AUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
+        'REPLACE_WITH_ADMIN_AUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
     }
     foreach ($key in $substitutions.Keys) {
         Write-Status "  $key -> $($substitutions[$key])" -Level Success
