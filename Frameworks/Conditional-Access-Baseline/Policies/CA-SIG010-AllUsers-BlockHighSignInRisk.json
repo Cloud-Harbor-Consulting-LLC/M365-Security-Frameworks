@@ -1,0 +1,27 @@
+{
+  "displayName": "CA-SIG010-AllUsers-BlockHighSignInRisk",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "users": {
+      "includeUsers": ["All"],
+      "excludeUsers": [],
+      "includeGroups": [],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+      ],
+      "includeRoles": [],
+      "excludeRoles": []
+    },
+    "applications": {
+      "includeApplications": ["All"],
+      "excludeApplications": []
+    },
+    "clientAppTypes": ["all"],
+    "signInRiskLevels": ["high"]
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": ["block"]
+  }
+}

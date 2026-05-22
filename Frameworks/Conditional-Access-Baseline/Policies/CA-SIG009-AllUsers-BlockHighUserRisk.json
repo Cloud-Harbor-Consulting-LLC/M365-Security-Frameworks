@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-SIG002-AllUsers-RequireStepUpOnRisk",
+  "displayName": "CA-SIG009-AllUsers-BlockHighUserRisk",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "users": {
@@ -18,18 +18,10 @@
       "excludeApplications": []
     },
     "clientAppTypes": ["all"],
-    "signInRiskLevels": ["medium", "high"]
+    "userRiskLevels": ["high"]
   },
   "grantControls": {
     "operator": "OR",
-    "builtInControls": ["mfa"]
-  },
-  "sessionControls": {
-    "signInFrequency": {
-      "value": 0,
-      "type": "hours",
-      "frequencyInterval": "everyTime",
-      "isEnabled": true
-    }
+    "builtInControls": ["block"]
   }
 }
