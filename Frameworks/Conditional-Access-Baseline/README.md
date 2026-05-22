@@ -44,11 +44,11 @@ File names mirror policy names. The JSON template for `CA-COV001-AllUsers-BlockL
 
 ---
 
-## The twenty-three starter policies
+## The twenty-four starter policies
 
-All twenty-three policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
+All twenty-four policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
 
-### Global persona (12)
+### Global persona (13)
 
 | Policy | Intent |
 |--------|--------|
@@ -61,9 +61,10 @@ All twenty-three policies ship in report-only on first deployment. Operators opt
 | CA-COV008-Global-BlockByLocation | Block sign-ins from outside the Trusted Countries named-location set. |
 | CA-AUT003-Global-RegisterDevice | Require StandardAuth for the device-registration user action. |
 | CA-AUT004-Global-RegisterSecurityInfo | Require StandardAuth for the security-info registration user action. |
-| CA-SIG002-AllUsers-RequireStepUpOnRisk | Step up MFA on medium and high sign-in risk. |
 | CA-SIG004-Global-MediumUserRisk | Graduated response to medium User Risk: StandardAuth plus password change, SignInFreq every time. |
 | CA-SIG005-Global-MediumSignInRisk | Graduated response to medium Sign-In Risk: StandardAuth, SignInFreq every time. |
+| CA-SIG009-AllUsers-BlockHighUserRisk | Block all users on high user risk (excludes break-glass accounts). |
+| CA-SIG010-AllUsers-BlockHighSignInRisk | Block all users on high sign-in risk (excludes break-glass accounts). |
 
 ### Internal persona (2)
 

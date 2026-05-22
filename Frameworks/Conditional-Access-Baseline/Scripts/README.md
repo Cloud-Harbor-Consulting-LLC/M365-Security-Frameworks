@@ -22,10 +22,9 @@ Before running any script in this folder, confirm the following are in place in 
 
 ### In your tenant
 
-- Four persona groups exist with these exact display names (or override via script parameters):
+- Three persona groups exist with these exact display names (or override via script parameters):
   - CA-Persona-EmergencyAccess
   - CA-Persona-WorkloadIdentities
-  - CA-Persona-GlobalAdmins
   - CA-Persona-InternalUsers
 - Emergency access accounts are created, documented, monitored by alert, and members of the CA-Persona-EmergencyAccess group only.
 - The built-in Phishing-resistant MFA authentication strength policy exists (this is a default in Entra ID P1+).
@@ -75,7 +74,7 @@ Creates all eight policies in enabled state. Prompts once for confirmation befor
 If your tenant uses different display names for the persona groups, override them via parameters:
 
 ```powershell
-.\Deploy-CABaseline.ps1 -EmergencyAccessGroupName 'BreakGlass-Accounts' -GlobalAdminsGroupName 'Tier0-Admins'
+.\Deploy-CABaseline.ps1 -EmergencyAccessGroupName 'BreakGlass-Accounts' -InternalUsersGroupName 'InternalUsers'
 ```
 
 See the script's comment-based help (`Get-Help .\Deploy-CABaseline.ps1 -Full`) for the complete parameter list.

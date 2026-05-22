@@ -38,9 +38,6 @@
 .PARAMETER WorkloadIdentitiesGroupName
     Display name of the workload identities group. Default: CA-Persona-WorkloadIdentities.
 
-.PARAMETER GlobalAdminsGroupName
-    Display name of the global administrators persona group. Default: CA-Persona-GlobalAdmins.
-
 .PARAMETER InternalUsersGroupName
     Display name of the internal users persona group. Default: CA-Persona-InternalUsers.
 
@@ -101,9 +98,6 @@ param(
 
     [Parameter()]
     [string]$WorkloadIdentitiesGroupName = 'CA-Persona-WorkloadIdentities',
-
-    [Parameter()]
-    [string]$GlobalAdminsGroupName = 'CA-Persona-GlobalAdmins',
 
     [Parameter()]
     [string]$InternalUsersGroupName = 'CA-Persona-InternalUsers',
@@ -243,7 +237,6 @@ try {
     $substitutions = @{
         'REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID'     = Resolve-GroupId -DisplayName $EmergencyAccessGroupName
         'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID'  = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
-        'REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID'        = Resolve-GroupId -DisplayName $GlobalAdminsGroupName
         'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'       = Resolve-GroupId -DisplayName $InternalUsersGroupName
         'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'     = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
         'REPLACE_WITH_GUEST_USERS_GROUP_OBJECT_ID'         = Resolve-GroupId -DisplayName $GuestUsersGroupName

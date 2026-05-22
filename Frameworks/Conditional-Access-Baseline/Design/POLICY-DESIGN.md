@@ -28,7 +28,7 @@ Four principles anchor every design decision in this framework:
 
 **What it means:** Strong security emerges from combining signals — identity risk, device state, location, application sensitivity — not from any single control. A policy that evaluates only one signal is a single point of failure.
 
-**How this baseline implements it:** Policies in the `CA-SIG` series evaluate multiple signals in combination. `CA-SIG001` layers application sensitivity with device compliance; `CA-SIG002` layers sign-in risk with step-up authentication; `CA-SIG003` layers user-type (guest) with the MFA control. This is the difference between "require MFA" and "require MFA *because we detected risk*."
+**How this baseline implements it:** Policies in the `CA-SIG` series evaluate multiple signals in combination. `CA-SIG001` layers application sensitivity with device compliance; `CA-SIG004` layers medium user-risk with authentication strength and password change; `CA-SIG003` layers user-type (guest) with the MFA control. This is the difference between "require MFA" and "require MFA *because we detected risk*."
 
 ### 1.4 Authentication Strengths
 
@@ -53,7 +53,7 @@ The v1.2 slate refines each of the four anchoring principles without replacing a
 
 #### Refinements of 1.3 Layered signals
 
-- **Graduated medium-risk response.** Medium user-risk (`CA-SIG004`) layers StandardAuth + password change + `signInFrequency=everyTime`. Medium sign-in risk (`CA-SIG005`) layers StandardAuth + `signInFrequency=everyTime`. High-risk continues to hard-block via `CA-SIG002`. Rationale: hard-blocking medium risk produces too many false-positive lockouts; the graduated control catches the threat without breaking legitimate sign-ins.
+- **Graduated medium-risk response.** Medium user-risk (`CA-SIG004`) layers StandardAuth + password change + `signInFrequency=everyTime`. Medium sign-in risk (`CA-SIG005`) layers StandardAuth + `signInFrequency=everyTime`. High-risk hard-blocks via `CA-SIG009` (user risk) and `CA-SIG010` (sign-in risk). Rationale: hard-blocking medium risk produces too many false-positive lockouts; the graduated control catches the threat without breaking legitimate sign-ins.
 - **Token Protection on Windows desktop.** `CA-SIG008` enables `secureSignInSession=true` for Internal Windows sign-ins to the Office 365 application bundle. The control operates at token-redemption time, layering with Continuous Access Evaluation (CAE) without redundancy.
 - **Trusted-countries location pattern.** `CA-LOCATION-TrustedCountries` is one named location with two policy roles: exclusion target for `CA-COV008` (everyone else allowed only from those countries) and inclusion target for `CA-COV010` (service accounts only allowed from those countries).
 - **Hard-block on admin-context medium risk.** `CA-SIG006` hard-blocks medium and high sign-in risk for the Admins scope. Admin credentials in a risk-flagged session do not get the MFA step-up path that `CA-SIG002` extends to general users.
@@ -66,7 +66,7 @@ The v1.2 slate refines each of the four anchoring principles without replacing a
 
 ### 1.6 Global scope and Admins scope
 
-Two scope segments appear in v1.2 policy names that are not separate personas in the table below: **Global** means "all users in the tenant" (the broadest baseline scope, the v1.2 successor to the `AllUsers` segment used by v1.1 policies) and **Admins** means "`CA-Persona-GlobalAdmins` plus the 14 highly-privileged Entra ID directory roles by template ID" (the broader scope used by `CA-AUT005` and `CA-SIG006`, distinct from the narrower `CA-Persona-GlobalAdmins` scope used by `CA-AUT001`). Both scope segments inherit the standard EmergencyAccess + WorkloadIdentities + ServiceAccounts exclusion contract.
+Two scope segments appear in v1.2 policy names that are not separate personas in the table below: **Global** means "all users in the tenant" (the broadest baseline scope, the v1.2 successor to the `AllUsers` segment used by v1.1 policies) and **Admins** means "the 14 highly-privileged Entra ID directory roles by template ID" (the scope used by `CA-AUT005` and `CA-SIG006`). Both scope segments inherit the standard EmergencyAccess + WorkloadIdentities + ServiceAccounts exclusion contract.
 
 ---
 
@@ -100,13 +100,12 @@ CA-[PrinciplePrefix][Number]-[Persona]-[Action]
 
 This baseline is deployed around the people it protects. Each persona maps to one or more Entra ID groups that serve as scope targets for policies.
 
-| Persona | Suggested Entra Group | Typical Size | Notes |
-|---------|----------------------|--------------|-------|
-| Global & Privileged Administrators | `CA-Persona-GlobalAdmins` | 2–5 members | Break-glass accounts are NOT members |
-| Privileged Roles (PIM-activated) | Dynamic, driven by PIM activation | Varies | Scoped via directory roles, not a static group |
+| Persona | Included By | Typical Size | Notes |
+|---------|------------|--------------|-------|
+| Privileged Roles (Directory Roles) | 14 template IDs | Inventory-dependent | Scoped via directory roles, not a static group. Includes roles: Global Admin, Privileged Role Admin, Security Admin, Exchange Admin, SharePoint Admin, Teams Admin, Dynamics Admin, Power Platform Admin, Auth Admin, Compliance Admin, Helpdesk Admin, Attributes Admin, Cloud App Admin, Reports Reader |
 | Internal Users | `CA-Persona-InternalUsers` | All employees | Dynamic group based on `userType eq 'Member'` recommended |
 | Guest Users | `CA-Persona-GuestUsers` | Varies | Dynamic group based on `userType eq 'Guest'` recommended |
-| Workload Identities | `CA-Persona-WorkloadIdentities` | Inventory-dependent | Scoped via the Workload Identities blade, not a user group |
+| Workload Identities | Scoped via Workload Identities blade | Inventory-dependent | Not scoped via a user group |
 | Emergency Access Accounts | `CA-Persona-EmergencyAccess` | Exactly 2 | Monitored by alert rule; never members of any other group |
 | Service Accounts | `EntraID-ConditionalAccess-ServiceAccounts` | Inventory-dependent | Non-interactive identities. Persona is the *inclusion* target for CA-COV010 and the *exclusion* target across every human-targeted policy via CA-EXC002. Not the same as Workload Identities (which sit on the CA-COV003 service-principal code path). |
 
@@ -157,24 +156,25 @@ Policies should be staged, enforced, and promoted in the following order. Each s
 | 3 | `CA-AUT001-PrivAccounts-RequirePhishResistantMFA` | 7 days | Small, high-trust scope — easy to validate |
 | 4 | `CA-AUT002-PrivRoles-RequirePhishResistantMFA` | 7 days | PIM-path parallel to CA-AUT001 |
 | 5 | `CA-SIG001-SensApps-RequireCompliantDevice` | 14 days | Requires device compliance maturity — soak longer |
-| 6 | `CA-SIG002-AllUsers-RequireStepUpOnRisk` | 14 days | Requires Entra ID P2 + Identity Protection tuning — soak longer |
-| 7 | `CA-COV003-WorkloadIdentities-TrustedLocations` | 14 days | Workload-identity coverage; soak to inventory legitimate egress IPs before enforcement |
-| 8 | `CA-SIG003-Guests-RequireMFA` | 7 days | Guest scope is bounded; soak captures cross-tenant B2B sign-in patterns |
-| 9 | `CA-COV004-Global-NoPersistentBrowserSession` | 14 days | Session-hardening floor; high reach across the Global scope |
-| 10 | `CA-COV005-Global-BlockDeviceCodeFlow` | 14 days | Auth-flow surface-area trio; soak captures legitimate device-pairing exceptions |
-| 11 | `CA-COV006-Global-BlockAuthenticationTransfer` | 14 days | Auth-flow surface-area trio; ships paired with CA-COV005 and CA-COV007 |
-| 12 | `CA-COV007-Global-BlockUnknownPlatforms` | 14 days | Auth-flow surface-area trio; soak captures sign-ins from spoofed, headless, or obsolete platforms |
-| 13 | `CA-AUT003-Global-RegisterDevice` | 14 days | userAction registration flow; soak validates StandardAuth coverage at registration time |
-| 14 | `CA-AUT004-Global-RegisterSecurityInfo` | 14 days | userAction registration flow; ships paired with CA-AUT003 |
-| 15 | `CA-COV008-Global-BlockByLocation` | 14 days | Depends on `CA-LOCATION-TrustedCountries`; soak inventories legitimate sign-in geographies |
-| 16 | `CA-COV009-Internal-RequireCompliantDeviceOnDesktops` | 14 days | Internal desktop coverage closure; depends on Intune compliance maturity |
-| 17 | `CA-SIG004-Global-MediumUserRisk` | 14 days | Graduated medium user-risk response; soak captures false-positive volume |
-| 18 | `CA-SIG005-Global-MediumSignInRisk` | 14 days | Graduated medium sign-in-risk response; ships paired with CA-SIG004 |
-| 19 | `CA-AUT005-Admins-RequireAdminAuthOnAdminPortals` | 7 days | Admin app-scoped FIDO2-only; layers on top of CA-AUT001/002 |
-| 20 | `CA-SIG006-Admins-BlockMediumAndHighSignInRisk` | 7 days | Admin-context hard block on risk; admins do not get MFA step-up fallback |
-| 21 | `CA-SIG007-Guests-BlockNonGuestAppAccess` | 7 days | Guest application-scope restriction to the Microsoft 365 collaboration set |
-| 22 | `CA-COV010-ServiceAccounts-BlockUntrustedLocations` | 14 days | ServiceAccounts compensating control; soak inventories legitimate service-account sign-in geographies |
-| 23 | `CA-SIG008-Internal-TokenProtection` | 14 days | Token-redemption-time control; soak inventories non-supporting clients and validates CAE layering |
+| 6 | `CA-COV003-WorkloadIdentities-TrustedLocations` | 14 days | Workload-identity coverage; soak to inventory legitimate egress IPs before enforcement |
+| 7 | `CA-SIG003-Guests-RequireMFA` | 7 days | Guest scope is bounded; soak captures cross-tenant B2B sign-in patterns |
+| 8 | `CA-COV004-Global-NoPersistentBrowserSession` | 14 days | Session-hardening floor; high reach across the Global scope |
+| 9 | `CA-COV005-Global-BlockDeviceCodeFlow` | 14 days | Auth-flow surface-area trio; soak captures legitimate device-pairing exceptions |
+| 10 | `CA-COV006-Global-BlockAuthenticationTransfer` | 14 days | Auth-flow surface-area trio; ships paired with CA-COV005 and CA-COV007 |
+| 11 | `CA-COV007-Global-BlockUnknownPlatforms` | 14 days | Auth-flow surface-area trio; soak captures sign-ins from spoofed, headless, or obsolete platforms |
+| 12 | `CA-AUT003-Global-RegisterDevice` | 14 days | userAction registration flow; soak validates StandardAuth coverage at registration time |
+| 13 | `CA-AUT004-Global-RegisterSecurityInfo` | 14 days | userAction registration flow; ships paired with CA-AUT003 |
+| 14 | `CA-COV008-Global-BlockByLocation` | 14 days | Depends on `CA-LOCATION-TrustedCountries`; soak inventories legitimate sign-in geographies |
+| 15 | `CA-COV009-Internal-RequireCompliantDeviceOnDesktops` | 14 days | Internal desktop coverage closure; depends on Intune compliance maturity |
+| 16 | `CA-SIG004-Global-MediumUserRisk` | 14 days | Graduated medium user-risk response; soak captures false-positive volume |
+| 17 | `CA-SIG005-Global-MediumSignInRisk` | 14 days | Graduated medium sign-in-risk response; ships paired with CA-SIG004 |
+| 18 | `CA-SIG009-AllUsers-BlockHighUserRisk` | 14 days | Requires Entra ID P2 + Identity Protection tuning; hard-block on high user risk |
+| 19 | `CA-SIG010-AllUsers-BlockHighSignInRisk` | 14 days | Requires Entra ID P2 + Identity Protection tuning; hard-block on high sign-in risk |
+| 20 | `CA-AUT005-Admins-RequireAdminAuthOnAdminPortals` | 7 days | Admin app-scoped FIDO2-only; layers on top of CA-AUT001/002 |
+| 21 | `CA-SIG006-Admins-BlockMediumAndHighSignInRisk` | 7 days | Admin-context hard block on risk; admins do not get MFA step-up fallback |
+| 22 | `CA-SIG007-Guests-BlockNonGuestAppAccess` | 7 days | Guest application-scope restriction to the Microsoft 365 collaboration set |
+| 23 | `CA-COV010-ServiceAccounts-BlockUntrustedLocations` | 14 days | ServiceAccounts compensating control; soak inventories legitimate service-account sign-in geographies |
+| 24 | `CA-SIG008-Internal-TokenProtection` | 14 days | Token-redemption-time control; soak inventories non-supporting clients and validates CAE layering |
 
 `CA-EXC001-EmergencyAccess-Exclusion` is a documented permanent exclusion, not a deployable policy, and is not part of the rollout sequence.
 
@@ -272,10 +272,10 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 #### Scope
 
-- Included users: `CA-Persona-GlobalAdmins`
+- Included users: None
 - Excluded users: `CA-Persona-EmergencyAccess`
+- Included directory roles: 14 highly-privileged roles (Global Administrator, Privileged Role Administrator, Security Administrator, Exchange Administrator, SharePoint Administrator, Teams Administrator, Dynamics Administrator, Power Platform Administrator, Authentication Administrator, Compliance Administrator, Helpdesk Administrator, Directory Synchronization Administrator, Cloud Application Administrator, Reports Reader)
 - Included cloud apps: All cloud apps
-- Excluded cloud apps: None
 
 #### Conditions
 
@@ -294,9 +294,9 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 #### Validation in report-only
 
-- Confirm every member of `CA-Persona-GlobalAdmins` has a registered phishing-resistant credential (FIDO2 key, Windows Hello, or certificate) BEFORE enforcement — lockout risk is highest here
+- Confirm every user with one of the 14 included directory roles has a registered phishing-resistant credential (FIDO2 key, Windows Hello, or certificate) BEFORE enforcement — lockout risk is highest for privileged roles
 - Provision backup FIDO2 keys for each admin; keep one secured offline
-- Verify break-glass accounts are NOT members of `CA-Persona-GlobalAdmins`
+- Verify break-glass accounts are NOT assigned any of the 14 included directory roles
 
 **JSON template:** `../Policies/CA-AUT001-PrivAccounts-RequirePhishResistantMFA.json` (planned)
 
@@ -379,46 +379,79 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.6 `CA-SIG002-AllUsers-RequireStepUpOnRisk`
+### 6.6 `CA-SIG009-AllUsers-BlockHighUserRisk`
 
-**Intent:** Enforce step-up authentication when Entra ID Identity Protection evaluates a sign-in as medium or high risk. Converts risk intelligence into an adaptive control rather than relying on static allow/deny.
+**Intent:** Hard-block all users when Entra ID Identity Protection evaluates user risk as high. Complements the graduated response on medium user risk (CA-SIG004).
 
-**Principle mapping:** Primary — SIG (Layered signals). Consumes Identity Protection sign-in risk and responds dynamically.
+**Principle mapping:** Primary — SIG (Layered signals). Consumes Identity Protection user risk and responds decisively.
 
 #### Scope
 
 - Included users: All users
 - Excluded users: `CA-Persona-EmergencyAccess`, `CA-Persona-WorkloadIdentities`
 - Included cloud apps: All cloud apps
-- Excluded cloud apps: None
 
 #### Conditions
 
 - Client apps: All
 - Device platforms: Any
 - Locations: Any
-- Sign-in risk: Medium, High
-- User risk: Not evaluated here (handled separately in a future CA-SIG policy addressing user-risk remediation)
+- User risk: High
 
 #### Controls
 
-- Grant: Require authentication strength — Multifactor authentication (consider Phishing-resistant MFA for high-risk sign-ins based on your tenant's false-positive tolerance)
-- Session: Sign-in frequency — every time (forces re-auth on risky sessions)
+- Grant: Block access
 
 **License requirements:** Entra ID P2 (Identity Protection is a P2 feature)
 
 #### Validation in report-only
 
-- Review Identity Protection risk detections for the prior 30 days to understand false-positive volume in your tenant
-- Tune exclusions for known service-account sign-in patterns that legitimately trigger risk detections
-- Soak for 14 days minimum; risk detections surface unevenly, and a shorter soak can miss edge cases
-- Confirm self-service password reset and MFA registration are both deployed — risky sign-ins must have a remediation path
+- Review Identity Protection user-risk detections for the prior 30 days to understand false-positive volume in your tenant
+- Confirm the Risky Users remediation path is in place (password reset, MFA enrollment, or user dismissal)
+- Soak for 14 days minimum; user-risk detections surface over time as behavior patterns emerge
+- Confirm that high user-risk accounts have a documented remediation process before enforcement
 
-**JSON template:** `../Policies/CA-SIG002-AllUsers-RequireStepUpOnRisk.json` (planned)
+**JSON template:** `../Policies/CA-SIG009-AllUsers-BlockHighUserRisk.json`
 
 ---
 
-### 6.7 `CA-COV003-WorkloadIdentities-TrustedLocations`
+### 6.7 `CA-SIG010-AllUsers-BlockHighSignInRisk`
+
+**Intent:** Hard-block all users when Entra ID Identity Protection evaluates sign-in risk as high. Replaces the step-up-on-risk control with a zero-tolerance high-risk response.
+
+**Principle mapping:** Primary — SIG (Layered signals). Consumes Identity Protection sign-in risk and responds decisively.
+
+#### Scope
+
+- Included users: All users
+- Excluded users: `CA-Persona-EmergencyAccess`, `CA-Persona-WorkloadIdentities`
+- Included cloud apps: All cloud apps
+
+#### Conditions
+
+- Client apps: All
+- Device platforms: Any
+- Locations: Any
+- Sign-in risk: High
+
+#### Controls
+
+- Grant: Block access
+
+**License requirements:** Entra ID P2 (Identity Protection is a P2 feature)
+
+#### Validation in report-only
+
+- Review Identity Protection sign-in-risk detections for the prior 30 days to understand false-positive volume in your tenant
+- Soak for 14 days minimum; sign-in-risk detections surface unevenly, and a shorter soak can miss edge cases
+- Confirm that high-risk sign-in accounts have a documented remediation path before enforcement
+- Monitor for legitimate services that trigger high-risk detections; these may require service-account exclusions
+
+**JSON template:** `../Policies/CA-SIG010-AllUsers-BlockHighSignInRisk.json`
+
+---
+
+### 6.9 `CA-COV003-WorkloadIdentities-TrustedLocations`
 
 **Intent:** Restrict service-principal (workload identity) sign-ins to a defined set of Named Locations representing the organization's approved egress IP ranges. Closes the workload-identity coverage gap left by the user-scoped CA-COV policies, which exclude `CA-Persona-WorkloadIdentities` so that machine sign-ins are not blocked by interactive-user controls.
 
@@ -457,7 +490,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.8 `CA-SIG003-Guests-RequireMFA`
+### 6.9 `CA-SIG003-Guests-RequireMFA`
 
 **Intent:** Require MFA for every interactive guest (B2B) sign-in into the tenant. Closes the gap where home-tenant authentication assurance for guest users may be weaker than the resource tenant's standard for internal users.
 
@@ -465,7 +498,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.9 `CA-COV004-Global-NoPersistentBrowserSession`
+### 6.10 `CA-COV004-Global-NoPersistentBrowserSession`
 
 **Intent:** Disable persistent browser sessions and enforce a 4-hour browser sign-in frequency. Closes the "keep me signed in" path that materially extends the post-MFA token lifetime on shared and unmanaged browsers.
 
@@ -493,7 +526,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.10 `CA-COV005-Global-BlockDeviceCodeFlow`
+### 6.11 `CA-COV005-Global-BlockDeviceCodeFlow`
 
 **Intent:** Block OAuth 2.0 device code flow. Device code flow is a phishing-friendly grant flow that is rarely used outside legitimate device-pairing scenarios; closing it materially reduces consent-phishing attack surface.
 
@@ -519,7 +552,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.11 `CA-COV006-Global-BlockAuthenticationTransfer`
+### 6.12 `CA-COV006-Global-BlockAuthenticationTransfer`
 
 **Intent:** Block Authentication Transfer (cross-device authentication initiated on one device and completed on another). Closes the second auth-flow side channel of the v1.2 trio.
 
@@ -545,7 +578,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.12 `CA-COV007-Global-BlockUnknownPlatforms`
+### 6.13 `CA-COV007-Global-BlockUnknownPlatforms`
 
 **Intent:** Block sign-ins from device platforms not in the named set. Catches sign-ins from spoofed, headless, or obsolete device platforms that fall outside the tenant's supported fleet.
 
@@ -571,7 +604,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.13 `CA-AUT003-Global-RegisterDevice`
+### 6.14 `CA-AUT003-Global-RegisterDevice`
 
 **Intent:** Require StandardAuth authentication strength on the registerdevice userAction. Protects the device-registration ceremony itself, ensuring tokens issued at registration are bound to a verified authentication path.
 
@@ -599,7 +632,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.14 `CA-AUT004-Global-RegisterSecurityInfo`
+### 6.15 `CA-AUT004-Global-RegisterSecurityInfo`
 
 **Intent:** Require StandardAuth on the registersecurityinfo userAction. Protects the security-info registration ceremony (MFA method enrollment, SSPR enrollment) from being completed by a weakly-authenticated session.
 
@@ -627,7 +660,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.15 `CA-COV008-Global-BlockByLocation`
+### 6.16 `CA-COV008-Global-BlockByLocation`
 
 **Intent:** Block Global sign-ins originating outside the `CA-LOCATION-TrustedCountries` named-location set. Establishes a country-based floor for the entire baseline.
 
@@ -655,7 +688,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.16 `CA-COV009-Internal-RequireCompliantDeviceOnDesktops`
+### 6.17 `CA-COV009-Internal-RequireCompliantDeviceOnDesktops`
 
 **Intent:** Require compliant or hybrid Azure AD joined device for Internal sign-ins from desktop platforms (Windows, macOS, Linux). Closes the desktop-side gap where Internal users could sign in from unmanaged devices.
 
@@ -683,7 +716,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.17 `CA-SIG004-Global-MediumUserRisk`
+### 6.18 `CA-SIG004-Global-MediumUserRisk`
 
 **Intent:** Apply a graduated control to medium user-risk sign-ins: require StandardAuth, require password change, set sign-in frequency to every time. Replaces hard-block-on-medium-risk, which produces too many false-positive lockouts.
 
@@ -710,7 +743,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.18 `CA-SIG005-Global-MediumSignInRisk`
+### 6.19 `CA-SIG005-Global-MediumSignInRisk`
 
 **Intent:** Apply a graduated control to medium sign-in-risk sessions: require StandardAuth and set sign-in frequency to every time. Pairs with `CA-SIG002` to give the sign-in-risk axis a hard-block-on-high + graduated-on-medium shape.
 
@@ -737,7 +770,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.19 `CA-AUT005-Admins-RequireAdminAuthOnAdminPortals`
+### 6.20 `CA-AUT005-Admins-RequireAdminAuthOnAdminPortals`
 
 **Intent:** Require the AdminAuth (FIDO2-only) authentication strength for admin sign-ins to Microsoft Azure Management + Microsoft Admin Portals. The highest-privilege admin surfaces get a phishing-resistant-only floor on top of the broader admin baseline.
 
@@ -766,7 +799,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.20 `CA-SIG006-Admins-BlockMediumAndHighSignInRisk`
+### 6.21 `CA-SIG006-Admins-BlockMediumAndHighSignInRisk`
 
 **Intent:** Hard-block medium and high sign-in-risk sessions for the Admins scope. Admins do not get the MFA step-up fallback that `CA-SIG002` extends to general users — admin credentials in a risk-flagged session do not get a re-challenge path.
 
@@ -792,7 +825,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.21 `CA-SIG007-Guests-BlockNonGuestAppAccess`
+### 6.22 `CA-SIG007-Guests-BlockNonGuestAppAccess`
 
 **Intent:** Block guest sign-ins to any application outside the Microsoft 365 collaboration set. Closes the gap where a B2B guest token issued for a collaboration app could be re-used against unrelated registered applications in the tenant.
 
@@ -819,7 +852,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.22 `CA-COV010-ServiceAccounts-BlockUntrustedLocations`
+### 6.23 `CA-COV010-ServiceAccounts-BlockUntrustedLocations`
 
 **Intent:** Block ServiceAccounts persona sign-ins originating outside `CA-LOCATION-TrustedCountries`. The compensating control that closes the gap created by `CA-EXC002` (which exempts ServiceAccounts from every human-targeted policy).
 
@@ -848,7 +881,7 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 
 ---
 
-### 6.23 `CA-SIG008-Internal-TokenProtection`
+### 6.24 `CA-SIG008-Internal-TokenProtection`
 
 **Intent:** Enable Token Protection (`sessionControls.secureSignInSession.isEnabled=true`) for Internal Windows sign-ins to the Office 365 application bundle. Cryptographically binds refresh tokens and PRTs to the issuing device's TPM-protected key, blocking redemption of stolen tokens from any other device. The only policy in the baseline that operates at token-redemption time rather than sign-in time.
 
@@ -903,3 +936,4 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 - Configure Cross-Tenant Access Settings to trust home-tenant MFA claims where appropriate; otherwise guests will be challenged on every resource-tenant sign-in
 - Soak for 7 days to capture monthly cross-tenant guest sign-ins and any low-frequency external collaborators
 - Verify break-glass accounts are NOT members of `CA-Persona-GuestUsers`
+
