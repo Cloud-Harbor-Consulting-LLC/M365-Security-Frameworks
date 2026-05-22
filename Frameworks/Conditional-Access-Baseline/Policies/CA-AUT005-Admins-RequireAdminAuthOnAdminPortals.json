@@ -5,7 +5,7 @@
     "users": {
       "includeUsers": [],
       "excludeUsers": [],
-      "includeGroups": ["REPLACE_WITH_GLOBAL_ADMINS_GROUP_OBJECT_ID"],
+      "includeGroups": [],
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
