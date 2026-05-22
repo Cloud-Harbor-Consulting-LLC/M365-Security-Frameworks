@@ -936,4 +936,3 @@ Each of the twenty-three (23) starter policies is specified below. Every spec fo
 - Configure Cross-Tenant Access Settings to trust home-tenant MFA claims where appropriate; otherwise guests will be challenged on every resource-tenant sign-in
 - Soak for 7 days to capture monthly cross-tenant guest sign-ins and any low-frequency external collaborators
 - Verify break-glass accounts are NOT members of `CA-Persona-GuestUsers`
-
