@@ -548,6 +548,8 @@ This section provides one subsection per policy. The 24 policies are ordered to 
 
 **Exclusion rationale:** Mobile platforms (iOS, Android) are excluded at the platform condition level — this policy targets desktop posture. Mobile device compliance is a separate future policy.
 
+Cross-framework integration with the Intune Compliance Baseline (signal flow, failure-mode matrix, rollout sequence) lives in `Design/CA-ICB-INTEGRATION.md`.
+
 ---
 
 ### 6.12 CA-COV009-ServiceAccounts-BlockUntrustedLocations
@@ -668,6 +670,8 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 3. Enroll those devices in Intune before enforcement.
 
 **Exclusion rationale:** ServiceAccounts is not excluded from CA-SIG001 because ServiceAccounts should not have interactive Azure Service Management access; if they do, that warrants investigation. WorkloadIdentities is excluded as a precaution.
+
+Cross-framework integration with the Intune Compliance Baseline (signal flow, failure-mode matrix, rollout sequence) lives in `Design/CA-ICB-INTEGRATION.md`.
 
 ---
 
@@ -846,6 +850,8 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 **Exclusion rationale:** Non-Windows platforms are excluded at the platform condition level. ServiceAccounts and WorkloadIdentities do not authenticate as Internal users on Windows devices.
 
 Deeper treatment of how CA-SIG007 layers with Continuous Access Evaluation, including the client matrix and operational soak procedure, lives in `Design/CAE-TOKEN-PROTECTION-LAYERING.md`.
+
+Cross-framework integration with the Intune Compliance Baseline (signal flow, managed device requirement for SecureSignInSession binding) lives in `Design/CA-ICB-INTEGRATION.md`.
 
 ---
 
