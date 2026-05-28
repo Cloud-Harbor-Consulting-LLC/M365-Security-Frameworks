@@ -52,6 +52,9 @@
 .PARAMETER AdminAuthStrengthName
     Display name of the AdminAuth authentication strength. Default: AdminAuth.
 
+.PARAMETER TermsOfUseName
+    Display name of the Terms of Use agreement. Default: CHC Guest Terms of Use.
+
 .PARAMETER Enforce
     Switch. If specified, policies are created in 'enabled' state. Requires explicit
     confirmation. Default is report-only.
@@ -119,6 +122,9 @@ param(
 
     [Parameter()]
     [string]$AdminAuthStrengthName = 'AdminAuth',
+
+    [Parameter(Mandatory = $false)]
+    [string]$TermsOfUseName = 'CHC Guest Terms of Use',
 
     [Parameter()]
     [switch]$Enforce,
@@ -210,6 +216,19 @@ function Resolve-NamedLocationId {
     return $match[0].id
 }
 
+function Resolve-TermsOfUseId {
+    param([string]$Name)
+    Write-Status "Resolving Terms of Use agreement '$Name'..."
+    $response = Invoke-MgGraphRequest -Method GET `
+        -Uri "https://graph.microsoft.com/beta/identityGovernance/termsOfUse/agreements"
+    $tou = $response.value | Where-Object { $_.displayName -eq $Name } | Select-Object -First 1
+    if (-not $tou) {
+        throw "Terms of Use agreement '$Name' not found in tenant. Create it in Microsoft Entra > External Identities > Terms of use, then re-run."
+    }
+    Write-Status "Resolved Terms of Use ID: $($tou.id)"
+    return $tou.id
+}
+
 function Expand-Placeholders {
     param(
         [Parameter(Mandatory)][string]$JsonContent,
@@ -280,6 +299,7 @@ try {
         }
     }
 
+    $script:TermsOfUseId = $null
     $results = [System.Collections.Generic.List[pscustomobject]]::new()
 
     foreach ($template in $templates) {
@@ -302,6 +322,12 @@ try {
             }
 
             $expandedJson = Expand-Placeholders -JsonContent $rawJson -Substitutions $substitutions
+            if ($expandedJson -match 'REPLACE_WITH_TERMS_OF_USE_ID') {
+                if (-not $script:TermsOfUseId) {
+                    $script:TermsOfUseId = Resolve-TermsOfUseId -Name $TermsOfUseName
+                }
+                $expandedJson = $expandedJson -replace 'REPLACE_WITH_TERMS_OF_USE_ID', $script:TermsOfUseId
+            }
             if ($expandedJson -match 'REPLACE_WITH_') {
                 throw "Unresolved placeholders remain in $($template.Name) after substitution."
             }

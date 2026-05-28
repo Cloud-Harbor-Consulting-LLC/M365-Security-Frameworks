@@ -1,10 +1,10 @@
 # Conditional Access Baseline
 
-A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-three policies covering eight identity personas, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
+A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-four policies covering eight identity personas, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
 **Status:** Preview — v1.3.0-rc.1
 
-> **Beta endpoint:** This framework targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies` for all 23 policies. Three policies use Microsoft Graph beta-only features as of May 2026 (`CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`; `CA-COV011` uses the Microsoft Agent ID condition family). See the Prerequisites section and `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
+> **Beta endpoint:** This framework targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies` for all 24 policies. Three policies use Microsoft Graph beta-only features as of May 2026 (`CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`; `CA-COV011` uses the Microsoft Agent ID condition family). See the Prerequisites section and `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
 
 ---
 
@@ -46,9 +46,9 @@ File names mirror policy names. The JSON template for `CA-COV001-AllUsers-BlockL
 
 ---
 
-## The 23 starter policies
+## The 24 starter policies
 
-All 23 policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
+All 24 policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
 
 ### Global scope (9)
 
@@ -85,12 +85,13 @@ All 23 policies ship in report-only on first deployment. Operators opt in to enf
 | CA-AUT003-Admins-RequireAdminAuthOnAdminPortals | Require AdminAuth (FIDO2 only) on Azure Service Management and Microsoft Admin Portals. |
 | CA-SIG005-Admins-BlockMediumAndHighSignInRisk | Hard-block admin sign-ins at medium and high sign-in risk. |
 
-### Guests persona (3)
+### Guests persona (4)
 
 | Policy | Intent |
 |---|---|
 | CA-SIG002-Guests-RequireMFA | Require MFA for every interactive guest sign-in. |
 | CA-SIG003-Global-MediumUserRisk | Graduated response to medium user risk: StrongAuth + risk remediation + SignInFreq every time. |
+| CA-SIG010-Guests-RequireToU | Require B2B guests to accept a tenant-defined Terms of Use before access is granted. |
 | CA-SIG006-Guests-BlockNonGuestAppAccess | Block guest sign-ins to any application outside the Microsoft 365 collaboration set. |
 
 > Note: CA-SIG003 is scoped globally and appears in the Guests section because the `everyTime` frequency interval is a beta-only condition primarily relevant to the guest and risk-elevated sign-in population. See POLICY-DESIGN.md section 6.17 for the full scope specification.
@@ -164,6 +165,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 
 - **Entra ID P1** (minimum). Required by all policies.
 - **Entra ID P2** (Identity Protection). Required by CA-SIG003, CA-SIG004, CA-SIG005, CA-SIG008, CA-SIG009.
+- **Entra ID P2** (Terms of Use feature). Required by CA-SIG010. Covers guest users at the 1:5 ratio (one P2 license covers five guest users). See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
 - **Microsoft Entra Workload Identities Premium**. Required by CA-COV010. Separate SKU from Entra ID P1/P2.
 - **Microsoft Intune**. Required for `compliantDevice` grant control (CA-COV008, CA-SIG001). Hybrid Azure AD join is an accepted alternative.
 - **Microsoft Agent ID availability**. Required by CA-COV011. Available in tenants with Microsoft 365 Copilot or Azure AI Entra integration as of May 2026.
@@ -236,6 +238,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - [x] Wholesale rewrite of POLICY-DESIGN.md (v1.3 stack)
 - [x] Wholesale rewrite of Deploy-CABaseline.ps1 (single module dependency)
 - [x] Per-policy exclusion judgment with documented rationale
+- [x] CA-SIG010 Guests-RequireToU — Terms of Use gate for all 6 B2B guest user types; paired contract doc; deployer `Resolve-TermsOfUseId` helper
 
 ### v1.4 — Candidates
 

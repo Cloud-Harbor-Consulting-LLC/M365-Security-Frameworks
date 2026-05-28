@@ -40,12 +40,12 @@ The v1.3 slate makes the following changes relative to prior Unreleased state. T
 
 #### Beta endpoint commitment
 
-All 23 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use features that are Microsoft Graph beta-only as of May 2026:
+All 24 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use features that are Microsoft Graph beta-only as of May 2026:
 
 - `CA-SIG003-Global-MediumUserRisk` and `CA-SIG004-Global-MediumSignInRisk` use `signInFrequency.frequencyInterval: "everyTime"`, which is not available in the v1.0 endpoint.
 - `CA-COV011-Agents-BlockMediumAndHighRisk` uses `agentIdRiskLevels`, `IncludeAgentIdServicePrincipals`, and `AllAgentIdResources`, all of which are beta-only.
 
-Rather than maintain two endpoint paths, the framework commits all 23 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the GA tracking commitment.
+Rather than maintain two endpoint paths, the framework commits all 24 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the GA tracking commitment.
 
 #### Agents persona as first-class identity class
 
@@ -180,9 +180,7 @@ Section 6 documents the exclusion rationale for each policy. The pattern:
 
 ## 5. Rollout sequence
 
-All 23 policies ship in `enabledForReportingButNotEnforced` state. The table below documents the recommended enforcement sequence. Enforce one policy at a time; validate with `Get-CABaselineImpact.ps1` before promoting the next.
-
-One additional policy is deferred to PR 2: `CA-SIG010-Guests-RequireToU` (Terms of Use enforcement for B2B guests). It will join the baseline when the Entra ID ToU template and paired contract are complete.
+All 24 policies ship in `enabledForReportingButNotEnforced` state. The table below documents the recommended enforcement sequence. Enforce one policy at a time; validate with `Get-CABaselineImpact.ps1` before promoting the next.
 
 | Position | Policy | Min soak (report-only) | Prerequisites |
 |---|---|---|---|
@@ -209,12 +207,13 @@ One additional policy is deferred to PR 2: `CA-SIG010-Guests-RequireToU` (Terms 
 | 21 | CA-SIG009-AllUsers-BlockHighSignInRisk | 7 days | Identity Protection P2 active; process for risk dismissal established |
 | 22 | CA-COV010-WorkloadIdentities-TrustedLocations | 14 days | Workload Identities Premium; Trusted IPs location provisioned; SPN exclusion list reviewed |
 | 23 | CA-COV011-Agents-BlockMediumAndHighRisk | 14 days | Agent ID inventory complete; Identity Protection agent signals active |
+| 24 | CA-SIG010-Guests-RequireToU | 14 days | ToU agreement published; Entra ID P2 licensing confirmed; guest population notified |
 
 ---
 
 ## 6. Per-policy design specifications
 
-This section provides one subsection per policy. The 23 policies are ordered to match the rollout sequence table above.
+This section provides one subsection per policy. The 24 policies are ordered to match the rollout sequence table above.
 
 ---
 
@@ -899,3 +898,40 @@ This section provides one subsection per policy. The 23 policies are ordered to 
 **Validation steps:** Same risk dismissal process as CA-SIG008. Test by reviewing sign-in logs for any high sign-in risk events before enforcement.
 
 **Exclusion rationale:** WorkloadIdentities are excluded because service principals surface via `servicePrincipalRiskLevels`, not `signInRiskLevels`. ServiceAccounts remain in scope for the same reason as CA-SIG008.
+
+---
+
+### 6.24 CA-SIG010-Guests-RequireToU
+
+**Intent:** Require acceptance of a tenant-defined Terms of Use agreement before B2B guest access is granted. Every guest sign-in is gated on click-through acceptance of the ToU document. The acceptance event is timestamped and logged in Microsoft Entra, producing an audit-evidence trail that the guest acknowledged the data-handling conditions of the tenant. This closes the gap between "guest has access" and "guest has consented to the conditions of that access."
+
+**Principle mapping:** 1.1 Identity-wide coverage (closes the consent-acknowledgment gap for the Guests persona) and 1.3 Layered signals (combines with CA-SIG002 MFA requirement and CA-SIG006 NonGuestAppAccess restriction to form a three-policy Guests persona stack).
+
+**Scope:**
+
+| Dimension | Value |
+|---|---|
+| Users | `includeGuestsOrExternalUsers` — covers all 6 external user types: internalGuest, b2bCollaborationGuest, b2bCollaborationMember, b2bDirectConnectUser, otherExternalUser, serviceProvider |
+| External tenant scope | `membershipKind: "all"` |
+| Exclusions | `excludeGroups: [EmergencyAccess]` — same pattern as CA-SIG002; only EmergencyAccess is excluded |
+| Applications | `includeApplications: ["All"]` |
+| Client app types | `["all"]` |
+
+**Grant control:** `termsOfUse: [REPLACE_WITH_TERMS_OF_USE_ID]` with `operator: "OR"`. The Terms of Use grant control is the only requirement; operator OR because there is exactly one grant requirement in this policy. The ToU agreement must be published in the tenant via Microsoft Entra ID > External Identities > Terms of use before deployment.
+
+**Session controls:** None.
+
+**License requirements:** Entra ID Premium P2 (for the Terms of Use feature). The 1:5 ratio rule applies to guest users: one P2 license in the tenant covers up to five guest users for ToU enforcement. Full documentation at <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
+
+**Validation steps:**
+
+1. Publish the ToU agreement in the tenant and capture the agreement ID from `https://graph.microsoft.com/beta/identityGovernance/termsOfUse/agreements`.
+2. Deploy via `Deploy-CABaseline.ps1 -TermsOfUseName "<DisplayName>"`. The deployer resolves the agreement ID at runtime via `Resolve-TermsOfUseId`.
+3. In report-only, monitor sign-in logs for `reportOnlyInterrupted` results for guest users — these are the guests who would be prompted on enforcement day.
+4. Verify no `reportOnlyFailure` results appear (these indicate a misconfigured or draft agreement).
+5. Run a test enforcement against a controlled guest account. Confirm the ToU document displays, that acceptance completes the sign-in, and that the acceptance event appears in the agreement's consent log.
+6. After the 14-day soak, confirm licensing and notify the guest population before enforcement.
+
+**Exclusion rationale:** Only EmergencyAccess is excluded. This mirrors the exclusion pattern of CA-SIG002-Guests-RequireMFA, which targets the identical guest scope. The ToU gate should apply to the same population as the MFA gate; any divergence would create guests who are MFA-verified but ToU-unacknowledged or vice versa.
+
+**Cross-reference:** Full lifecycle documentation (drafting, version pinning, re-consent triggers, removal procedure, 14-day validation procedure, out-of-scope coverage) is in `Policies/CA-SIG010-Guests-RequireToU.md`.
