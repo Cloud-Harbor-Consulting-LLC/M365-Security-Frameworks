@@ -2,7 +2,7 @@
 
 A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-four policies covering eight identity personas, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-**Status:** Preview — v1.3.0-rc.1
+**Status:** 🟢 Released — v1.3.0
 
 > **Beta endpoint:** This framework targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies` for all 24 policies. Three policies use Microsoft Graph beta-only features as of May 2026 (`CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`; `CA-COV011` uses the Microsoft Agent ID condition family). See the Prerequisites section and `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
 
@@ -229,9 +229,9 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - [x] ROI-CONDITIONAL-ACCESS.md v1.2 rollup
 - [x] CAE and Token Protection layering note (CA-SIG007 paired design doc)
 
-### v1.3 — Released (this PR)
+### v1.3 — Shipped (2026-05-28)
 
-- [x] 23-policy baseline sourced from prod tenant restructure
+- [x] 24-policy baseline sourced from prod tenant restructure
 - [x] All-beta endpoint architecture (`Microsoft.Graph.Authentication` only, `Invoke-MgGraphRequest` deployer)
 - [x] Agents persona as first-class identity class (CA-EXC003, CA-COV011, AGENTS-PERSONA-MODEL.md)
 - [x] CA-COV010 WorkloadIdentities-TrustedLocations retained and renumbered from CA-COV003
@@ -242,10 +242,14 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - [x] CAE and Token Protection layering deep-dive design doc (Design/CAE-TOKEN-PROTECTION-LAYERING.md) — threat model, signal models, client matrix, replay-resistance trade-offs, layering order, 14-day soak procedure
 - [x] Workload identity IP allow-listing patterns and CI/CD examples (Design/WORKLOAD-IDENTITY-IP-PATTERNS.md) — SPN per-pipeline scoping, Trusted IPs refresh cadence per runner class, rollback procedure, GitHub Actions and Azure DevOps examples
 - [x] CA-ICB cross-framework integration doc (Design/CA-ICB-INTEGRATION.md) — signal flow narrative with Mermaid diagram, per-policy ICB requirements for CA-COV008, CA-SIG001, and CA-SIG007, failure-mode matrix, CA-to-ICB rollout sequence, 5-test verification procedure, and out-of-scope disclosure
+- [x] ROI-CONDITIONAL-ACCESS.md v1.3 wholesale rewrite; CHANGELOG v1.3.0 promotion; root README and framework README sync (this PR)
 
-### v1.4 — Candidates
+### v1.4 — Candidates (not committed)
 
-- [ ] Release prep (ROI v1.3 rewrite, CHANGELOG v1.3.0 entry, root README sync, v1.3.0 tag) — PR 6
+- [ ] Microsoft Agent ID v1.0 schema migration once Microsoft completes GA promotion of the Agent ID condition family
+- [ ] `signInFrequency: everyTime` v1.0 migration once Microsoft promotes `frequencyInterval: "everyTime"` to the v1.0 endpoint
+- [ ] Mobile platform Token Protection coverage once Microsoft ships support for iOS and Android token binding
+- [ ] Named-location refresh utility script in Scripts/ if adopter demand warrants
 
 ---
 
