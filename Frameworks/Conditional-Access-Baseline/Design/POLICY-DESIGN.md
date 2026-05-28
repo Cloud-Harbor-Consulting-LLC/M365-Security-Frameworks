@@ -608,6 +608,8 @@ This section provides one subsection per policy. The 24 policies are ordered to 
 
 **Exclusion rationale:** This policy targets service principals exclusively via the `clientApplications` condition. No user group exclusions are needed.
 
+Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location refresh cadence against rotating CI runner egress, and rollback procedures live in `Design/WORKLOAD-IDENTITY-IP-PATTERNS.md`. GitHub Actions and Azure DevOps examples included.
+
 ---
 
 ### 6.14 CA-COV011-Agents-BlockMediumAndHighRisk
