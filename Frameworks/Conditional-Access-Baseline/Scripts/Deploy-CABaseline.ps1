@@ -91,7 +91,7 @@
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
     [Parameter()]
-    [string]$PolicyPath = (Join-Path $PSScriptRoot '..' 'Policies'),
+    [string]$PolicyPath = (Join-Path $PSScriptRoot '\' 'Policies'),
 
     [Parameter()]
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
