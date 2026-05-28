@@ -13,9 +13,10 @@
     - Validates every placeholder resolves before submitting any policy
     - Defaults to report-only state (enabledForReportingButNotEnforced); use
       -Enforce to promote to enabled state (requires explicit confirmation)
-    - Supports -WhatIf for safe preview: in WhatIf mode the script parses every
-      policy template and reports what it would do without making any tenant changes
-      or requiring a Graph connection
+    - Supports -WhatIf for safe preview: in WhatIf mode the script connects to
+      Microsoft Graph, validates the session, parses every policy template, and
+      reports what it would do without making any tenant changes or resolving
+      tenant-specific placeholders
 
     Supporting artifacts (custom authentication strengths, named locations) referenced
     by the policy templates must exist in the tenant before running this script in
@@ -65,7 +66,8 @@
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1 -WhatIf
-    Preview the deployment. Parses all templates. No Graph connection required.
+    Preview the deployment. Connects to Graph to validate the session, parses all
+    templates, and reports what would be created without making any tenant changes.
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1
@@ -124,7 +126,7 @@ param(
     [string]$AdminAuthStrengthName = 'AdminAuth',
 
     [Parameter(Mandatory = $false)]
-    [string]$TermsOfUseName = 'CHC Guest Terms of Use',
+    [string]$TermsOfUseName = 'Terms of Use for Guest Users',
 
     [Parameter()]
     [switch]$Enforce,
@@ -164,7 +166,7 @@ function Test-GraphPrerequisites {
     }
     $context = Get-MgContext
     if (-not $context) {
-        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Policy.Read.All,Group.Read.All,Application.Read.All,Policy.ReadWrite.AuthenticationMethod"
+        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Policy.Read.All,Group.Read.All,Application.Read.All,Policy.ReadWrite.AuthenticationMethod,Agreement.Read.All,Agreement.ReadWrite.All"
     }
     $required = @(
         'Policy.ReadWrite.ConditionalAccess',
@@ -251,7 +253,7 @@ try {
     $isWhatIf = $PSBoundParameters.ContainsKey('WhatIf')
     $modeLabel = if ($Enforce) { 'ENFORCE (enabled state)' } else { 'report-only (safe default)' }
     Write-Status "Mode: $modeLabel"
-    if ($isWhatIf) { Write-Status "WhatIf: template parse only — no tenant changes will be made" -Level Warning }
+    if ($isWhatIf) { Write-Status "WhatIf: live simulation — prerequisites and placeholders will be validated, no policies will be created" -Level Warning }
 
     $resolvedPolicyPath = Resolve-Path -Path $PolicyPath -ErrorAction SilentlyContinue
     if (-not $resolvedPolicyPath) {
@@ -266,36 +268,34 @@ try {
 
     $substitutions = @{}
 
-    if (-not $isWhatIf) {
-        Test-GraphPrerequisites
-        $tenantContext = Get-MgContext
-        Write-Status "Connected tenant: $($tenantContext.TenantId) as $($tenantContext.Account)" -Level Success
+    Test-GraphPrerequisites
+    $tenantContext = Get-MgContext
+    Write-Status "Connected tenant: $($tenantContext.TenantId) as $($tenantContext.Account)" -Level Success
 
-        Write-Status "Resolving tenant-specific placeholders..."
-        $substitutions = @{
-            'REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $EmergencyAccessGroupName
-            'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID' = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
-            'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'      = Resolve-GroupId -DisplayName $InternalUsersGroupName
-            'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
-            'REPLACE_WITH_GUESTS_GROUP_OBJECT_ID'              = Resolve-GroupId -DisplayName $GuestsGroupName
-            'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
-            'REPLACE_WITH_STANDARDAUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
-            'REPLACE_WITH_STRONGAUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
-            'REPLACE_WITH_ADMINAUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
-        }
-        foreach ($key in $substitutions.Keys) {
-            Write-Status "  $key -> $($substitutions[$key])" -Level Success
-        }
+    Write-Status "Resolving tenant-specific placeholders..."
+    $substitutions = @{
+        'REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $EmergencyAccessGroupName
+        'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID' = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
+        'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'      = Resolve-GroupId -DisplayName $InternalUsersGroupName
+        'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
+        'REPLACE_WITH_GUESTS_GROUP_OBJECT_ID'              = Resolve-GroupId -DisplayName $GuestsGroupName
+        'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
+        'REPLACE_WITH_STANDARDAUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
+        'REPLACE_WITH_STRONGAUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
+        'REPLACE_WITH_ADMINAUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
+    }
+    foreach ($key in $substitutions.Keys) {
+        Write-Status "  $key -> $($substitutions[$key])" -Level Success
+    }
 
-        if ($Enforce) {
-            Write-Status "You have specified -Enforce. Policies will be created in 'enabled' state." -Level Warning
-            if (-not $PSCmdlet.ShouldContinue(
-                    "This will create $($templates.Count) Conditional Access policies in 'enabled' state on tenant $($tenantContext.TenantId). Continue?",
-                    "Confirm enforced deployment"
-                )) {
-                Write-Status "Deployment cancelled by user." -Level Warning
-                return
-            }
+    if (-not $isWhatIf -and $Enforce) {
+        Write-Status "You have specified -Enforce. Policies will be created in 'enabled' state." -Level Warning
+        if (-not $PSCmdlet.ShouldContinue(
+                "This will create $($templates.Count) Conditional Access policies in 'enabled' state on tenant $($tenantContext.TenantId). Continue?",
+                "Confirm enforced deployment"
+            )) {
+            Write-Status "Deployment cancelled by user." -Level Warning
+            return
         }
     }
 
@@ -306,21 +306,6 @@ try {
         Write-Status "Processing: $($template.Name)"
         try {
             $rawJson = Get-Content -Path $template.FullName -Raw
-            $policy = $rawJson | ConvertFrom-Json -AsHashtable
-
-            if ($isWhatIf) {
-                $displayName = if ($policy.ContainsKey('displayName')) { $policy['displayName'] } else { $template.BaseName }
-                Write-Status "  Would create policy '$displayName' on the beta endpoint"
-                $results.Add([pscustomobject]@{
-                    Template = $template.Name
-                    Policy   = $displayName
-                    Id       = 'n/a'
-                    State    = if ($Enforce) { 'enabled' } else { 'enabledForReportingButNotEnforced' }
-                    Status   = 'WhatIf'
-                })
-                continue
-            }
-
             $expandedJson = Expand-Placeholders -JsonContent $rawJson -Substitutions $substitutions
             if ($expandedJson -match 'REPLACE_WITH_TERMS_OF_USE_ID') {
                 if (-not $script:TermsOfUseId) {
@@ -347,6 +332,14 @@ try {
                     Id       = $created.id
                     State    = $created.state
                     Status   = 'Created'
+                })
+            } else {
+                $results.Add([pscustomobject]@{
+                    Template = $template.Name
+                    Policy   = $body['displayName']
+                    Id       = 'n/a'
+                    State    = $body['state']
+                    Status   = 'WhatIf'
                 })
             }
         } catch {
@@ -380,7 +373,7 @@ try {
         exit 1
     }
     if ($whatIfCount -gt 0) {
-        Write-Status "WhatIf complete. Re-run without -WhatIf and with a live Graph connection to deploy." -Level Info
+        Write-Status "WhatIf complete. Re-run without -WhatIf to deploy." -Level Info
     }
     if ($createdCount -gt 0 -and -not $Enforce) {
         Write-Status "Reminder: Policies are in report-only mode. Soak, validate with Get-CABaselineImpact.ps1, and promote per Design/POLICY-DESIGN.md section 5." -Level Info
