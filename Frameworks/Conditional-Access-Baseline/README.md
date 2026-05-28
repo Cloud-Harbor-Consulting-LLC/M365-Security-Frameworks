@@ -241,10 +241,10 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - [x] CA-SIG010 Guests-RequireToU — Terms of Use gate for all 6 B2B guest user types; paired contract doc; deployer `Resolve-TermsOfUseId` helper
 - [x] CAE and Token Protection layering deep-dive design doc (Design/CAE-TOKEN-PROTECTION-LAYERING.md) — threat model, signal models, client matrix, replay-resistance trade-offs, layering order, 14-day soak procedure
 - [x] Workload identity IP allow-listing patterns and CI/CD examples (Design/WORKLOAD-IDENTITY-IP-PATTERNS.md) — SPN per-pipeline scoping, Trusted IPs refresh cadence per runner class, rollback procedure, GitHub Actions and Azure DevOps examples
+- [x] CA-ICB cross-framework integration doc (Design/CA-ICB-INTEGRATION.md) — signal flow narrative with Mermaid diagram, per-policy ICB requirements for CA-COV008, CA-SIG001, and CA-SIG007, failure-mode matrix, CA-to-ICB rollout sequence, 5-test verification procedure, and out-of-scope disclosure
 
 ### v1.4 — Candidates
 
-- [ ] CA-ICB integration doc (Conditional Access and Intune Compliance Baseline signal handoff) — PR 5
 - [ ] Release prep (ROI v1.3 rewrite, CHANGELOG v1.3.0 entry, root README sync, v1.3.0 tag) — PR 6
 
 ---
