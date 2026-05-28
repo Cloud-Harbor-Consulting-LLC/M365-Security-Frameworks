@@ -139,7 +139,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 
 ## Prerequisites
 
-- Microsoft Entra ID P1 (minimum). P2 unlocks Identity Protection (required for `CA-SIG002`, `CA-SIG004`, `CA-SIG005`, `CA-SIG006`) and Privileged Identity Management (required for `CA-AUT002`).
+- Microsoft Entra ID P1 (minimum). P2 unlocks Identity Protection (required for `CA-SIG004`, `CA-SIG005`, `CA-SIG006`, `CA-SIG009`, `CA-SIG010`) and Privileged Identity Management (required for `CA-AUT002`).
 - Microsoft Entra Workload Identities Premium (required for `CA-COV003`).
 - Microsoft Intune (required for `CA-SIG001` and `CA-COV009`; hybrid Azure AD join is an accepted alternative for both).
 - PowerShell 7 and the Microsoft Graph SDK 2.x for the deployer.

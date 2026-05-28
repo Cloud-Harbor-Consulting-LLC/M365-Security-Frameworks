@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-None in this release.
+- Top-level `README.md` — Frameworks table updated to add the Security Reporting Decision Rubric Preview row. Documentation-only correction; missed when the framework was added earlier in this Unreleased cycle.
+- Frameworks/Conditional-Access-Baseline/README.md — Prerequisites line updated to remove `CA-SIG002` (removed in this same Unreleased cycle) and add `CA-SIG009` and `CA-SIG010` to the P2 Identity Protection required-for list. Documentation-only correction; missed when CA-SIG002 was removed and CA-SIG009 and CA-SIG010 were added earlier in this Unreleased cycle.
 
 ---
 
