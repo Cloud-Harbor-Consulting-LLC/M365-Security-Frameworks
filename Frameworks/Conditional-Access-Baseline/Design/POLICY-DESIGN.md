@@ -843,6 +843,8 @@ This section provides one subsection per policy. The 24 policies are ordered to 
 
 **Exclusion rationale:** Non-Windows platforms are excluded at the platform condition level. ServiceAccounts and WorkloadIdentities do not authenticate as Internal users on Windows devices.
 
+Deeper treatment of how CA-SIG007 layers with Continuous Access Evaluation, including the client matrix and operational soak procedure, lives in `Design/CAE-TOKEN-PROTECTION-LAYERING.md`.
+
 ---
 
 ### 6.22 CA-SIG008-AllUsers-BlockHighUserRisk
