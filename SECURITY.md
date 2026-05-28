@@ -21,6 +21,7 @@ Instead, report privately via one of the following:
 - **GitHub private advisory:** Use the [Report a vulnerability](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/security/advisories/new) button in the repo's Security tab
 
 Please include:
+
 - A description of the issue and which artifact is affected
 - Steps to reproduce or demonstrate the impact
 - Your assessment of severity (low / medium / high / critical)
