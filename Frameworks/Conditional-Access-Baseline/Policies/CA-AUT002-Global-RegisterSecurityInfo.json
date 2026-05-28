@@ -1,25 +1,30 @@
 {
-  "displayName": "CA-AUT003-Global-RegisterDevice",
+  "displayName": "CA-AUT002-Global-RegisterSecurityInfo",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
+    "applications": {
+      "includeUserActions": [
+        "urn:user:registersecurityinfo"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ],
     "users": {
-      "includeUsers": ["All"],
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
         "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
+      "includeUsers": [
+        "All"
       ]
-    },
-    "applications": {
-      "includeUserActions": ["urn:user:registerdevice"]
-    },
-    "clientAppTypes": ["all"]
+    }
   },
   "grantControls": {
-    "operator": "AND",
-    "builtInControls": [],
     "authenticationStrength": {
-      "id": "REPLACE_WITH_STANDARD_AUTH_STRENGTH_ID"
-    }
+      "id": "REPLACE_WITH_STANDARDAUTH_STRENGTH_ID"
+    },
+    "operator": "OR"
   }
 }

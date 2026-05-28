@@ -1,29 +1,32 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-SIG006-Guests-BlockNonGuestAppAccess",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
+      "excludeApplications": [
+        "Office365"
+      ],
       "includeApplications": [
         "All"
       ]
     },
     "clientAppTypes": [
-      "browser",
-      "mobileAppsAndDesktopClients"
+      "all"
     ],
     "users": {
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
-        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
-      "includeUsers": [
-        "All"
+      "includeGroups": [
+        "REPLACE_WITH_GUESTS_GROUP_OBJECT_ID"
       ]
     }
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "block"
     ],
     "operator": "OR"
   }

@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-SIG009-AllUsers-BlockHighSignInRisk",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
@@ -8,8 +8,10 @@
       ]
     },
     "clientAppTypes": [
-      "browser",
-      "mobileAppsAndDesktopClients"
+      "all"
+    ],
+    "signInRiskLevels": [
+      "high"
     ],
     "users": {
       "excludeGroups": [
@@ -23,7 +25,7 @@
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "block"
     ],
     "operator": "OR"
   }

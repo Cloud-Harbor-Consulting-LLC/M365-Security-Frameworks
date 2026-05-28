@@ -1,8 +1,8 @@
-# CA-SIG008-Internal-TokenProtection — design and layering with CAE
+# CA-SIG007-Internal-TokenProtection — design and layering with CAE
 
-This document explains the threat that `CA-SIG008-Internal-TokenProtection` addresses, how it differs from every other policy in the Conditional Access Baseline, and how Token Protection layers with Continuous Access Evaluation (CAE) to close coverage seams.
+This document explains the threat that `CA-SIG007-Internal-TokenProtection` addresses, how it differs from every other policy in the Conditional Access Baseline, and how Token Protection layers with Continuous Access Evaluation (CAE) to close coverage seams.
 
-This is paired documentation for the policy template `CA-SIG008-Internal-TokenProtection.json` in the same folder. The two ship and are deployed as one unit.
+This is paired documentation for the policy template `CA-SIG007-Internal-TokenProtection.json` in the same folder. The two ship and are deployed as one unit.
 
 ---
 
@@ -45,7 +45,7 @@ They are not redundant. They are layered.
 
 ## 4. How they layer
 
-| Threat | Sign-in-time MFA (CA-COV002, CA-AUT001/002) | CAE | Token Protection |
+| Threat | Sign-in-time MFA (CA-COV002, CA-AUT003) | CAE | Token Protection |
 |---|---|---|---|
 | Password compromise without MFA | Blocks at sign-in | n/a | n/a |
 | AiTM credential phish, weak MFA | Phishing-resistant MFA blocks at sign-in | n/a | n/a |
@@ -63,14 +63,14 @@ The two controls cover different cells. Deploying only CAE leaves the post-MFA t
 
 Token Protection has explicit scope limits that adopters must understand before promoting to enforced:
 
-- **Windows only.** macOS, iOS, Android, Linux do not currently issue device-bound tokens. The `CA-SIG008` policy explicitly scopes `platforms.includePlatforms=["windows"]` so non-Windows clients pass through. Adopters needing comparable coverage on macOS should track Microsoft's roadmap; until then, those platforms rely on CAE alone for the post-MFA window.
+- **Windows only.** macOS, iOS, Android, Linux do not currently issue device-bound tokens. The `CA-SIG007` policy explicitly scopes `platforms.includePlatforms=["windows"]` so non-Windows clients pass through. Adopters needing comparable coverage on macOS should track Microsoft's roadmap; until then, those platforms rely on CAE alone for the post-MFA window.
 - **Exchange Online and SharePoint Online sign-in.** Current GA enforcement is on the Exchange Online and SharePoint Online sign-in paths within the Office365 application bundle. Other applications inside the bundle pass through. Microsoft expands coverage incrementally — the Office365 bundle scope in the template picks up new apps automatically.
 - **Modern auth required.** Clients still on legacy authentication paths do not present bindable tokens. CA-COV001-AllUsers-BlockLegacyAuth (v1.0.0) is the prerequisite control here; legacy auth is blocked before Token Protection evaluates.
 - **Client version dependency.** Token Protection requires the client to know how to present a bound token. Older Outlook builds, legacy OneDrive sync clients, and some third-party mail clients via EWS will degrade to a sign-in challenge rather than honor the bound token. The 14-day report-only soak is the inventory window for these clients.
 
 CAE has different but overlapping scope limits. Notably:
 
-- **Workload identities are out of scope for both controls.** CAE does not apply to workload identity tokens; Token Protection is user-scoped. The workload-identity threat surface is handled by `CA-COV003-WorkloadIdentities-TrustedLocations` (v1.1.0) on a separate code path.
+- **Workload identities are out of scope for both controls.** CAE does not apply to workload identity tokens; Token Protection is user-scoped. The workload-identity threat surface is handled by `CA-COV010-WorkloadIdentities-TrustedLocations` (v1.3.0) on a separate code path.
 - **CAE-aware resources only.** CAE propagates revocation only to resource providers that have integrated the CAE protocol (Exchange Online, SharePoint Online, Microsoft Graph, Teams). Resources outside this set continue to honor tokens until expiry.
 
 ---
@@ -87,6 +87,6 @@ CAE has different but overlapping scope limits. Notably:
 
 ## 7. Rollout sequence position
 
-Token Protection is added to the rollout-sequence table as a position 9 entry, after `CA-SIG003-Guests-RequireMFA` (position 8 in v1.1.0). Minimum report-only soak: 14 days, driven by the client-version inventory requirement in section 5.
+Token Protection is added to the rollout-sequence table as a late-sequence entry, after the risk policies (CA-SIG003 through CA-SIG005). Minimum report-only soak: 14 days, driven by the client-version inventory requirement in section 5.
 
-This document is paired with the JSON template in `CA-SIG008-Internal-TokenProtection.json`. Both ship as one unit; the deployer treats them as a single policy artifact.
+This document is paired with the JSON template in `CA-SIG007-Internal-TokenProtection.json`. Both ship as one unit; the deployer treats them as a single policy artifact.

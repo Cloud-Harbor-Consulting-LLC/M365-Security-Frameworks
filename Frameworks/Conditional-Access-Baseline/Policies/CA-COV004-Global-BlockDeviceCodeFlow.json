@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-COV004-Global-BlockDeviceCodeFlow",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
@@ -7,14 +7,17 @@
         "All"
       ]
     },
+    "authenticationFlows": {
+      "transferMethods": "deviceCodeFlow"
+    },
     "clientAppTypes": [
-      "browser",
-      "mobileAppsAndDesktopClients"
+      "all"
     ],
     "users": {
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
-        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
       "includeUsers": [
         "All"
@@ -23,7 +26,7 @@
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "block"
     ],
     "operator": "OR"
   }

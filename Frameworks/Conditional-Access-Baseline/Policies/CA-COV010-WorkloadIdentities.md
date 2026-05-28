@@ -1,6 +1,6 @@
-# CA-COV003 — Workload Identities: Trusted Locations Only
+# CA-COV010 — Workload Identities: Trusted Locations Only
 
-Blocks service principal sign-ins from outside a tenant-defined trusted IPs named location. Closes the workload identity gap that user-targeted policies (CA-SIG003, CA-COV001/002) cannot address — service principals do not have user accounts, so MFA and risk-based grant controls do not apply to them.
+Blocks service principal sign-ins from outside a tenant-defined trusted IPs named location. Closes the workload identity gap that user-targeted policies (CA-COV001, CA-COV002) cannot address — service principals do not have user accounts, so MFA and risk-based grant controls do not apply to them.
 
 ## Hard prerequisites
 
@@ -17,7 +17,7 @@ If you do not yet have a named location representing your trusted egress ranges 
 2. Name: `Trusted IPs` (or your convention)
 3. Add CIDR ranges representing every egress IP you trust
 4. Mark **Define as trusted location**: Yes
-5. Save, then capture the location's object ID — replace `REPLACE_WITH_TRUSTED_IPS_LOCATION_ID` in `CA-COV003-WorkloadIdentities-TrustedLocations.json` with that ID before deploying
+5. Save, then capture the location's object ID — replace `REPLACE_WITH_TRUSTED_IPS_LOCATION_ID` in `CA-COV010-WorkloadIdentities-TrustedLocations.json` with that ID before deploying
 
 > **Remote-only operators:** if you have no fixed egress, the operational pattern shifts. Either (a) define your residential static IPs as the trusted set and accept the brittleness, (b) defer this policy until a static-egress source exists (cloud bastion, vendor like Cloudflare WARP with dedicated egress), or (c) tighten scope to specific high-risk service principals only. Document which path your tenant takes.
 
@@ -33,7 +33,7 @@ If you do not yet have a named location representing your trusted egress ranges 
 
 ## Exclusion model — read this carefully
 
-CA-EXC001 (the Emergency Access exclusion contract) is **user-only**. It does not apply to CA-COV003 because workload identities are not user objects.
+CA-EXC001 (the Emergency Access exclusion contract) is **user-only**. It does not apply to CA-COV010 because workload identities are not user objects.
 
 Workload identity exclusions are managed **per-service-principal**, by object ID, in the policy itself — there is no "Emergency Access workload identities" group equivalent. This is by design in the Microsoft Graph schema: `excludeServicePrincipals` accepts SPN object IDs only.
 
@@ -74,12 +74,12 @@ CAE is a user-token feature. Workload identity tokens are **not** subject to CAE
 2. Rotating the SPN's credentials (cert/secret rollover), or
 3. Adding the SPN object ID to a block-targeted CA policy and waiting for the existing token's natural expiry
 
-Do not assume CA-COV003 provides the same fast-revocation guarantees that CAE-aware user policies do.
+Do not assume CA-COV010 provides the same fast-revocation guarantees that CAE-aware user policies do.
 
 ## Validation (after policy ships in report-only)
 
 ```powershell
-.\Scripts\Get-CABaselineImpact.ps1 -PolicyNameFilter 'CA-COV003' -Days 7
+.\Scripts\Get-CABaselineImpact.ps1 -PolicyNameFilter 'CA-COV010' -Days 7
 ```
 
 Expected pattern in a healthy tenant:

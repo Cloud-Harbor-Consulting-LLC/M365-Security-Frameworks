@@ -111,7 +111,7 @@ function Get-SignInsInWindow {
     $endIso   = $End.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
     $filter = "createdDateTime ge $startIso and createdDateTime le $endIso"
     $encoded = [System.Uri]::EscapeDataString($filter)
-    $uri = "https://graph.microsoft.com/v1.0/auditLogs/signIns?`$filter=$encoded&`$top=1000"
+    $uri = "https://graph.microsoft.com/beta/auditLogs/signIns?`$filter=$encoded&`$top=1000"
 
     $all = [System.Collections.Generic.List[object]]::new()
     $page = 0

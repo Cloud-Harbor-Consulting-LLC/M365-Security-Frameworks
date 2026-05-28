@@ -1,11 +1,20 @@
 {
-  "displayName": "CA-AUT005-Admins-RequireAdminAuthOnAdminPortals",
+  "displayName": "CA-SIG005-Admins-BlockMediumAndHighSignInRisk",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
+    "applications": {
+      "includeApplications": [
+        "All"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ],
+    "signInRiskLevels": [
+      "high",
+      "medium"
+    ],
     "users": {
-      "includeUsers": [],
-      "excludeUsers": [],
-      "includeGroups": [],
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
@@ -26,23 +35,13 @@
         "f28a1f50-f6e7-4571-818b-6a12f2af6b6c",
         "69091246-20e8-4a56-aa4d-066075b2a7a8",
         "3a2c62db-5318-420d-8d74-23affee5d9d5"
-      ],
-      "excludeRoles": []
-    },
-    "applications": {
-      "includeApplications": [
-        "797f4846-ba00-4fd7-ba43-dac1f8f63013",
-        "MicrosoftAdminPortals"
-      ],
-      "excludeApplications": []
-    },
-    "clientAppTypes": ["all"]
+      ]
+    }
   },
   "grantControls": {
-    "operator": "AND",
-    "builtInControls": [],
-    "authenticationStrength": {
-      "id": "REPLACE_WITH_ADMIN_AUTH_STRENGTH_ID"
-    }
+    "builtInControls": [
+      "block"
+    ],
+    "operator": "OR"
   }
 }

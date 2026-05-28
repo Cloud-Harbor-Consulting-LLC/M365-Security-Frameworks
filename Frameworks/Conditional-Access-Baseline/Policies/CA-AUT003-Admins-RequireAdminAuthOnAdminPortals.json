@@ -1,12 +1,22 @@
 {
-  "displayName": "CA-AUT001-PrivAccounts-RequirePhishResistantMFA",
+  "displayName": "CA-AUT003-Admins-RequireAdminAuthOnAdminPortals",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
+    "applications": {
+      "includeApplications": [
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013",
+        "MicrosoftAdminPortals"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ],
     "users": {
-      "includeUsers": [],
-      "excludeUsers": [],
-      "includeGroups": [],
-      "excludeGroups": ["REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"],
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
       "includeRoles": [
         "62e90394-69f5-4237-9190-012177145e10",
         "e8611ab8-c189-46e8-94e1-60213ab1f814",
@@ -22,20 +32,13 @@
         "f28a1f50-f6e7-4571-818b-6a12f2af6b6c",
         "69091246-20e8-4a56-aa4d-066075b2a7a8",
         "3a2c62db-5318-420d-8d74-23affee5d9d5"
-      ],
-      "excludeRoles": []
-    },
-    "applications": {
-      "includeApplications": ["All"],
-      "excludeApplications": []
-    },
-    "clientAppTypes": ["all"]
+      ]
+    }
   },
   "grantControls": {
-    "operator": "AND",
-    "builtInControls": [],
     "authenticationStrength": {
-      "id": "REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID"
-    }
+      "id": "REPLACE_WITH_ADMINAUTH_STRENGTH_ID"
+    },
+    "operator": "OR"
   }
 }

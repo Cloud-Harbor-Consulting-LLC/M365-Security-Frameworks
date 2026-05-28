@@ -3,34 +3,27 @@
     Deploys the Conditional Access Baseline policies to a Microsoft Entra tenant.
 
 .DESCRIPTION
-    Deploy-CABaseline.ps1 imports the CA-COV, CA-SIG, and CA-AUT policy
-    templates in this framework into the target tenant. The script:
+    Deploy-CABaseline.ps1 imports the CA-AUT, CA-COV, and CA-SIG policy templates
+    in this framework into the target tenant using a single Microsoft.Graph.Authentication
+    module dependency and the Microsoft Graph beta endpoint.
 
-    - Resolves tenant-specific placeholders (persona group IDs, authentication
-      strength IDs, named location IDs) by looking them up in the tenant at
-      runtime
+    The script:
+    - Resolves tenant-specific placeholders (persona group IDs, named location IDs,
+      authentication strength IDs) by looking them up in the tenant at runtime
     - Validates every placeholder resolves before submitting any policy
     - Defaults to report-only state (enabledForReportingButNotEnforced); use
       -Enforce to promote to enabled state (requires explicit confirmation)
-    - Supports -WhatIf for safe preview before any policy is created
+    - Supports -WhatIf for safe preview: in WhatIf mode the script parses every
+      policy template and reports what it would do without making any tenant changes
+      or requiring a Graph connection
 
-    Supporting artifacts (custom authentication strengths, named locations)
-    referenced by the policy templates must exist in the tenant before running
-    this script. The Supporting-Artifacts folder in this framework contains the
-    JSON templates that document the expected shape of each artifact; operators
-    provision them once via the Graph API (see Supporting-Artifacts/README.md),
-    and this script resolves them by display name at deploy time.
+    Supporting artifacts (custom authentication strengths, named locations) referenced
+    by the policy templates must exist in the tenant before running this script in
+    non-WhatIf mode. See Supporting-Artifacts/README.md for provisioning instructions.
 
 .PARAMETER PolicyPath
     Path to the folder containing the JSON policy templates. Defaults to
-    '../Policies' relative to the script's location.
-
-.PARAMETER SupportingArtifactsPath
-    Path to the folder containing JSON templates for supporting artifacts
-    (custom authentication strengths, named locations). Defaults to
-    '../Supporting-Artifacts' relative to the script's location. This folder is
-    not deployed by the script; it documents the expected shape of artifacts
-    that must pre-exist in the tenant.
+    the Policies/ folder adjacent to the Scripts/ folder.
 
 .PARAMETER EmergencyAccessGroupName
     Display name of the emergency access group. Default: CA-Persona-EmergencyAccess.
@@ -41,20 +34,35 @@
 .PARAMETER InternalUsersGroupName
     Display name of the internal users persona group. Default: CA-Persona-InternalUsers.
 
-.PARAMETER AuthStrengthName
-    Display name of the authentication strength policy. Default: 'Phishing-resistant MFA'.
+.PARAMETER ServiceAccountsGroupName
+    Display name of the service accounts persona group. Default: CA-Persona-ServiceAccounts.
+
+.PARAMETER GuestsGroupName
+    Display name of the guests persona group. Default: CA-Persona-Guests.
 
 .PARAMETER TrustedCountriesLocationName
-    Display name of the trusted-countries named location. Default: 'Trusted Countries'.
-    Template: ../Supporting-Artifacts/CA-LOCATION-TrustedCountries.json.
+    Display name of the trusted-countries named location. Default: Trusted Countries.
+
+.PARAMETER StandardAuthStrengthName
+    Display name of the StandardAuth authentication strength. Default: StandardAuth.
+
+.PARAMETER StrongAuthStrengthName
+    Display name of the StrongAuth authentication strength. Default: StrongAuth.
+
+.PARAMETER AdminAuthStrengthName
+    Display name of the AdminAuth authentication strength. Default: AdminAuth.
 
 .PARAMETER Enforce
-    Switch. If specified, policies are created in 'enabled' state instead of
-    report-only. Destructive — requires explicit confirmation.
+    Switch. If specified, policies are created in 'enabled' state. Requires explicit
+    confirmation. Default is report-only.
+
+.PARAMETER StopOnError
+    Switch. If specified, the script stops on the first policy creation failure.
+    Default behavior is to continue and report all errors at the end.
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1 -WhatIf
-    Preview the deployment. No changes made to the tenant.
+    Preview the deployment. Parses all templates. No Graph connection required.
 
 .EXAMPLE
     .\Deploy-CABaseline.ps1
@@ -67,40 +75,41 @@
 .NOTES
     Requires:
     - PowerShell 7.0 or later
-    - Microsoft.Graph PowerShell SDK 2.x
-    - Graph scopes: Policy.ReadWrite.ConditionalAccess, Group.Read.All, Policy.Read.All, Application.Read.All
+    - Microsoft.Graph.Authentication module (Install-Module Microsoft.Graph.Authentication)
+    - Graph scopes: Policy.ReadWrite.ConditionalAccess, Policy.Read.All,
+      Group.Read.All, Application.Read.All, Policy.ReadWrite.AuthenticationMethod
     - Persona groups, authentication strengths, and named locations must exist
-      in the tenant before running this script
+      in the tenant before running in non-WhatIf mode
 
-    Connect with:
-      Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All,Application.Read.All
+    Endpoint: https://graph.microsoft.com/beta/identity/conditionalAccess/policies
+    (beta is required for agentIdRiskLevels and signInFrequency.frequencyInterval=everyTime)
 
     Author: Derek Morgan, Cloud Harbor Consulting
     Repository: https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks
 #>
 
-[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
     [Parameter()]
-    [string]$PolicyPath = (Join-Path $PSScriptRoot 'Policies'),
-
-    [Parameter()]
-    [string]$SupportingArtifactsPath = (Join-Path $PSScriptRoot 'Supporting-Artifacts'),
+    [string]$PolicyPath = (Join-Path $PSScriptRoot '..' 'Policies'),
 
     [Parameter()]
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
-
-    [Parameter()]
-    [string]$GuestUsersGroupName = 'CA-Persona-GuestUsers',
-
-    [Parameter()]
-    [string]$ServiceAccountsGroupName = 'CA-Persona-ServiceAccounts',
 
     [Parameter()]
     [string]$WorkloadIdentitiesGroupName = 'CA-Persona-WorkloadIdentities',
 
     [Parameter()]
     [string]$InternalUsersGroupName = 'CA-Persona-InternalUsers',
+
+    [Parameter()]
+    [string]$ServiceAccountsGroupName = 'CA-Persona-ServiceAccounts',
+
+    [Parameter()]
+    [string]$GuestsGroupName = 'CA-Persona-Guests',
+
+    [Parameter()]
+    [string]$TrustedCountriesLocationName = 'Trusted Countries',
 
     [Parameter()]
     [string]$StandardAuthStrengthName = 'StandardAuth',
@@ -112,19 +121,16 @@ param(
     [string]$AdminAuthStrengthName = 'AdminAuth',
 
     [Parameter()]
-    [string]$AuthStrengthName = 'Phishing-resistant MFA',
+    [switch]$Enforce,
 
     [Parameter()]
-    [string]$TrustedCountriesLocationName = 'Trusted Countries',
-
-    [Parameter()]
-    [switch]$Enforce
+    [switch]$StopOnError
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-#region Helper functions
+#region Helpers
 
 function Write-Status {
     param(
@@ -148,14 +154,19 @@ function Write-Status {
 
 function Test-GraphPrerequisites {
     if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph.Authentication')) {
-        throw "Microsoft.Graph PowerShell SDK is not installed. Run: Install-Module Microsoft.Graph -Scope CurrentUser"
+        throw "Microsoft.Graph.Authentication module is not installed. Run: Install-Module Microsoft.Graph.Authentication -Scope CurrentUser"
     }
     $context = Get-MgContext
     if (-not $context) {
-        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Group.Read.All,Policy.Read.All,Application.Read.All"
+        throw "Not connected to Microsoft Graph. Run: Connect-MgGraph -Scopes Policy.ReadWrite.ConditionalAccess,Policy.Read.All,Group.Read.All,Application.Read.All,Policy.ReadWrite.AuthenticationMethod"
     }
-    $requiredScopes = @('Policy.ReadWrite.ConditionalAccess', 'Group.Read.All', 'Policy.Read.All', 'Application.Read.All')
-    $missing = $requiredScopes | Where-Object { $_ -notin $context.Scopes }
+    $required = @(
+        'Policy.ReadWrite.ConditionalAccess',
+        'Policy.Read.All',
+        'Group.Read.All',
+        'Application.Read.All'
+    )
+    $missing = $required | Where-Object { $_ -notin $context.Scopes }
     if ($missing) {
         throw "Graph session is missing required scopes: $($missing -join ', '). Reconnect with all required scopes."
     }
@@ -181,18 +192,17 @@ function Resolve-AuthStrengthId {
     $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/authenticationStrength/policies?$select=id,displayName'
     $match = @($response.value | Where-Object { $_.displayName -eq $DisplayName })
     if ($match.Count -eq 0) {
-        throw "Authentication strength not found in tenant: '$DisplayName'."
+        throw "Authentication strength not found in tenant: '$DisplayName'. Provision it from Supporting-Artifacts/ before running this script."
     }
     return $match[0].id
 }
 
 function Resolve-NamedLocationId {
     param([Parameter(Mandatory)][string]$DisplayName)
-    $uri = 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations?$select=id,displayName'
-    $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+    $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations?$select=id,displayName'
     $match = @($response.value | Where-Object { $_.displayName -eq $DisplayName })
     if ($match.Count -eq 0) {
-        throw "Named location not found in tenant: '$DisplayName'. Create it before running this script (see Supporting-Artifacts/README.md)."
+        throw "Named location not found in tenant: '$DisplayName'. Provision it from Supporting-Artifacts/ before running this script."
     }
     if ($match.Count -gt 1) {
         throw "Multiple named locations found with displayName '$DisplayName'. Ensure the name is unique."
@@ -212,110 +222,124 @@ function Expand-Placeholders {
     return $result
 }
 
-function New-CAPolicy {
-    param([Parameter(Mandatory)][hashtable]$Policy)
-    $body = $Policy | ConvertTo-Json -Depth 20 -Compress:$false
-    return Invoke-MgGraphRequest -Method POST `
-        -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies' `
-        -Body $body -ContentType 'application/json'
-}
-
 #endregion
 
 #region Main
 
 try {
     Write-Status "Deploy-CABaseline starting"
+
+    $isWhatIf = $PSBoundParameters.ContainsKey('WhatIf')
     $modeLabel = if ($Enforce) { 'ENFORCE (enabled state)' } else { 'report-only (safe default)' }
-    Write-Status "Mode: $modeLabel" -Level $(if ($Enforce) { 'Warning' } else { 'Info' })
+    Write-Status "Mode: $modeLabel"
+    if ($isWhatIf) { Write-Status "WhatIf: template parse only — no tenant changes will be made" -Level Warning }
 
-    Test-GraphPrerequisites
-    $tenantContext = Get-MgContext
-    Write-Status "Connected tenant: $($tenantContext.TenantId) as $($tenantContext.Account)" -Level Success
-
-    Write-Status "Resolving tenant-specific placeholders..."
-    $substitutions = @{
-        'REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID'     = Resolve-GroupId -DisplayName $EmergencyAccessGroupName
-        'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID'  = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
-        'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'       = Resolve-GroupId -DisplayName $InternalUsersGroupName
-        'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'     = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
-        'REPLACE_WITH_GUEST_USERS_GROUP_OBJECT_ID'         = Resolve-GroupId -DisplayName $GuestUsersGroupName
-        'REPLACE_WITH_PHISHING_RESISTANT_MFA_STRENGTH_ID'   = Resolve-AuthStrengthId -DisplayName $AuthStrengthName
-        'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_OBJECT_ID' = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
-        'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'        = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
-        'REPLACE_WITH_STANDARD_AUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
-        'REPLACE_WITH_STRONG_AUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
-        'REPLACE_WITH_ADMIN_AUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
-    }
-    foreach ($key in $substitutions.Keys) {
-        Write-Status "  $key -> $($substitutions[$key])" -Level Success
-    }
-    
     $resolvedPolicyPath = Resolve-Path -Path $PolicyPath -ErrorAction SilentlyContinue
     if (-not $resolvedPolicyPath) {
         throw "Policy path not found: $PolicyPath"
     }
+
     $templates = Get-ChildItem -Path $resolvedPolicyPath -Filter '*.json' -File | Sort-Object Name
     if ($templates.Count -eq 0) {
         throw "No JSON policy templates found in: $resolvedPolicyPath"
     }
     Write-Status "Found $($templates.Count) policy templates in $resolvedPolicyPath" -Level Success
 
-    if ($Enforce) {
-        Write-Status "You have specified -Enforce. Policies will be created in 'enabled' state." -Level Warning
-        if (-not $PSCmdlet.ShouldContinue(
-                "This will enforce $($templates.Count) Conditional Access policies on tenant $($tenantContext.TenantId). Continue?",
-                "Confirm enforced deployment"
-            )) {
-            Write-Status "Deployment cancelled by user." -Level Warning
-            return
+    $substitutions = @{}
+
+    if (-not $isWhatIf) {
+        Test-GraphPrerequisites
+        $tenantContext = Get-MgContext
+        Write-Status "Connected tenant: $($tenantContext.TenantId) as $($tenantContext.Account)" -Level Success
+
+        Write-Status "Resolving tenant-specific placeholders..."
+        $substitutions = @{
+            'REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $EmergencyAccessGroupName
+            'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID' = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
+            'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'      = Resolve-GroupId -DisplayName $InternalUsersGroupName
+            'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
+            'REPLACE_WITH_GUESTS_GROUP_OBJECT_ID'              = Resolve-GroupId -DisplayName $GuestsGroupName
+            'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
+            'REPLACE_WITH_STANDARDAUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
+            'REPLACE_WITH_STRONGAUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
+            'REPLACE_WITH_ADMINAUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
+        }
+        foreach ($key in $substitutions.Keys) {
+            Write-Status "  $key -> $($substitutions[$key])" -Level Success
+        }
+
+        if ($Enforce) {
+            Write-Status "You have specified -Enforce. Policies will be created in 'enabled' state." -Level Warning
+            if (-not $PSCmdlet.ShouldContinue(
+                    "This will create $($templates.Count) Conditional Access policies in 'enabled' state on tenant $($tenantContext.TenantId). Continue?",
+                    "Confirm enforced deployment"
+                )) {
+                Write-Status "Deployment cancelled by user." -Level Warning
+                return
+            }
         }
     }
 
-    $results = @()
+    $results = [System.Collections.Generic.List[pscustomobject]]::new()
+
     foreach ($template in $templates) {
         Write-Status "Processing: $($template.Name)"
         try {
             $rawJson = Get-Content -Path $template.FullName -Raw
+            $policy = $rawJson | ConvertFrom-Json -AsHashtable
+
+            if ($isWhatIf) {
+                $displayName = if ($policy.ContainsKey('displayName')) { $policy['displayName'] } else { $template.BaseName }
+                Write-Status "  Would create policy '$displayName' on the beta endpoint"
+                $results.Add([pscustomobject]@{
+                    Template = $template.Name
+                    Policy   = $displayName
+                    Id       = 'n/a'
+                    State    = if ($Enforce) { 'enabled' } else { 'enabledForReportingButNotEnforced' }
+                    Status   = 'WhatIf'
+                })
+                continue
+            }
+
             $expandedJson = Expand-Placeholders -JsonContent $rawJson -Substitutions $substitutions
             if ($expandedJson -match 'REPLACE_WITH_') {
                 throw "Unresolved placeholders remain in $($template.Name) after substitution."
             }
-            $policy = $expandedJson | ConvertFrom-Json -AsHashtable
-            $policy.state = if ($Enforce) { 'enabled' } else { 'enabledForReportingButNotEnforced' }
 
-            if ($PSCmdlet.ShouldProcess($policy.displayName, "Create Conditional Access policy (state=$($policy.state))")) {
-                $created = New-CAPolicy -Policy $policy
+            $body = $expandedJson | ConvertFrom-Json -AsHashtable
+            $body['state'] = if ($Enforce) { 'enabled' } else { 'enabledForReportingButNotEnforced' }
+
+            if ($PSCmdlet.ShouldProcess($body['displayName'], "Create Conditional Access policy (state=$($body['state'])) on beta endpoint")) {
+                $bodyJson = $body | ConvertTo-Json -Depth 50 -Compress
+                $created = Invoke-MgGraphRequest -Method POST `
+                    -Uri 'https://graph.microsoft.com/beta/identity/conditionalAccess/policies' `
+                    -Body $bodyJson -ContentType 'application/json'
                 Write-Status "  Created: $($created.displayName) [$($created.id)]" -Level Success
-                $results += [pscustomobject]@{
+                $results.Add([pscustomobject]@{
                     Template = $template.Name
                     Policy   = $created.displayName
                     Id       = $created.id
                     State    = $created.state
                     Status   = 'Created'
-                }
-            } else {
-                $results += [pscustomobject]@{
-                    Template = $template.Name
-                    Policy   = $policy.displayName
-                    Id       = 'n/a'
-                    State    = $policy.state
-                    Status   = 'WhatIf'
-                }
+                })
             }
         } catch {
-            Write-Status "  Failed: $($template.Name) - $_" -Level Error
-            $results += [pscustomobject]@{
+            $errMsg = "Failed: $($template.Name) — $_"
+            Write-Status $errMsg -Level Error
+            $results.Add([pscustomobject]@{
                 Template = $template.Name
                 Policy   = 'n/a'
                 Id       = 'n/a'
                 State    = 'n/a'
                 Status   = "Error: $_"
+            })
+            if ($StopOnError) {
+                throw "Stopping on first error as requested by -StopOnError. $errMsg"
             }
         }
     }
 
-    Write-Host ""
+    Write-Host ''
     Write-Status "Summary:"
     $results | Format-Table -AutoSize
 
@@ -323,17 +347,21 @@ try {
     $whatIfCount  = @($results | Where-Object { $_.Status -eq 'WhatIf' }).Count
     $errorCount   = @($results | Where-Object { $_.Status -like 'Error:*' }).Count
 
-    Write-Status "Created: $createdCount, Previewed: $whatIfCount, Errors: $errorCount"
+    Write-Status "Created: $createdCount  Previewed: $whatIfCount  Errors: $errorCount"
+
     if ($errorCount -gt 0) {
         Write-Status "Deployment completed with errors. Review output above." -Level Warning
         exit 1
     }
+    if ($whatIfCount -gt 0) {
+        Write-Status "WhatIf complete. Re-run without -WhatIf and with a live Graph connection to deploy." -Level Info
+    }
     if ($createdCount -gt 0 -and -not $Enforce) {
-        Write-Status "Reminder: Policies are in report-only mode. Soak, validate, and promote to enforced per Policy-Design.md section 5." -Level Info
+        Write-Status "Reminder: Policies are in report-only mode. Soak, validate with Get-CABaselineImpact.ps1, and promote per Design/POLICY-DESIGN.md section 5." -Level Info
     }
 
 } catch {
-    Write-Status $_ -Level Error
+    Write-Status "$_" -Level Error
     exit 1
 }
 

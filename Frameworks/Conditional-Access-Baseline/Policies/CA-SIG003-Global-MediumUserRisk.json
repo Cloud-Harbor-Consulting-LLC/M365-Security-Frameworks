@@ -1,0 +1,43 @@
+{
+  "displayName": "CA-SIG003-Global-MediumUserRisk",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "applications": {
+      "includeApplications": [
+        "All"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ],
+    "userRiskLevels": [
+      "medium"
+    ],
+    "users": {
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+      ],
+      "includeUsers": [
+        "All"
+      ]
+    }
+  },
+  "grantControls": {
+    "authenticationStrength": {
+      "id": "REPLACE_WITH_STRONGAUTH_STRENGTH_ID"
+    },
+    "builtInControls": [
+      "riskRemediation"
+    ],
+    "operator": "AND"
+  },
+  "sessionControls": {
+    "signInFrequency": {
+      "authenticationType": "primaryAndSecondaryAuthentication",
+      "frequencyInterval": "everyTime",
+      "isEnabled": true
+    }
+  }
+}
