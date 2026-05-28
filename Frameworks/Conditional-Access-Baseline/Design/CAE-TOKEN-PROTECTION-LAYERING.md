@@ -176,7 +176,7 @@ The gap each control leaves is exactly what the other control addresses:
 
 ### 4.2 Threat scenarios
 
-**Scenario A: Account compromise, admin-triggered password reset**
+#### Scenario A: Account compromise, admin-triggered password reset
 
 An attacker obtains the user's credentials and signs in from an anomalous location. Identity Protection raises a risk signal and the security team resets the user's password.
 
@@ -184,7 +184,7 @@ An attacker obtains the user's credentials and signs in from an anomalous locati
 - **Token Protection response:** Not directly applicable to this scenario. The attacker authenticated with the user's actual credentials and received tokens legitimately issued to the attacker's device (or to the victim's device if the attacker used phishing to initiate the session). Token Protection validates the issuing device; it cannot distinguish a token issued through phishing from a legitimately issued token.
 - **Outcome:** CAE provides the revocation. Token Protection is not relevant to this scenario.
 
-**Scenario B: AiTM phishing captures a session token post-MFA**
+#### Scenario B: AiTM phishing captures a session token post-MFA
 
 A user authenticates through an AiTM phishing proxy. The user completes MFA normally. The proxy captures the resulting session token. The attacker presents the captured token to Exchange Online from their own infrastructure. No password reset or account state change has occurred.
 
@@ -192,7 +192,7 @@ A user authenticates through an AiTM phishing proxy. The user completes MFA norm
 - **Token Protection response:** The token was originally issued to the victim's Windows device with TPM binding. When the attacker attempts to redeem the token from their device, the token endpoint validates the device-binding signature. The attacker's device does not have the victim's TPM key. The redemption is rejected. The attacker cannot use the captured token.
 - **Outcome:** Token Protection provides the protection. CAE has no applicable signal until a subsequent event occurs.
 
-**Scenario C: Infostealer exfiltrates refresh tokens from the browser cache**
+#### Scenario C: Infostealer exfiltrates refresh tokens from the browser cache
 
 An infostealer executes on the victim's Windows device, extracts the refresh token from the browser's token cache, and transmits it to the attacker's infrastructure. The attacker attempts to redeem the refresh token against Microsoft Graph to obtain a new access token for Exchange Online.
 
@@ -200,7 +200,7 @@ An infostealer executes on the victim's Windows device, extracts the refresh tok
 - **Token Protection response:** The refresh token carries TPM binding from the issuing Windows device. The attacker's infrastructure does not have the victim device's TPM private key. The redemption attempt fails signature validation at the token endpoint. The attacker cannot obtain a new access token from the stolen refresh token.
 - **Outcome:** Token Protection provides immediate protection at the first redemption attempt. CAE provides a secondary defense if the attacker's activity generates risk signals.
 
-**Scenario D: Stolen token presented from a different Windows device**
+#### Scenario D: Stolen token presented from a different Windows device
 
 A rarer scenario: the attacker has compromised a Windows device and attempts to replay a stolen token from a separate Windows device that they also control, hoping that the same platform class bypasses the binding check.
 
@@ -282,13 +282,13 @@ The following table documents the Token Protection client requirements for each 
 
 The v1.3 baseline rollout sequence (documented in `Design/POLICY-DESIGN.md` Section 5) places the relevant policies at specific positions. The layering order below follows that sequence and explains the dependencies.
 
-**Step 1 — Enforce CA-COV001-AllUsers-BlockLegacyAuth (rollout position 1)**
+### Step 1 — Enforce CA-COV001-AllUsers-BlockLegacyAuth (rollout position 1)
 
 This is the hard prerequisite for everything in this layering. Legacy authentication protocols bypass both CAE and Token Protection. An active legacy auth path renders both controls partially inoperative. CA-COV001 must be in enforcement — not just report-only — before the Token Protection soak has any meaningful value.
 
 Validation: Run `Get-CABaselineImpact.ps1 -PolicyNameFilter CA-COV001 -DaysBack 14`. The would-have-blocked count must be zero before promoting CA-COV001 to enforcement.
 
-**Step 2 — Confirm CAE is active (not a CA policy — tenant configuration)**
+### Step 2 — Confirm CAE is active (not a CA policy — tenant configuration)
 
 Modern Microsoft 365 tenants have CAE enabled by default via the global CA policies service. Operators should verify two things:
 
@@ -297,11 +297,11 @@ Modern Microsoft 365 tenants have CAE enabled by default via the global CA polic
 
 CAE strict enforcement is not a standalone policy template in the v1.3 baseline. It is a session control property added to existing policies. A v1.4 candidate exists for a dedicated CAE enforcement policy template if Microsoft introduces a standalone Conditional Access control surface for this setting.
 
-**Step 3 — Soak CA-SIG007 in report-only for 14 days (rollout position 19)**
+### Step 3 — Soak CA-SIG007 in report-only for 14 days (rollout position 19)
 
 Deploy CA-SIG007-Internal-TokenProtection in `enabledForReportingButNotEnforced` state (the default deployment state from `Deploy-CABaseline.ps1`). The 14-day window has a specific purpose: inventorying clients that cannot yet satisfy Token Protection. See Section 8 for the full soak procedure.
 
-**Step 4 — Promote CA-SIG007 to enforcement**
+### Step 4 — Promote CA-SIG007 to enforcement
 
 After the soak window closes and the non-supporting-client inventory is at zero or within the organization's accepted residual, promote CA-SIG007 from report-only to enforcement:
 
@@ -311,7 +311,7 @@ After the soak window closes and the non-supporting-client inventory is at zero 
 
 Promote one policy at a time. Do not batch CA-SIG007 enforcement with other policies.
 
-**Step 5 — Monitor for platform coverage expansion (v1.4 and later)**
+### Step 5 — Monitor for platform coverage expansion (v1.4 and later)
 
 Microsoft is shipping Token Protection support for macOS, iOS, and Android on an evolving timeline. The v1.3 baseline does not include platform expansion beyond Windows. When Microsoft ships macOS support, extend the `includePlatforms` condition on CA-SIG007 to include `macOS`. Monitor Microsoft Learn and the Entra ID release notes for platform support announcements. This is captured as a v1.4 roadmap candidate.
 
