@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Last Commit](https://img.shields.io/github/last-commit/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks)
-![Stars](https://img.shields.io/github/stars/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks?style=social)
+![Stars](https://img.shields.io/github/stars/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks)
 
 > **Release history:** see [CHANGELOG.md](./CHANGELOG.md).
 
