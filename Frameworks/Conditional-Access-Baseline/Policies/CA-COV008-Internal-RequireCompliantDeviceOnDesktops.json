@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-COV008-Internal-RequireCompliantDeviceOnDesktops",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
@@ -11,19 +11,28 @@
       "browser",
       "mobileAppsAndDesktopClients"
     ],
+    "platforms": {
+      "includePlatforms": [
+        "windows",
+        "macOS",
+        "linux"
+      ]
+    },
     "users": {
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
-        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
-      "includeUsers": [
-        "All"
+      "includeGroups": [
+        "REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID"
       ]
     }
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "compliantDevice",
+      "domainJoinedDevice"
     ],
     "operator": "OR"
   }

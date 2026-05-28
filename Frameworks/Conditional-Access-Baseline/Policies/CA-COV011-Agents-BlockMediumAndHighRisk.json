@@ -1,29 +1,30 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-COV011-Agents-BlockMediumAndHighRisk",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
+    "agentIdRiskLevels": "medium,high",
     "applications": {
       "includeApplications": [
-        "All"
+        "AllAgentIdResources"
       ]
     },
     "clientAppTypes": [
-      "browser",
-      "mobileAppsAndDesktopClients"
+      "all"
     ],
-    "users": {
-      "excludeGroups": [
-        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
-        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
-      ],
-      "includeUsers": [
+    "clientApplications": {
+      "includeAgentIdServicePrincipals": [
         "All"
+      ]
+    },
+    "users": {
+      "includeUsers": [
+        "None"
       ]
     }
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "block"
     ],
     "operator": "OR"
   }

@@ -1,10 +1,10 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-SIG001-SensitiveApps-RequireCompliantDevice",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
       "includeApplications": [
-        "All"
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013"
       ]
     },
     "clientAppTypes": [
@@ -16,14 +16,15 @@
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
       ],
-      "includeUsers": [
-        "All"
+      "includeGroups": [
+        "REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID"
       ]
     }
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "compliantDevice",
+      "domainJoinedDevice"
     ],
     "operator": "OR"
   }

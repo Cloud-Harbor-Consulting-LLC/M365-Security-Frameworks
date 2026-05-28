@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-COV002-AllUsers-RequireMFA",
+  "displayName": "CA-COV007-Global-BlockByLocation",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
@@ -8,13 +8,21 @@
       ]
     },
     "clientAppTypes": [
-      "browser",
-      "mobileAppsAndDesktopClients"
+      "all"
     ],
+    "locations": {
+      "excludeLocations": [
+        "REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID"
+      ],
+      "includeLocations": [
+        "All"
+      ]
+    },
     "users": {
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
-        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID"
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
       "includeUsers": [
         "All"
@@ -23,7 +31,7 @@
   },
   "grantControls": {
     "builtInControls": [
-      "mfa"
+      "block"
     ],
     "operator": "OR"
   }

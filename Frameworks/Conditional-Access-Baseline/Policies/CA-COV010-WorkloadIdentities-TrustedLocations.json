@@ -1,5 +1,5 @@
 {
-    "displayName": "CA-COV003-WorkloadIdentities-TrustedLocations",
+    "displayName": "CA-COV010-WorkloadIdentities-TrustedLocations",
     "state": "enabledForReportingButNotEnforced",
     "conditions": {
         "clientApplications": {

@@ -1,0 +1,34 @@
+{
+  "displayName": "CA-SIG007-Internal-TokenProtection",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "applications": {
+      "includeApplications": [
+        "Office365"
+      ]
+    },
+    "clientAppTypes": [
+      "all"
+    ],
+    "platforms": {
+      "includePlatforms": [
+        "windows"
+      ]
+    },
+    "users": {
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ],
+      "includeGroups": [
+        "REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID"
+      ]
+    }
+  },
+  "sessionControls": {
+    "secureSignInSession": {
+      "isEnabled": true
+    }
+  }
+}

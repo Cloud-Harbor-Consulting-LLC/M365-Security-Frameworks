@@ -1,5 +1,5 @@
 {
-  "displayName": "CA-COV001-AllUsers-BlockLegacyAuth",
+  "displayName": "CA-SIG002-Guests-RequireMFA",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
@@ -8,21 +8,23 @@
       ]
     },
     "clientAppTypes": [
-      "exchangeActiveSync",
-      "other"
+      "all"
     ],
     "users": {
       "excludeGroups": [
         "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"
       ],
-      "includeUsers": [
-        "All"
-      ]
+      "includeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all"
+        },
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+      }
     }
   },
   "grantControls": {
     "builtInControls": [
-      "block"
+      "mfa"
     ],
     "operator": "OR"
   }
