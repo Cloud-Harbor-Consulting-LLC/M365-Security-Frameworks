@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+None at this time.
+
+---
+
+## [1.3.0] - 2026-05-28
+
+The v1.3 release closes the Conditional Access Baseline development cycle that began with the wholesale stack adoption sourced from Derek's demo tenant. Twenty-four starter policies now cover seven identity personas — Global, Internal, Admins, Guests, ServiceAccounts, WorkloadIdentities, and Agents — plus a Sensitive-Applications scope, bringing the baseline to full defensible coverage of every identity class that Conditional Access can reach in a Microsoft Entra ID tenant. The headline addition is the Agents persona: Microsoft Agent ID is a distinct identity class for AI agents and Copilot agents in Entra, and CA-COV011 is the first policy in this baseline to explicitly cover that surface — one that most community CA baselines still leave unaddressed as of 2026. The full stack targets the Microsoft Graph beta endpoint for all 24 policies, with three policies requiring beta for features Microsoft has not yet promoted to v1.0 (`signInFrequency: everyTime` and the Agent ID condition family), and a documented migration commitment when GA promotion completes. Four new design documents ship with this release: AGENTS-PERSONA-MODEL.md, CAE-TOKEN-PROTECTION-LAYERING.md, WORKLOAD-IDENTITY-IP-PATTERNS.md, and CA-ICB-INTEGRATION.md. The CA-SIG010-Guests-RequireToU policy adds a Terms of Use consent gate for all six B2B guest user types. All policy JSON was normalized from PascalCase SDK format to the documented REST API camelCase wire format.
+
 ### Added
 
 - Frameworks/Conditional-Access-Baseline/Design/CA-ICB-INTEGRATION.md — cross-framework integration doc covering how the v1.3 Conditional Access Baseline consumes the Intune Compliance Baseline compliance signal. Signal flow narrative with a Mermaid diagram. Documents the three CA policies that depend on ICB (CA-COV008, CA-SIG001, CA-SIG007) with per-policy ICB requirements. Failure-mode matrix covering 7 common adopter scenarios (noncompliant device, unmanaged device, lag, mid-session revocation, legacy clients, Linux gap, mobile out-of-scope). CAE interaction documented for compliance state changes during active sessions. CA-to-ICB rollout sequence in 9 steps. Cross-framework testing procedure with 5 concrete test cases. Out-of-scope disclosure.
@@ -47,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frameworks/Conditional-Access-Baseline/README.md — Roadmap section updated to mark the CAE and Token Protection layering doc as shipped under v1.3.
 - Frameworks/Conditional-Access-Baseline/Design/POLICY-DESIGN.md — added cross-reference from the CA-COV010-WorkloadIdentities-TrustedLocations per-policy spec to the new WORKLOAD-IDENTITY-IP-PATTERNS.md supplement.
 - Frameworks/Conditional-Access-Baseline/README.md — Roadmap section updated to mark the Workload identity IP patterns doc as shipped under v1.3.
+- Frameworks/Conditional-Access-Baseline/Business-Case/ROI-CONDITIONAL-ACCESS.md — wholesale rewrite for v1.3. Policy count updated from 23 to 24 (including CA-SIG010 ToU). New Agents persona business case section (executive-novel content). New AuthN strength enforcement-model section replacing the v1.2 always-on PrivAccounts framing. New beta-endpoint commitment section in plain language. Annual operational hours estimate updated from approximately 52 to approximately 112 hours per year, driven by the new Agents persona attestation, the Workload Identities trusted-IPs cadence, and ToU lifecycle management. Phased investment approach extended from 12 to 20 weeks.
+- Frameworks/Conditional-Access-Baseline/README.md — status banner flipped to Released v1.3.0. Roadmap section restructured: v1.3 candidates moved to Shipped; v1.4 candidates seeded.
+- Top-level README.md — Frameworks table row for Conditional Access Baseline updated from v1.2.0 (2026-05-15) to v1.3.0 (2026-05-28). Notes column refreshed for the v1.3 surface.
 
 ### Fixed
 
@@ -92,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Frameworks/Conditional-Access-Baseline/Business-Case/ROI-CONDITIONAL-ACCESS.md — folded the v1.2 slate into the executive ROI document. Policy count changed from "eight" to "twenty-three". Five-persona model (Global, Internal, Admins, Guests, ServiceAccounts) noted in the executive summary alongside the workload-identity policy. Expanded "What the baseline delivers" table with 15 new rows covering the v1.2 policies (CA-AUT003, CA-AUT004, CA-COV004 through CA-COV010, CA-SIG004 through CA-SIG008), grouped by persona segment. Expanded "Risk reduction framing" table to mirror. Added Token Protection client-version note and ServiceAccounts operational note to the licensing section. Added Trusted Countries named-location provisioning, three custom authentication strength provisioning steps (StandardAuth, StrongAuth, AdminAuth), and the ServiceAccounts persona group to the implementation prerequisites. Quarterly operational estimate updated from approximately 40 hours to approximately 52 hours per year to cover ServiceAccounts geography review, admin-context risk review, and expanded risk-detection tuning. Recommended investment approach Phase 3 window extended from weeks 9 to 12 to weeks 9 to 14 to accommodate the larger enforcement surface.
 - Frameworks/Conditional-Access-Baseline/Design/POLICY-DESIGN.md — documented sections 6.9 through 6.23 (`CA-COV004`, `CA-COV005`, `CA-COV006`, `CA-COV007`, `CA-AUT003`, `CA-AUT004`, `CA-COV008`, `CA-COV009`, `CA-SIG004`, `CA-SIG005`, `CA-AUT005`, `CA-SIG006`, `CA-SIG007`, `CA-COV010`, `CA-SIG008`) per-policy specs; added rollout-sequence rows 9 through 23; added the Service Accounts persona row to section 3 and the `CA-EXC002` reference under section 4.1 (permanent exclusions count updated from 2 to 3); added section 1.5 (v1.2 design refinements) and section 1.6 (Global and Admins scope definitions); updated section 6 intro count from "eight" to "twenty-three" starter policies.
-  
+
 ### Fixed
 
 - Top-level `README.md` — Frameworks table status for the Conditional Access Baseline updated from `v1.0.0` to `v1.1.0` to match the v1.1.0 release. Documentation-only correction; missed during the v1.1.0 release prep.
@@ -192,7 +203,10 @@ First public release of the **Conditional Access Baseline** framework.
 This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund, and Claus Jespersen on Conditional Access design patterns.
 
 ---
-[Unreleased] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.2.0...HEAD>
+
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.3.0...HEAD>
+
+[1.3.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.2.0...v1.3.0>
 
 [1.2.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...v1.2.0>
 

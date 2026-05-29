@@ -22,7 +22,7 @@ Every framework in this repo includes:
 
 | Framework | Status | Latest | Notes |
 |-----------|--------|--------|-------|
-| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Released | v1.2.0 (2026-05-15) | 23 policies across 5 personas plus workload identities; report-only by default |
+| [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Released | v1.3.0 (2026-05-28) | 24 policies across 7 personas plus workload identities and Sensitive-Apps scope; new Agents persona for AI/Copilot agents; all-beta endpoint; report-only by default |
 | [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Preview | v0.1.0-preview (2026-05-15) | First Windows 10/11 compliance template + framework design spec; macOS, iOS, Android, Linux templates and Deploy-ICBaseline.ps1 land toward Q3 2026 full-framework completion |
 | [Security Reporting Decision Rubric](./Frameworks/Security-Reporting-Decision-Rubric/) | Preview | v0.1.0-preview (pending) | 4-question decision flow for designing audience-scoped security reports; severity floor guidance grounded in Defender XDR's severity model; 2 starter templates (board quarterly, CISO monthly) |
 | Entra ID Governance Toolkit | Planned | — | First Access Reviews automation templates Month 2 Week 2 (May 2026); full framework Q4 2026 |
