@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-None at this time.
+### Added
+
+- Entra ID Governance Toolkit framework skeleton at `Frameworks/Entra-ID-Governance-Toolkit/`. Replaces the stub README with a framework landing page covering scope (Access Reviews now, Lifecycle Workflows and PIM governance as the v1.0 target), the EIG-AR / EIG-LW / EIG-PIM naming convention, the planned scripts inventory, the self-invoking deployment model, and Entra ID P2 prerequisites. No scripts and no tag in this change.
 
 ---
 
