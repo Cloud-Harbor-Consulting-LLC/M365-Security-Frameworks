@@ -1,51 +1,53 @@
 # Entra ID Governance Toolkit
 
-> **Status:** Planned — targeted for **Q4 2026**
-> Part of the [M365-Security-Frameworks](../../README.md) project by [Cloud Harbor Consulting](https://www.cloudharborconsulting.cloud).
+Practical Microsoft Entra ID Governance automation, starting with Access Reviews and extending to Lifecycle Workflows and Privileged Identity Management governance. Part of the Cloud Harbor Consulting M365 Security Frameworks.
 
----
+Status: in development, targeting v0.1.0-preview.
 
-## What this framework will deliver
+## What this framework does
 
-A practical governance toolkit for Entra ID — covering **access lifecycle, privileged identity, and standing-access reduction** — built on the same principle-first approach as the Conditional Access Baseline.
+Standing access that no one reviews is how guest sprawl and privilege creep take hold. This framework automates the recurring governance controls that keep access time-bound and auditable: scheduled Access Reviews with a clear reviewer chain, a deny-by-default decision when no one responds, and a retained evidence trail for audit. The scripts are PowerShell 7 against the Microsoft Graph Identity Governance API, and each one is paired with a plain-language contract doc so an adopter can read what it does before running it.
 
-The Conditional Access Baseline locks the **front door**. This toolkit addresses the harder problem behind it: ensuring the right people have the right access for the right duration, and that privileged access is time-bound by default.
+## Scope
 
-## Design principles (draft)
+- v0.1.0-preview: Access Reviews automation. 2 starter scripts (quarterly guest access review, dormant admin role review).
+- v1.0 target: Lifecycle Workflows and PIM governance scripts.
 
-1. **Just-in-time beats just-in-case** — standing privileged access is the exception, not the default
-2. **Access has an expiration date** — every grant answers "when does this end?"
-3. **Reviews that actually change state** — access reviews drive removal, not just acknowledgment
-4. **Separation of duties is encoded, not assumed** — incompatible role combinations blocked by policy
+## Framework principles
 
-## Planned scope
+1. Time-bound access by default. Access is granted for a window, not in perpetuity, and every grant has a review date.
+2. Reviewer accountability with a sign-off trail. Every review names a responsible reviewer and records the decision.
+3. Recurrence enforcement at the workflow level. Reviews repeat on a fixed cadence so governance does not depend on someone remembering.
+4. Evidence retention for audit. Review outcomes are retained as audit evidence, not discarded when the review closes.
 
-- **Privileged Identity Management (PIM)** — role activation policies, approval workflows, break-glass patterns
-- **Access Packages** — entitlement management templates for common access bundles
-- **Access Reviews** — recurring review templates for privileged roles, guest access, and group membership
-- **Lifecycle Workflows** — joiner/mover/leaver automation patterns
-- **Guest access governance** — B2B invitation policies, expiration, and cleanup
-- Executive ROI document tied to insider risk and audit readiness
-- Compliance mapping (SOC 2, ISO 27001, HIPAA, SOX, NIST 800-53)
+## Naming convention
 
-## Out of scope
+`EIG-[Domain][Number]-[Description]`
 
-- Full Identity Governance deployment playbook (that's a multi-month engagement, not a framework)
-- HR-system-specific inbound provisioning — that's tenant-specific
-- Entitlement management for external tenants (covered under multi-tenant governance, separately)
+| Prefix | Domain |
+|--------|--------|
+| EIG-AR | Access Reviews |
+| EIG-LW | Lifecycle Workflows |
+| EIG-PIM | Privileged Identity Management governance |
 
-## Prerequisites (anticipated)
+## Scripts inventory
 
-- Microsoft Entra ID P2 (required for PIM, Access Reviews, Identity Governance)
-- Global Administrator or Privileged Role Administrator for initial configuration
-- PowerShell 7+ and Microsoft Graph PowerShell SDK 2.x
+| Script | Purpose | Status |
+|--------|---------|--------|
+| EIG-AR001-QuarterlyGuestAccessReview | Quarterly Access Review of all B2B guests | Planned for v0.1.0-preview |
+| EIG-AR002-DormantAdminRoleReview | Monthly review of admin role assignments dormant 30+ days | Planned for v0.1.0-preview |
 
-## Follow along
+## Deployment workflow
 
-This framework is in the roadmap stage. Watch or star the repo to be notified when v1.0.0 ships.
+Each script is self-invoking. There is no unified deployer at v0.1.0-preview. Access Reviews are recurring configurations rather than one-shot deployments, so an adopter tunes the parameters at the top of each script and runs it once to stand the review up in their tenant. A unified runner may follow in a later release if adopter demand warrants.
 
-Questions, use cases, or requirements you'd like to see covered? [Open an issue](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/issues) — early input shapes the toolkit.
+## Prerequisites
 
----
+- PowerShell 7 or later.
+- The `Microsoft.Graph.Authentication` module.
+- A Microsoft Entra ID P2 license (required for Access Reviews and PIM).
+- Microsoft Graph scopes: `AccessReview.ReadWrite.All`, `AccessReview.ReadWrite.Membership`, and `RoleManagement.ReadWrite.Directory` for the dormant admin role review.
 
-*Maintained by [Derek Morgan](https://www.linkedin.com/in/derek-morgan-ii-14370775/), Cloud Harbor Consulting.*
+## Repository
+
+Part of [M365-Security-Frameworks](https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks). Licensed under MIT.
