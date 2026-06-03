@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Entra ID Governance Toolkit framework skeleton at `Frameworks/Entra-ID-Governance-Toolkit/`. Replaces the stub README with a framework landing page covering scope (Access Reviews now, Lifecycle Workflows and PIM governance as the v1.0 target), the EIG-AR / EIG-LW / EIG-PIM naming convention, the planned scripts inventory, the self-invoking deployment model, and Entra ID P2 prerequisites. No scripts and no tag in this change.
 - Entra ID Governance Toolkit: policy design specification (Design/POLICY-DESIGN.md) defining the 4 framework principles, the EIG naming convention, the persona model, the rollout sequence, and the per-script design specs for EIG-AR001 and EIG-AR002.
+- Frameworks/Entra-ID-Governance-Toolkit/Scripts/EIG-AR001-QuarterlyGuestAccessReview.ps1 and its paired contract EIG-AR001-QuarterlyGuestAccessReview.md: first Access Reviews automation for the Entra ID Governance Toolkit. Creates a recurring quarterly access review over B2B guest membership across all Microsoft 365 groups, with deny-by-default decisions, auto-applied removal of denied guests, and a named fallback reviewer. Implements design spec section 7.1. The sponsor reviewer query ships as a confirm-in-tenant placeholder.
 
 ---
 
