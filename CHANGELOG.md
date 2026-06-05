@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [eig-v0.1.0-preview] - 2026-06-05
+
+The v0.1.0-preview release establishes the Entra ID Governance Toolkit (EIG) as a Preview-stage framework and delivers its Access Reviews automation foundation. EIG ships two self-invoking PowerShell 7 scripts against the Microsoft Graph Identity Governance API: EIG-AR001 stands up a recurring quarterly access review over B2B guest membership across all Microsoft 365 groups, and EIG-AR002 stands up a recurring monthly review over dormant administrative role assignments using a verified 30-day inactivity look-back. Both controls default decisions to deny, auto-apply the resulting removals, route to a named reviewer chain with a fallback reviewer, and retain decision evidence for audit. The release also includes the framework landing page, the POLICY-DESIGN specification, paired contract documents for each script, the Scripts/ index, and the executive ROI business case. This release prep flips the framework README, its design spec, and the repo Frameworks table from Planned to Preview.
+
 ### Added
 
 - Entra ID Governance Toolkit framework skeleton at `Frameworks/Entra-ID-Governance-Toolkit/`. Replaces the stub README with a framework landing page covering scope (Access Reviews now, Lifecycle Workflows and PIM governance as the v1.0 target), the EIG-AR / EIG-LW / EIG-PIM naming convention, the planned scripts inventory, the self-invoking deployment model, and Entra ID P2 prerequisites. No scripts and no tag in this change.
@@ -16,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Frameworks/Entra-ID-Governance-Toolkit/Scripts/EIG-AR001-QuarterlyGuestAccessReview.ps1 and its paired contract EIG-AR001-QuarterlyGuestAccessReview.md: first Access Reviews automation for the Entra ID Governance Toolkit. Creates a recurring quarterly access review over B2B guest membership across all Microsoft 365 groups, with deny-by-default decisions, auto-applied removal of denied guests, and a named fallback reviewer. Implements design spec section 7.1. The sponsor reviewer query ships as a confirm-in-tenant placeholder.
 - Frameworks/Entra-ID-Governance-Toolkit/Scripts/EIG-AR002-DormantAdminRoleReview.ps1 and its paired contract EIG-AR002-DormantAdminRoleReview.md: second Access Reviews automation for the Entra ID Governance Toolkit. Creates a recurring monthly access review over dormant administrative role assignments, using a verified 30-day inactivity look-back (`recommendationLookBackDuration` of `P30D`) so assignments not exercised in the prior 30 days are recommended for denial, with deny-by-default decisions and auto-applied removal of denied assignments. Scopes the review with the verified `principalResourceMembershipsScope` shape (`/users` principals against a `/roleManagement/directory/roleDefinitions/{role id}` resource) and requires the added `RoleManagement.ReadWrite.Directory` scope. Implements design spec section 7.2. The role definition ID ships as a tenant-value placeholder and the primary (role owner / delegated governance) reviewer query ships as a confirm-in-tenant placeholder.
 - Frameworks/Entra-ID-Governance-Toolkit/Scripts/README.md — adopter-facing index for the Scripts/ folder. Covers both EIG-AR001 (quarterly guest access review) and EIG-AR002 (monthly dormant admin role review) with per-script purpose, recurrence, required scopes, and a pointer to each paired contract. States the shared prerequisites (Entra ID P2, PowerShell 7, Microsoft.Graph.Authentication, operator scope consent) and the self-invoking deployment model with no unified deployer at v0.1.0-preview.
+- Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-GOVERNANCE.md — executive business case for the toolkit aimed at CFO, board, and security leadership. Frames the standing-access risk (guest sprawl and dormant admin access), explains how EIG-AR001 and EIG-AR002 close the orphaned-access window with deny-by-default plus auto-applied removal, and includes an explicit assumptions-based operational cost model that states every assumption inline, computes every total with the arithmetic shown, and labels all figures as illustrative. Covers the Entra ID P2 prerequisite and maps the controls to SOC 2, ISO 27001, HIPAA, PCI-DSS, and NIST SP 800-53. Mirrors the structure and executive voice of the Conditional Access Baseline ROI document.
+
+### Changed
+
+- Frameworks/Entra-ID-Governance-Toolkit/README.md — status line flipped from "in development, targeting v0.1.0-preview" to a "Status: Preview (v0.1.0-preview)" banner. Scripts inventory updated: EIG-AR001 and EIG-AR002 changed from "Planned for v0.1.0-preview" to "Available (v0.1.0-preview)". Added a Business case section pointing to Business-Case/ROI-ENTRA-GOVERNANCE.md.
+- Frameworks/Entra-ID-Governance-Toolkit/Design/POLICY-DESIGN.md — status line flipped from "in development, targeting v0.1.0-preview" to "Status: Preview (v0.1.0-preview)". No other content changes.
+- Top-level README.md — Frameworks table row for the Entra ID Governance Toolkit updated from Planned to Preview, Latest set to v0.1.0-preview, and the Notes column refreshed to describe the two Access Reviews automations (quarterly guest access review and monthly dormant admin role review), the PowerShell 7 against Microsoft Graph Identity Governance implementation, and the deny-by-default reviewer chain with retained audit evidence.
 
 ---
 
@@ -210,7 +223,9 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 ---
 
-[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.3.0...HEAD>
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/eig-v0.1.0-preview...HEAD>
+
+[eig-v0.1.0-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.3.0...eig-v0.1.0-preview>
 
 [1.3.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.2.0...v1.3.0>
 
