@@ -2,7 +2,7 @@
 
 Practical Microsoft Entra ID Governance automation, starting with Access Reviews and extending to Lifecycle Workflows and Privileged Identity Management governance. Part of the Cloud Harbor Consulting M365 Security Frameworks.
 
-Status: in development, targeting v0.1.0-preview.
+> **Status: Preview (v0.1.0-preview)**
 
 ## What this framework does
 
@@ -34,8 +34,12 @@ Standing access that no one reviews is how guest sprawl and privilege creep take
 
 | Script | Purpose | Status |
 |--------|---------|--------|
-| EIG-AR001-QuarterlyGuestAccessReview | Quarterly Access Review of all B2B guests | Planned for v0.1.0-preview |
-| EIG-AR002-DormantAdminRoleReview | Monthly review of admin role assignments dormant 30+ days | Planned for v0.1.0-preview |
+| EIG-AR001-QuarterlyGuestAccessReview | Quarterly Access Review of all B2B guests | Available (v0.1.0-preview) |
+| EIG-AR002-DormantAdminRoleReview | Monthly review of admin role assignments dormant 30+ days | Available (v0.1.0-preview) |
+
+## Business case
+
+For the executive ROI, risk-reduction, and compliance framing, see [Business-Case/ROI-ENTRA-GOVERNANCE.md](Business-Case/ROI-ENTRA-GOVERNANCE.md).
 
 ## Deployment workflow
 

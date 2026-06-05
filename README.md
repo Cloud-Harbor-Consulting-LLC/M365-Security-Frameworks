@@ -25,7 +25,7 @@ Every framework in this repo includes:
 | [Conditional Access Baseline](./Frameworks/Conditional-Access-Baseline/) | Released | v1.3.0 (2026-05-28) | 24 policies across 7 personas plus workload identities and Sensitive-Apps scope; new Agents persona for AI/Copilot agents; all-beta endpoint; report-only by default |
 | [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Preview | v0.1.0-preview (2026-05-15) | First Windows 10/11 compliance template + framework design spec; macOS, iOS, Android, Linux templates and Deploy-ICBaseline.ps1 land toward Q3 2026 full-framework completion |
 | [Security Reporting Decision Rubric](./Frameworks/Security-Reporting-Decision-Rubric/) | Preview | v0.1.0-preview (pending) | 4-question decision flow for designing audience-scoped security reports; severity floor guidance grounded in Defender XDR's severity model; 2 starter templates (board quarterly, CISO monthly) |
-| Entra ID Governance Toolkit | Planned | — | First Access Reviews automation templates Month 2 Week 2 (May 2026); full framework Q4 2026 |
+| [Entra ID Governance Toolkit](./Frameworks/Entra-ID-Governance-Toolkit/) | Preview | v0.1.0-preview | 2 Access Reviews automations: quarterly guest access review and monthly dormant admin role review; PowerShell 7 against Microsoft Graph Identity Governance; deny-by-default with a reviewer chain and retained audit evidence |
 | Defender XDR Detection Rules | Planned | — | First custom KQL queries Month 7 Week 2 (Oct 2026); full framework Q1 2027 |
 
 ## Quickstart

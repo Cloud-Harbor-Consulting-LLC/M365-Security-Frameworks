@@ -1,6 +1,6 @@
 # Entra ID Governance Toolkit: Policy Design
 
-Status: in development, targeting v0.1.0-preview
+Status: Preview (v0.1.0-preview)
 
 This document is the design specification for the Entra ID Governance Toolkit
 (EIG). It defines the framework principles, the naming convention, the persona
