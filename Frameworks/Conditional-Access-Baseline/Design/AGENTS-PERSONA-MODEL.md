@@ -106,6 +106,16 @@ When the risk threshold is met, the response is a hard block. Agent IDs cannot s
 
 ## 5. Rollout recommendation
 
+### Licensing prerequisites
+
+Conditional Access for agents requires Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license for each user. Microsoft describes enforcement of the Agent 365 licensing requirement as coming soon, so confirm the per-user Agent 365 entitlement is in place before you rely on this persona. Risk-based enforcement for agents through Microsoft Identity Protection, including the `agentIdRiskLevels` signal that CA-COV011 evaluates, requires Entra ID P2.
+
+Network controls for agents require Microsoft Entra Internet Access. The compliant-network grant relies on the Global Secure Access client being present on the endpoint. License Microsoft Entra Internet Access and deploy the Global Secure Access client before you add a compliant-network condition to an agent policy.
+
+Creating and managing these policies requires the Conditional Access Administrator role. The custom-security-attribute targeting method also requires the Attribute Assignment Reader role so the administrator can read the attribute values used to scope the policy.
+
+See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id> and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
+
 ### Pre-deployment inventory
 
 Before deploying CA-COV011 in any state, inventory the Agent IDs provisioned in the tenant:

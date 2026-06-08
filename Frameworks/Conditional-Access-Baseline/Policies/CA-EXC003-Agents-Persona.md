@@ -96,7 +96,11 @@ When Microsoft Identity Protection raises an Agent ID risk level to `high`:
 
 The Agents persona and `CA-COV011-Agents-BlockMediumAndHighRisk` depend on features that are per-tenant and per-SKU:
 
-**Microsoft Agent ID feature availability:** As of May 2026, the Microsoft Agent ID family is available in tenants with Microsoft 365 Copilot licensing or Azure AI services configured for Entra integration. Verify that Agent IDs are provisioned in your tenant before adopting this persona. If no Agent IDs exist, `CA-COV011` will evaluate with zero matches in report-only mode — this is safe but produces no signal.
+**Conditional Access for agents licensing:** Conditional Access for agents requires Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license for each user. Microsoft describes enforcement of the Agent 365 licensing requirement as coming soon, so confirm the per-user Agent 365 entitlement is in place before you rely on this persona. Verify that Agent IDs are provisioned in your tenant before adopting this persona. If no Agent IDs exist, `CA-COV011` will evaluate with zero matches in report-only mode, which is safe but produces no signal. See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id> and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
+
+**Microsoft Entra Internet Access for network controls:** Network controls for agents require Microsoft Entra Internet Access. The compliant-network grant relies on the Global Secure Access client being present on the endpoint. If you intend to add a compliant-network condition to an agent policy, license Microsoft Entra Internet Access and deploy the Global Secure Access client before enforcement.
+
+**Admin roles:** Creating and managing Conditional Access policies for agents requires the Conditional Access Administrator role. The custom-security-attribute targeting method also requires the Attribute Assignment Reader role so the administrator can read the attribute values used to scope the policy.
 
 **Microsoft Graph beta endpoint:** All Agent ID condition fields — `agentIdRiskLevels`, `IncludeAgentIdServicePrincipals`, and `IncludeApplications: ["AllAgentIdResources"]` — are Microsoft Graph beta-only as of May 2026. The baseline framework targets the beta endpoint for all 23 policies to avoid conditional endpoint logic in the deployer. See `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
 

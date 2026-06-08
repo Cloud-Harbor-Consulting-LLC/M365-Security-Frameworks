@@ -168,7 +168,9 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - **Entra ID P2** (Terms of Use feature). Required by CA-SIG010. Covers guest users at the 1:5 ratio (one P2 license covers five guest users). See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
 - **Microsoft Entra Workload Identities Premium**. Required by CA-COV010. Separate SKU from Entra ID P1/P2.
 - **Microsoft Intune**. Required for `compliantDevice` grant control (CA-COV008, CA-SIG001). Hybrid Azure AD join is an accepted alternative.
-- **Microsoft Agent ID availability**. Required by CA-COV011. Available in tenants with Microsoft 365 Copilot or Azure AI Entra integration as of May 2026.
+- **Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user**. Required by CA-COV011 for Conditional Access for agents. Risk-based enforcement through Identity Protection requires P2. Microsoft describes enforcement of the Agent 365 licensing requirement as coming soon.
+- **Microsoft Entra Internet Access**. Required for agent network controls. The compliant-network grant relies on the Global Secure Access client on the endpoint.
+- **Conditional Access Administrator role**. Required to create and manage agent policies. The custom-security-attribute targeting method also requires the Attribute Assignment Reader role.
 - **Microsoft Graph beta endpoint**. Required by all 23 policies. The deployer targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use beta-only features (`CA-SIG003`, `CA-SIG004` use `frequencyInterval: "everyTime"`; `CA-COV011` uses the Agent ID condition family).
 - **PowerShell 7.0 or later** and the **`Microsoft.Graph.Authentication` module** for the deployer.
 - **Persona groups** created in Entra ID and populated before deployment.
