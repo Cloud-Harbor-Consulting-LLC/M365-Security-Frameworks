@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Documented the three Microsoft agent access patterns (on-behalf-of with the user as subject, application-only with the agent identity as subject, and agent-acting-as-a-user with the agent user account as subject), replacing the single-class agent model.
 - Verified the Agent ID Conditional Access field set against the Microsoft Graph beta reference (2026-06-03 refresh); reaffirmed the beta-endpoint commitment and flagged the unpublished AllAgentIdResources and includeAgentIdServicePrincipals All tokens as confirm-in-tenant.
 
 ### Fixed

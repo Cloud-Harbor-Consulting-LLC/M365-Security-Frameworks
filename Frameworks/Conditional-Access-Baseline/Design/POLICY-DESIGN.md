@@ -51,6 +51,16 @@ Rather than maintain two endpoint paths, the framework commits all 24 policies t
 
 `CA-COV011-Agents-BlockMediumAndHighRisk` introduces the Agents persona. Microsoft Agent IDs are not service principals, not managed identities, and not users. They carry their own Identity Protection risk signals via `agentIdRiskLevels`. The persona is documented in `Policies/CA-EXC003-Agents-Persona.md` and fully modeled in `Design/AGENTS-PERSONA-MODEL.md`.
 
+Microsoft documents three agent access patterns, and each carries a different token subject and therefore a different Conditional Access targeting model:
+
+| Access pattern | Token subject | Conditional Access targeting | Baseline coverage |
+|---|---|---|---|
+| On-behalf-of (delegated) | User | Users and groups | Covered by the user-targeted policy set; an on-behalf-of sign-in is evaluated as a user sign-in |
+| Application-only (autonomous) | Agent identity | `includeAgentIdServicePrincipals` plus the agent application bundle | Covered by `CA-COV011-Agents-BlockMediumAndHighRisk` |
+| Agent acting as a user (digital worker) | Agent user account | Agent users (All agent users, Preview) | Planned for a later PR in the v1.4 series; not covered today |
+
+The agent user account is a distinct identity sub-class from the agent identity. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. The baseline addresses the application-only pattern today and treats the agent user account as a separate coverage item. See `Design/AGENTS-PERSONA-MODEL.md` section 2 for the full three-pattern model and the targeting limitations, and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+
 #### Per-policy exclusion judgment replaces blanket exclusion set
 
 The v1.2 architecture excluded EmergencyAccess, WorkloadIdentities, and ServiceAccounts from virtually all policies by default. v1.3 applies exclusions on a per-policy basis with documented rationale. The pattern is stricter: if a persona is excluded, Section 6 records why. If a persona is not excluded, it is in scope by design.

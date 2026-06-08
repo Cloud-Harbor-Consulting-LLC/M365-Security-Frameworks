@@ -10,9 +10,9 @@
 
 The Conditional Access Baseline has always distinguished between identity classes. Users, guests, service accounts, workload identities, and emergency access accounts each authenticate differently and carry different risk profiles. The baseline treats each as a distinct persona with its own policy lane.
 
-Agentic AI workloads — Microsoft 365 Copilot agents, Azure AI agents, and custom agents built on the Microsoft Copilot extensibility stack — introduce an identity class that is not a user, not a service principal, and not a managed identity. It is a Microsoft Agent ID: a new principal type that Microsoft introduced alongside its agentic AI platform and that Entra ID now surfaces as a first-class identity.
+Agentic AI workloads (Microsoft 365 Copilot agents, Azure AI agents, and custom agents built on the Microsoft Copilot extensibility stack) introduce identity behavior that is not a user, not a service principal, and not a managed identity. Microsoft Agent ID is the principal type that Entra ID surfaces for these workloads. An agent does not authenticate one single way, though. Microsoft documents three distinct agent access patterns, and each carries a different token subject and therefore a different Conditional Access targeting model. This document replaces the earlier single-class framing of the Agents persona with that three-pattern model.
 
-This document explains why Agent IDs need their own Conditional Access lane, what Microsoft Agent ID is technically, how Microsoft Identity Protection generates risk signals for Agent IDs, how the `CA-COV011-Agents-BlockMediumAndHighRisk` policy works mechanically, and what the framework's commitment is while the feature remains in beta.
+This document explains why agents need their own Conditional Access treatment, what Microsoft Agent ID is technically, the three agent access patterns and the token subject each carries, how Microsoft Identity Protection generates risk signals for Agent IDs, how the `CA-COV011-Agents-BlockMediumAndHighRisk` policy works mechanically, and what the framework's commitment is while the feature remains in beta.
 
 ---
 
@@ -48,6 +48,35 @@ A Microsoft Agent ID is not attached to an Azure resource. It is provisioned as 
 ### Why Microsoft introduced it
 
 The introduction of Agent IDs reflects a platform-level design decision by Microsoft: agentic AI workloads require identity governance separate from both human users and traditional automation (service principals, managed identities). Agents operate in a more autonomous, instruction-following mode than traditional automation. They can be directed by user-provided prompts, which creates a prompt injection threat surface that does not exist for traditional service principals. Microsoft has introduced `agentIdRiskLevels` as a risk condition specifically because the threat model for agents — particularly prompt injection and credential misuse — is meaningfully different from the threat model for traditional workload identities.
+
+### The three agent access patterns
+
+An agent does not have one fixed authentication model. Microsoft documents three access patterns, and the difference that matters for Conditional Access is the token subject each one produces. The token subject determines which targeting model reaches the sign-in. An earlier version of this framework treated agents as a single identity class targeted only through agent identity conditions. That framing covered one of the three patterns and left the other two unaddressed. The three patterns are:
+
+**Pattern 1, on-behalf-of (delegated).** A user signs into the agent, and the agent exchanges tokens through the OAuth 2.0 On-Behalf-Of flow to reach downstream resources. The token subject is the user. Conditional Access therefore targets users and groups, not agent identities. A policy that targets the agent identity does not see this flow at all; it is evaluated as a user sign-in against the user-targeted policy set.
+
+**Pattern 2, application-only (client credentials, autonomous).** The agent authenticates with its own identity using the client credentials flow, with no user present. The token subject is the agent identity. Conditional Access targets the agent identity through `includeAgentIdServicePrincipals` together with the agent application bundle. This is the pattern the baseline addresses today, via `CA-COV011-Agents-BlockMediumAndHighRisk`.
+
+**Pattern 3, agent acting as a user (agent user account, digital worker).** The agent is provisioned with its own user account, including a mailbox and group membership, and acts as a distinct digital worker. The token subject is the agent user account, which is a separate identity sub-class from the agent identity. Conditional Access targets agent users through the All agent users target (Preview). Coverage for this sub-class is planned for a later PR in the v1.4 series and is not addressed by `CA-COV011`.
+
+The three patterns map to three token subjects and three targeting models:
+
+| Access pattern | Token subject | Conditional Access targeting |
+|---|---|---|
+| On-behalf-of (delegated) | User | Users and groups |
+| Application-only (autonomous) | Agent identity | `includeAgentIdServicePrincipals` plus the agent application bundle |
+| Agent acting as a user (digital worker) | Agent user account | Agent users (All agent users, Preview) |
+
+### Limitations of the targeting models
+
+The three targeting models do not overlap, and Microsoft documents specific gaps that an adopter must account for:
+
+- A policy targeting all users does not include agent user accounts. A broad user policy leaves the agent user account uncovered.
+- Agent user accounts cannot be scoped by group membership. The group-based persona pattern used elsewhere in this baseline does not apply to them.
+- A policy targeting agent identities does not apply to the agent user account. The application-only targeting model reaches Pattern 2 only.
+- Agent identity blueprint targeting covers the agent identity, not the agent user account.
+
+These limitations are the reason the baseline addresses the application-only pattern first and treats the agent user account as a separate coverage item. See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
 
 ---
 
