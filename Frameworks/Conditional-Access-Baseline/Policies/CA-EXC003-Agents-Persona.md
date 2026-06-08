@@ -33,6 +33,14 @@ Treating the Agents persona as first-class — rather than attempting to route i
 
 **Membership rules:** Any Agent ID provisioned in the tenant is in scope for this persona. The Agents persona is not defined by group membership. Targeting is via `IncludeApplications: ["AllAgentIdResources"]` and `IncludeAgentIdServicePrincipals: ["All"]` in `CA-COV011`. This means every Agent ID in the tenant is in scope; there is no per-agent exclusion mechanism equivalent to the per-SPN `excludeServicePrincipals` list in CA-COV010.
 
+**The three agent access patterns:** An agent does not authenticate one fixed way. Microsoft documents three access patterns, and each carries a different token subject, which determines the Conditional Access targeting model:
+
+1. **On-behalf-of (delegated).** A user signs into the agent, which exchanges tokens through the OAuth 2.0 On-Behalf-Of flow for downstream resources. The token subject is the user, so Conditional Access targets users and groups, not agent identities.
+2. **Application-only (autonomous).** The agent authenticates with its own identity using the client credentials flow. The token subject is the agent identity, so Conditional Access targets the agent identity through `IncludeAgentIdServicePrincipals` plus the agent application bundle. This is the pattern this persona and `CA-COV011` cover today.
+3. **Agent acting as a user (digital worker).** The agent has its own user account with a mailbox and group membership. The token subject is the agent user account, so Conditional Access targets agent users through the All agent users target (Preview).
+
+**The agent user account is a distinct identity sub-class from the agent identity.** The agent identity (Pattern 2) and the agent user account (Pattern 3) are not the same principal. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. Agent user accounts also cannot be scoped by group membership, and agent identity blueprint targeting covers the agent identity, not the agent user account. This persona and `CA-COV011` cover the agent identity (Pattern 2) only; coverage for the agent user account sub-class is planned for a later PR in the v1.4 series. See `Design/AGENTS-PERSONA-MODEL.md` section 2 and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+
 ---
 
 ## Scope of this contract
