@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verified the Agent ID Conditional Access field set against the Microsoft Graph beta reference (2026-06-03 refresh); reaffirmed the beta-endpoint commitment and flagged the unpublished AllAgentIdResources and includeAgentIdServicePrincipals All tokens as confirm-in-tenant.
 
+### Fixed
+
+- Corrected the Agents persona licensing to Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user, added Microsoft Entra Internet Access for agent network controls, and documented the Conditional Access Administrator and Attribute Assignment Reader roles.
+
 ---
 
 ## [eig-v0.1.0-preview] - 2026-06-05

@@ -19,7 +19,7 @@ Three developments distinguish v1.3 from prior releases and define its executive
 The ask of executive leadership is threefold:
 
 1. **Endorse a phased deployment** that runs each policy in report-only mode for seven to fourteen days before enforcement.
-2. **Fund or confirm** Entra ID P1 (minimum) or P2 (recommended) licensing for all in-scope users, plus Microsoft Entra Workload Identities Premium for the workload-identity policy and Microsoft Agent ID feature availability for the Agents persona policy.
+2. **Fund or confirm** Entra ID P1 (minimum) or P2 (recommended) licensing for all in-scope users, plus Microsoft Entra Workload Identities Premium for the workload-identity policy, a per-user Microsoft Agent 365 license for the Agents persona policy, and Microsoft Entra Internet Access if network-based agent controls are in scope.
 3. **Authorize a quarterly review cadence** for the baseline, led jointly by Security and IT Operations.
 
 In return, the organization gets a defensible, auditable identity security posture that addresses the single highest-probability breach vector in contemporary incident data, extends coverage to the agentic AI workload surface that most frameworks ignore, and aligns with SOC 2, ISO 27001, HIPAA, PCI-DSS, and NIST SP 800-53 access control requirements. This baseline pairs with the Intune Compliance Baseline to deliver end-to-end device-health signal integration (see `Design/CA-ICB-INTEGRATION.md`).
@@ -72,7 +72,7 @@ Twenty-four policies, each addressing a specific business risk. Policies are gro
 | CA-COV008 | Internal | Require compliant or hybrid-joined device on Windows, macOS, and Linux | Entra ID P1 + Intune | Internal users sign in to all apps only from organization-managed, healthy desktops |
 | CA-COV009 | ServiceAccounts | Block service-account sign-ins from outside the Trusted Countries named location | Entra ID P1 | Closes the coverage gap created by the ServiceAccounts persona exclusion from human-targeted policies |
 | CA-COV010 | WorkloadIdentities | Restrict service-principal sign-ins to a defined egress | Workload Identities Premium | Closes the workload-identity coverage gap left by user-scoped policies |
-| CA-COV011 | Agents | Block Agent ID sign-ins at medium or high agent risk per Identity Protection | Entra ID P2 + Agent ID | Covers the agentic AI workload surface; most community baselines ignore Agent IDs entirely |
+| CA-COV011 | Agents | Block Agent ID sign-ins at medium or high agent risk per Identity Protection | Entra ID P2 + Agent 365 (per user) | Covers the agentic AI workload surface; most community baselines ignore Agent IDs entirely |
 
 ### SIG series — Layered Signal policies
 
@@ -145,7 +145,10 @@ As of 2026, few community Conditional Access baselines include explicit coverage
 
 ### Licensing dependency
 
-CA-COV011 requires Microsoft Entra ID Premium P2 for the Identity Protection signal that surfaces agent risk. It also requires that the Microsoft Agent ID feature is available in the tenant, which is the case for tenants with Microsoft 365 Copilot or Azure AI Entra integration as of May 2026.
+Covering agents with Conditional Access carries two cost lines the organization should budget for:
+
+- **A Microsoft Agent 365 license for each user.** Conditional Access for agents requires Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user. This is a per-user subscription cost on top of the existing Entra ID license. Microsoft has said it will begin enforcing the Agent 365 licensing requirement soon, so the organization should confirm this entitlement is purchased and assigned before it depends on the Agents persona for protection. Risk-based blocking of risky agents, the headline benefit of CA-COV011, requires the P2 tier of Entra ID.
+- **Microsoft Entra Internet Access for network controls.** If the organization wants to restrict agents to a trusted corporate network, that control requires the Microsoft Entra Internet Access subscription, and the Global Secure Access client must be installed on the endpoints in scope. This is a separate subscription and a software rollout, so plan for both the license cost and the deployment effort before committing to network-based agent controls.
 
 ## Beta endpoint commitment
 
@@ -172,9 +175,10 @@ For executive audiences: targeting the beta endpoint is not the same as running 
 | Microsoft Entra ID P2 — Terms of Use | CA-SIG010 | Terms of Use feature for B2B guest consent gating. The 1:5 guest-licensing ratio applies. |
 | Microsoft Entra Workload Identities Premium | CA-COV010 | Separate SKU from Entra ID P1/P2. Required for service-principal Conditional Access. |
 | Microsoft Intune | CA-COV008, CA-SIG001 | Required for `compliantDevice` grant control. Hybrid Azure AD join is an accepted alternative for both. |
-| Microsoft Agent ID feature availability | CA-COV011 | Available in tenants with Microsoft 365 Copilot or Azure AI Entra integration as of May 2026. |
+| Microsoft Agent 365 (per user) | CA-COV011 | Conditional Access for agents requires Entra ID P1 or P2 plus a Microsoft Agent 365 license per user. Risk-based enforcement requires P2. Enforcement of the Agent 365 requirement is described as coming soon. |
+| Microsoft Entra Internet Access | Agent network controls | Required for the compliant-network grant on agent policies. Relies on the Global Secure Access client on the endpoint. Separate subscription from Entra ID P1/P2. |
 
-If P1 is already licensed for all users, the incremental cost of this baseline covers the P2 upgrade for Identity Protection, PIM, and Terms of Use; the Workload Identities Premium SKU; and Agent ID availability. For organizations with Microsoft 365 Copilot licensing already in place, Agent ID availability is typically included.
+If P1 is already licensed for all users, the incremental cost of this baseline covers the P2 upgrade for Identity Protection, PIM, and Terms of Use; the Workload Identities Premium SKU; the per-user Microsoft Agent 365 license for agent coverage; and Microsoft Entra Internet Access if network-based agent controls are in scope.
 
 If P2 is not yet in place, calculate the incremental cost against the organization's Microsoft 365 agreement:
 
