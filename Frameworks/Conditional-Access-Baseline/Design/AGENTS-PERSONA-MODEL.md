@@ -150,19 +150,28 @@ After the 14-day soak, if the report-only output shows:
 
 ## 6. Beta endpoint commitment
 
-As of May 2026, all Agent ID condition fields used in CA-COV011 are Microsoft Graph beta-only:
+Every agent-specific Conditional Access field is Microsoft Graph beta-only. None is present on the v1.0 endpoint, and each is labelled Preview in the Entra admin center portal. The table below records the verified field set as of the 2026-06-03 Conditional Access for Agents documentation refresh, confirmed against the Microsoft Graph `conditionalAccessConditionSet` and `conditionalAccessClientApplications` reference pages.
 
-| Field | Status | Source |
-|---|---|---|
-| `conditions.agentIdRiskLevels` | Beta only | Microsoft Learn v1.0 conditionalAccessConditionSet refresh dated 12/02/2025 |
-| `conditions.clientApplications.includeAgentIdServicePrincipals` | Beta only | Same source |
-| `conditions.applications.includeApplications: ["AllAgentIdResources"]` | Beta only | Same source |
+| Agent field | JSON property | Beta-only | Portal Preview | Source |
+|---|---|---|---|---|
+| Agent identity risk level condition | `conditionalAccessConditionSet.agentIdRiskLevels` | Yes | Yes | <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id> and the Microsoft Graph `conditionalAccessConditionSet` reference |
+| Include agent identity service principals | `conditionalAccessClientApplications.includeAgentIdServicePrincipals` | Yes | Yes | <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents> and the Microsoft Graph `conditionalAccessClientApplications` reference |
+| Exclude agent identity service principals | `conditionalAccessClientApplications.excludeAgentIdServicePrincipals` | Yes | Yes | Microsoft Graph `conditionalAccessClientApplications` reference |
+| Agent identity service principal filter | `conditionalAccessClientApplications.agentIdServicePrincipalFilter` | Yes | Yes | Microsoft Graph `conditionalAccessClientApplications` reference |
 
-The baseline framework targets the beta endpoint (`https://graph.microsoft.com/beta/identity/conditionalAccess/policies`) for all 23 policies to avoid conditional endpoint logic in the deployer. Splitting the policy set between v1.0 and beta endpoints would require maintaining two deployer code paths, two sets of test fixtures, and runtime logic to decide which endpoint applies to which policy.
+`agentIdRiskLevels` is the correct property name (it is not `agentRiskLevels`). It is multivalued and accepts `low`, `medium`, `high`, and `unknownFutureValue`. The v1.0 `conditionalAccessConditionSet` has no agent-risk property at all. Microsoft recommends `agentIdRiskLevels = high` for agent-identity policies, and `medium` and `high` for agent-user policies.
 
-**GA promotion tracking:** When Microsoft promotes `agentIdRiskLevels`, `includeAgentIdServicePrincipals`, and `AllAgentIdResources` to the v1.0 Graph API, this framework will flip the deployer endpoint to v1.0 as a single change. That change will be documented in the CHANGELOG and will not require updates to any policy JSON template — the conditions use the same field names in both beta and v1.0.
+**Not yet published in the Graph reference (confirm-in-tenant pending GA):** the following are referenced in the Conditional Access for Agents documentation but are not yet typed in the Microsoft Graph reference, so this framework ships them as confirm-in-tenant values that an adopter must validate against the live tenant before enforcement:
 
-Watch the Microsoft Graph Conditional Access API changelog for the GA promotion announcement. The Microsoft Learn conditional access API reference page for `conditionalAccessConditionSet` is the authoritative source.
+- The `AllAgentIdResources` application bundle. The repo currently uses `includeApplications: ["AllAgentIdResources"]`, but the bundle is not published in the Graph reference.
+- The `"All"` literal for `includeAgentIdServicePrincipals`. The reference types this property as a collection of agent identity object IDs and documents no `"All"` literal.
+- Agent identity blueprint targeting, agent user account targeting, and the Agent execution environments condition property.
+
+The baseline framework targets the beta endpoint (`https://graph.microsoft.com/beta/identity/conditionalAccess/policies`) for all 24 policies to avoid conditional endpoint logic in the deployer. Splitting the policy set between v1.0 and beta endpoints would require maintaining two deployer code paths, two sets of test fixtures, and runtime logic to decide which endpoint applies to which policy.
+
+**GA promotion tracking:** When Microsoft promotes the agent fields above to the v1.0 Graph API, this framework will flip the deployer endpoint to v1.0 as a single change. That change will be documented in the CHANGELOG and will not require updates to any policy JSON template, because the conditions use the same field names in both beta and v1.0. The unpublished `AllAgentIdResources` bundle and `includeAgentIdServicePrincipals` `"All"` token will be reconciled against the published reference at that time.
+
+Watch the Microsoft Graph Conditional Access API changelog for the GA promotion announcement. The Microsoft Graph `conditionalAccessConditionSet` and `conditionalAccessClientApplications` reference pages are the authoritative sources, alongside <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id> and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
 
 ---
 

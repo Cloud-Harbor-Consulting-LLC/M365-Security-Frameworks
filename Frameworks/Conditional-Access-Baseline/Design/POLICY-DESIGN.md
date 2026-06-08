@@ -40,12 +40,12 @@ The v1.3 slate makes the following changes relative to prior Unreleased state. T
 
 #### Beta endpoint commitment
 
-All 24 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use features that are Microsoft Graph beta-only as of May 2026:
+All 24 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use features that are Microsoft Graph beta-only:
 
 - `CA-SIG003-Global-MediumUserRisk` and `CA-SIG004-Global-MediumSignInRisk` use `signInFrequency.frequencyInterval: "everyTime"`, which is not available in the v1.0 endpoint.
-- `CA-COV011-Agents-BlockMediumAndHighRisk` uses `agentIdRiskLevels`, `IncludeAgentIdServicePrincipals`, and `AllAgentIdResources`, all of which are beta-only.
+- `CA-COV011-Agents-BlockMediumAndHighRisk` uses the agent-specific fields. As of the 2026-06-03 Conditional Access for Agents documentation refresh, every agent-specific field is beta-only (absent from the v1.0 endpoint) and labelled Preview in the portal. The condition-set property `agentIdRiskLevels` (not `agentRiskLevels`) and the client-application properties `includeAgentIdServicePrincipals`, `excludeAgentIdServicePrincipals`, and `agentIdServicePrincipalFilter` are verified against the Microsoft Graph `conditionalAccessConditionSet` and `conditionalAccessClientApplications` reference pages. The `AllAgentIdResources` application bundle and the `includeAgentIdServicePrincipals` `"All"` token are not yet published in the Graph reference and ship as confirm-in-tenant pending GA.
 
-Rather than maintain two endpoint paths, the framework commits all 24 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the GA tracking commitment.
+Rather than maintain two endpoint paths, the framework commits all 24 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the verified field-status table and the GA tracking commitment.
 
 #### Agents persona as first-class identity class
 

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Verified the Agent ID Conditional Access field set against the Microsoft Graph beta reference (2026-06-03 refresh); reaffirmed the beta-endpoint commitment and flagged the unpublished AllAgentIdResources and includeAgentIdServicePrincipals All tokens as confirm-in-tenant.
+
 ---
 
 ## [eig-v0.1.0-preview] - 2026-06-05
