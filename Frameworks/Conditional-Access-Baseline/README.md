@@ -119,6 +119,7 @@ All 24 policies ship in report-only on first deployment. Operators opt in to enf
 | Policy | Intent |
 |---|---|
 | CA-COV011-Agents-BlockMediumAndHighRisk | Block Agent ID authentication when Microsoft Identity Protection detects medium or high agent risk. |
+| CA-COV012-Agents-AllowOnlyApprovedAgents | Block every agent identity except an approved set (include all agents, exclude the approved set, block). |
 
 ### Sensitive-applications scope (1)
 
