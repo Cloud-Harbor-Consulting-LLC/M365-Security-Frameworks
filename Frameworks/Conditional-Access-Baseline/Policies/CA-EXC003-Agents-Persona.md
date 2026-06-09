@@ -39,7 +39,47 @@ Treating the Agents persona as first-class — rather than attempting to route i
 2. **Application-only (autonomous).** The agent authenticates with its own identity using the client credentials flow. The token subject is the agent identity, so Conditional Access targets the agent identity through `IncludeAgentIdServicePrincipals` plus the agent application bundle. This is the pattern this persona and `CA-COV011` cover today.
 3. **Agent acting as a user (digital worker).** The agent has its own user account with a mailbox and group membership. The token subject is the agent user account, so Conditional Access targets agent users through the All agent users target (Preview).
 
-**The agent user account is a distinct identity sub-class from the agent identity.** The agent identity (Pattern 2) and the agent user account (Pattern 3) are not the same principal. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. Agent user accounts also cannot be scoped by group membership, and agent identity blueprint targeting covers the agent identity, not the agent user account. This persona and `CA-COV011` cover the agent identity (Pattern 2) only; coverage for the agent user account sub-class is planned for a later PR in the v1.4 series. See `Design/AGENTS-PERSONA-MODEL.md` section 2 and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+**The agent user account is a distinct identity sub-class from the agent identity.** The agent identity (Pattern 2) and the agent user account (Pattern 3) are not the same principal. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. Agent user accounts also cannot be scoped by group membership, and agent identity blueprint targeting covers the agent identity, not the agent user account. `CA-COV011` and `CA-COV012` cover the agent identity (Pattern 2); the agent user account sub-class (Pattern 3) is covered by the three policies in the Agent user accounts coverage section below. See `Design/AGENTS-PERSONA-MODEL.md` section 2 and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+
+---
+
+## Agent user accounts coverage
+
+The agent user account is the Pattern 3 identity sub-class: an agent that has its own user account with a mailbox and group membership and authenticates as a digital worker. The token subject is the agent user account, not the user who deployed the agent and not the agent identity. Because this is a distinct sub-class, the user-targeted baseline policies do not reach it, and `CA-COV011` and `CA-COV012` (which target the agent identity) do not reach it either. This section defines the three policies that cover the agent user account sub-class.
+
+### Sub-class definition
+
+An agent user account is an Entra ID user object provisioned for an agent so the agent can act as a user (digital worker). It carries a mailbox, can hold group membership, and authenticates with the agent user account as the token subject. It differs from the agent identity (Pattern 2), which authenticates with the client credentials flow and carries the agent identity as the token subject. A policy that includes all users does not include agent user accounts, and a policy that targets the agent identity does not apply to the agent user account. Agent user accounts also cannot be scoped by group membership, so the targeting token for the sub-class is the All agent users selector rather than a persona group.
+
+### The three agent user account policies
+
+| Policy | Intent | Grant control | State |
+|---|---|---|---|
+| `CA-COV013-AgentUsers-BlockMediumAndHighRisk` | Block agent user account sign-ins when Microsoft Identity Protection raises the agent risk level to medium or high | `block` | Report-only |
+| `CA-COV014-AgentUsers-RequireCompliantDevice` | Require a compliant device for agent user account sign-ins | `compliantDevice` | Report-only |
+| `CA-COV015-AgentUsers-RequireCompliantNetwork` | Require a compliant network for agent user account sign-ins | Require compliant network (Global Secure Access) | Report-only |
+
+All 3 policies ship in `enabledForReportingButNotEnforced`. For the agent user account sub-class Microsoft recommends `agentIdRiskLevels = medium` and `high`, which is distinct from the high-only recommendation for the agent identity policy `CA-COV011`. `CA-COV013` uses `agentIdRiskLevels = "medium,high"` to match that recommendation.
+
+### Confirm-in-tenant fields
+
+Three values in these policies are not yet typed in the published Microsoft Graph reference as of the 2026-06-03 refresh. They ship as `REPLACE_WITH_VERIFIED_*` placeholders, and adopters confirm the correct value in-tenant before any REST import.
+
+1. **All agent users selector.** The user-targeting token that scopes a policy to all agent user accounts. `conditionalAccessUsers` has no documented agent value, so the three policies carry `REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR` in `users.includeUsers`. Confirm the All agent users (Preview) selector value in the portal before import.
+2. **Agent execution environments condition.** The condition property name and its "agent user sessions initiated from endpoints" value are not in the published Graph reference. The JSON ships without this condition. Adopters add the Agent execution environments condition in the portal before enforcement (see the next section).
+3. **Require compliant network control.** Require compliant network is not a `builtInControls` value. It is the Microsoft Entra Global Secure Access network control (auth-plane GA, data-plane Preview). `CA-COV015` carries `REPLACE_WITH_VERIFIED_COMPLIANT_NETWORK_CONTROL` in `grantControls.builtInControls`. Confirm the correct control representation in-tenant before import.
+
+### Add the Agent execution environments condition before enforcement
+
+The Agent execution environments condition scopes a policy to endpoint-initiated agent sessions. It is the mechanism that excludes cloud-native agents, which have no device or no Global Secure Access client, rather than blocking them with no path to compliance. Device compliance is evaluated only on Intune-managed Windows 365 Cloud PCs for Agents. The condition's "agent user sessions initiated from endpoints" value scopes `CA-COV014` and `CA-COV015` to exactly the sessions that can satisfy the device and network requirements.
+
+Because the condition property name is unverified, the policy JSON ships without it. Adopters MUST add the Agent execution environments condition in the portal before enforcement, and `CA-COV014` and `CA-COV015` MUST stay in report-only until that condition is added. Enforcing the device or network requirement without the execution-environments scope would block cloud-native agent user accounts that have no path to compliance. `CA-COV013` (risk-based block) does not depend on the execution-environments condition, but it ships report-only alongside the other 2 for consistent soak.
+
+### Network policy prerequisite
+
+`CA-COV015-AgentUsers-RequireCompliantNetwork` requires Microsoft Entra Internet Access. The compliant-network control relies on the Global Secure Access client being present on the endpoint. License Microsoft Entra Internet Access and deploy the Global Secure Access client before adding the Agent execution environments condition and before enforcement. The Require compliant network control is auth-plane GA and data-plane Preview.
+
+See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents> and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
 
 ---
 

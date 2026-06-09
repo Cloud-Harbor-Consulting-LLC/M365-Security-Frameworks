@@ -1,0 +1,23 @@
+{
+  "displayName": "CA-COV013-AgentUsers-BlockMediumAndHighRisk",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "agentIdRiskLevels": "medium,high",
+    "applications": {
+      "includeApplications": [
+        "All"
+      ]
+    },
+    "users": {
+      "includeUsers": [
+        "REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"
+      ]
+    }
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": [
+      "block"
+    ]
+  }
+}

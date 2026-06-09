@@ -989,3 +989,95 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, ma
 **Exclusion rationale:** Only EmergencyAccess is excluded. This mirrors the exclusion pattern of CA-SIG002-Guests-RequireMFA, which targets the identical guest scope. The ToU gate should apply to the same population as the MFA gate; any divergence would create guests who are MFA-verified but ToU-unacknowledged or vice versa.
 
 **Cross-reference:** Full lifecycle documentation (drafting, version pinning, re-consent triggers, removal procedure, 14-day validation procedure, out-of-scope coverage) is in `Policies/CA-SIG010-Guests-RequireToU.md`.
+
+---
+
+## 6a. AgentUsers persona per-policy specifications
+
+The AgentUsers persona grouping covers the agent user account identity sub-class (Pattern 3: agent acting as a user / digital worker). The token subject is the agent user account, which is distinct from both the user persona set and the agent identity covered by `CA-COV011` and `CA-COV012`. Agent user accounts cannot be scoped by group membership; targeting is via the All agent users selector. The three policies below ship in report-only. Their confirm-in-tenant fields (the All agent users selector, the Agent execution environments condition, and the Require compliant network control) and the requirement to add the Agent execution environments condition in the portal before enforcement are documented in `Policies/CA-EXC003-Agents-Persona.md`.
+
+**Execution-environments scoping rationale:** `CA-COV014` and `CA-COV015` require the Agent execution environments condition so the device and network requirements apply only to endpoint-initiated agent user sessions. Cloud-native agents that have no device or no Global Secure Access client are excluded by the condition rather than blocked with no path to compliance. Device compliance is evaluated only on Intune-managed Windows 365 Cloud PCs for Agents. Because the condition property name is unverified in the published Microsoft Graph reference, the JSON ships without it; adopters add it in the portal and keep the device and network policies report-only until they do.
+
+---
+
+### 6a.1 CA-COV013-AgentUsers-BlockMediumAndHighRisk
+
+**Intent:** Block agent user account sign-ins when Microsoft Identity Protection raises the agent risk level to medium or high. This is the risk-based control for the agent user account sub-class, parallel to `CA-COV011` for the agent identity.
+
+**Principle mapping:** 1.1 Identity-wide coverage (AgentUsers persona) and 1.3 Layered signals (agent user account + risk signal).
+
+**Scope:**
+
+| Dimension | Value |
+|---|---|
+| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
+| Applications | `includeApplications: ["All"]` |
+| Agent risk | `agentIdRiskLevels: "medium,high"` |
+
+**Grant control:** `builtInControls: ["block"]` with `operator: "OR"`.
+
+**Session controls:** None.
+
+**Risk threshold posture:** For the agent user account sub-class Microsoft recommends `agentIdRiskLevels = medium` and `high`, distinct from the high-only recommendation for the agent-identity policy `CA-COV011`. `CA-COV013` uses `medium,high` to match Microsoft's agent-user recommendation.
+
+**License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Identity Protection for agent risk signals (P2); Microsoft Graph beta endpoint.
+
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value in-tenant before import. `CA-COV013` does not depend on the Agent execution environments condition, but it ships report-only alongside `CA-COV014` and `CA-COV015` for a consistent soak.
+
+**Exclusion rationale:** No user group exclusions. The policy targets the agent user account sub-class via the All agent users selector, not the user persona set.
+
+---
+
+### 6a.2 CA-COV014-AgentUsers-RequireCompliantDevice
+
+**Intent:** Require a compliant device for agent user account sign-ins. Device compliance is evaluated only on Intune-managed Windows 365 Cloud PCs for Agents. The Agent execution environments condition scopes the policy to endpoint-initiated agent user sessions so cloud-native agents with no device are excluded rather than blocked.
+
+**Principle mapping:** 1.3 Layered signals. Device compliance combined with the agent user account sub-class scope and the execution-environments scope.
+
+**Scope:**
+
+| Dimension | Value |
+|---|---|
+| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
+| Applications | `includeApplications: ["All"]` |
+| Agent execution environments | Added in the portal before enforcement (condition property unverified; confirm-in-tenant). Value: agent user sessions initiated from endpoints |
+
+**Grant control:** `builtInControls: ["compliantDevice"]` with `operator: "OR"`.
+
+**Session controls:** None.
+
+**License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Intune for the compliant-device signal on Windows 365 Cloud PCs for Agents; Microsoft Graph beta endpoint.
+
+**Enforcement gate:** MUST stay in report-only until the Agent execution environments condition is added in the portal. Enforcing without that scope would block cloud-native agent user accounts that have no device and no path to compliance. The Intune signal consumed by this policy is cross-referenced in `Design/CA-ICB-INTEGRATION.md`.
+
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value and add the Agent execution environments condition before enforcement.
+
+**Exclusion rationale:** No user group exclusions. The execution-environments condition is the scoping mechanism, not a group exclusion.
+
+---
+
+### 6a.3 CA-COV015-AgentUsers-RequireCompliantNetwork
+
+**Intent:** Require a compliant network for agent user account sign-ins. The Agent execution environments condition scopes the policy to endpoint-initiated agent user sessions so cloud-native agents with no Global Secure Access client are excluded rather than blocked.
+
+**Principle mapping:** 1.3 Layered signals. Network compliance combined with the agent user account sub-class scope and the execution-environments scope.
+
+**Scope:**
+
+| Dimension | Value |
+|---|---|
+| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
+| Applications | `includeApplications: ["All"]` |
+| Agent execution environments | Added in the portal before enforcement (condition property unverified; confirm-in-tenant). Value: agent user sessions initiated from endpoints |
+
+**Grant control:** `builtInControls: ["REPLACE_WITH_VERIFIED_COMPLIANT_NETWORK_CONTROL"]` with `operator: "OR"`. Require compliant network is not a `builtInControls` value; it is the Microsoft Entra Global Secure Access network control (auth-plane GA, data-plane Preview). The placeholder ships pending in-tenant confirmation of the correct control representation.
+
+**Session controls:** None.
+
+**License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Entra Internet Access with the Global Secure Access client deployed on the endpoint; Microsoft Graph beta endpoint.
+
+**Enforcement gate:** MUST stay in report-only until the Agent execution environments condition is added in the portal and the Global Secure Access client is deployed. Enforcing without the execution-environments scope would block cloud-native agent user accounts that have no Global Secure Access client and no path to compliance.
+
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value and the compliant-network control representation, deploy the Global Secure Access client, and add the Agent execution environments condition before enforcement.
+
+**Exclusion rationale:** No user group exclusions. The execution-environments condition is the scoping mechanism.

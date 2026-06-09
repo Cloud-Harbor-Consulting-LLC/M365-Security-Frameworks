@@ -1,0 +1,22 @@
+{
+  "displayName": "CA-COV015-AgentUsers-RequireCompliantNetwork",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "applications": {
+      "includeApplications": [
+        "All"
+      ]
+    },
+    "users": {
+      "includeUsers": [
+        "REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"
+      ]
+    }
+  },
+  "grantControls": {
+    "operator": "OR",
+    "builtInControls": [
+      "REPLACE_WITH_VERIFIED_COMPLIANT_NETWORK_CONTROL"
+    ]
+  }
+}
