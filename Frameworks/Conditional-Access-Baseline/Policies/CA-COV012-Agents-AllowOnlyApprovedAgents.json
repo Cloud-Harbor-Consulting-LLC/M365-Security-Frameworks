@@ -1,20 +1,17 @@
 {
-    "displayName": "CA-COV012-Agents-AllowOnlyApprovedAgents",
-    "state": "enabledForReportingButNotEnforced",
-    "conditions": {
-        "applications": {
-            "includeApplications": ["All"]
-        },
-        "clientApplications": {
-            "includeAgentIdServicePrincipals": ["All"],
-            "excludeAgentIdServicePrincipals": ["REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS"]
-        },
-        "users": {
-            "includeUsers": ["None"]
-        }
+  "displayName": "CA-COV012-Agents-AllowOnlyApprovedAgents",
+  "state": "enabledForReportingButNotEnforced",
+  "conditions": {
+    "clientAppTypes": ["all"],
+    "applications": { "includeApplications": ["All"] },
+    "clientApplications": {
+      "includeAgentIdServicePrincipals": ["All"],
+      "agentIdServicePrincipalFilter": {
+        "mode": "exclude",
+        "rule": "CustomSecurityAttribute.AgentIdAttributes_AgentIdApprovedForUse -eq \"yes\""
+      }
     },
-    "grantControls": {
-        "operator": "OR",
-        "builtInControls": ["block"]
-    }
+    "users": { "includeUsers": ["None"] }
+  },
+  "grantControls": { "operator": "OR", "builtInControls": ["block"] }
 }

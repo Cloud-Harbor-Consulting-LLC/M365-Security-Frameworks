@@ -123,13 +123,13 @@ All 24 policies ship in report-only on first deployment. Operators opt in to enf
 
 ### AgentUsers persona (3)
 
-The AgentUsers persona covers the agent user account identity sub-class (Pattern 3: agent acting as a user / digital worker), distinct from the agent identity covered by the Agents persona. All 3 ship report-only and stay report-only until the Agent execution environments condition is added in the portal. See `Policies/CA-EXC003-Agents-Persona.md`.
+The AgentUsers persona covers the agent user account identity sub-class (Pattern 3: agent acting as a user / digital worker), distinct from the agent identity covered by the Agents persona. All 3 ship report-only. See `Policies/CA-EXC003-Agents-Persona.md`.
 
 | Policy | Intent |
 |---|---|
 | CA-COV013-AgentUsers-BlockMediumAndHighRisk | Block agent user account sign-ins when Microsoft Identity Protection detects medium or high agent risk. |
 | CA-COV014-AgentUsers-RequireCompliantDevice | Require a compliant device for agent user account sign-ins (Intune-managed Windows 365 Cloud PCs for Agents). |
-| CA-COV015-AgentUsers-RequireCompliantNetwork | Require a compliant network for agent user account sign-ins (Microsoft Entra Global Secure Access). |
+| CA-COV015-AgentUsers-BlockNonCompliantNetwork | Block agent user account sign-ins from outside the compliant network (all locations except the Microsoft Entra Global Secure Access compliant-network named location). |
 
 ### Sensitive-applications scope (1)
 

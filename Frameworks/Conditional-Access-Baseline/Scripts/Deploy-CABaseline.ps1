@@ -44,6 +44,10 @@
 .PARAMETER TrustedCountriesLocationName
     Display name of the trusted-countries named location. Default: Trusted Countries.
 
+.PARAMETER CompliantNetworkLocationName
+    Display name of the compliant-network named location excluded by
+    CA-COV015-AgentUsers-BlockNonCompliantNetwork. Default: Compliant Network.
+
 .PARAMETER StandardAuthStrengthName
     Display name of the StandardAuth authentication strength. Default: StandardAuth.
 
@@ -115,6 +119,9 @@ param(
 
     [Parameter()]
     [string]$TrustedCountriesLocationName = 'Trusted Countries',
+
+    [Parameter()]
+    [string]$CompliantNetworkLocationName = 'Compliant Network',
 
     [Parameter()]
     [string]$StandardAuthStrengthName = 'StandardAuth',
@@ -280,6 +287,7 @@ try {
         'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
         'REPLACE_WITH_GUESTS_GROUP_OBJECT_ID'              = Resolve-GroupId -DisplayName $GuestsGroupName
         'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
+        'REPLACE_WITH_COMPLIANT_NETWORK_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $CompliantNetworkLocationName
         'REPLACE_WITH_STANDARDAUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName
         'REPLACE_WITH_STRONGAUTH_STRENGTH_ID'              = Resolve-AuthStrengthId -DisplayName $StrongAuthStrengthName
         'REPLACE_WITH_ADMINAUTH_STRENGTH_ID'               = Resolve-AuthStrengthId -DisplayName $AdminAuthStrengthName
