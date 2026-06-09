@@ -78,6 +78,21 @@ The three targeting models do not overlap, and Microsoft documents specific gaps
 
 These limitations are the reason the baseline addresses the application-only pattern first and treats the agent user account as a separate coverage item. See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
 
+### Boundaries and limitations
+
+Beyond the targeting gaps above, Microsoft documents authentication surfaces where Conditional Access for agents does not apply at all. The full set of documented boundaries is:
+
+- A policy targeting all users does not include agent user accounts.
+- Agent user accounts cannot be scoped by group membership.
+- A policy targeting agent identities does not apply to the agent user account.
+- Agent identity blueprint targeting covers the agent identity, not the agent user account.
+- Conditional Access does not apply at the Microsoft Entra Token Exchange Endpoint.
+- Conditional Access does not apply to blueprint token acquisition for creating agents.
+- Conditional Access does not apply when Security Defaults are enabled. Security Defaults disables Conditional Access for agents.
+- Conditional Access does not apply to API-key access.
+
+When investigating whether an agent policy applied to a given sign-in, filter the Microsoft Entra sign-in logs on the `agentType` field to isolate agent entries from user and service principal sign-ins. The `agentType` field is confirmed, but its enumerated values are not published, so confirm the value list in-tenant. See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+
 ---
 
 ## 3. Identity Protection signal model for Agent IDs
