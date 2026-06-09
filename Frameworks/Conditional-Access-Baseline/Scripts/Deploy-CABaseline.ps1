@@ -121,7 +121,7 @@ param(
     [string]$TrustedCountriesLocationName = 'Trusted Countries',
 
     [Parameter()]
-    [string]$CompliantNetworkLocationName = 'Compliant Network',
+    [string]$CompliantNetworkLocationName = 'All Compliant Network locations',
 
     [Parameter()]
     [string]$StandardAuthStrengthName = 'StandardAuth',
