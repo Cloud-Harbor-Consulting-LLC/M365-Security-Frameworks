@@ -88,6 +88,8 @@ These limitations are the reason the baseline addresses the application-only pat
 
 In `CA-COV011`, the condition is set to `"medium,high"` — meaning the policy evaluates when Microsoft Identity Protection has raised the agent's risk level to medium or high. A `none` or `low` risk level results in the policy not applying to that authentication event.
 
+**Deviation from Microsoft's recommendation.** Microsoft recommends `agentIdRiskLevels = high` for agent-identity policies. CA-COV011 deliberately blocks at `medium,high` instead. This is a stricter-than-recommended CHC posture: blocking at medium catches a compromised or misbehaving agent one risk tier earlier, accepting a higher rate of report-only signals during the soak in exchange for earlier enforcement coverage. The stricter setting is the default. An adopter who prefers to align with Microsoft's recommendation can set `agentIdRiskLevels` to `high` in the CA-COV011 template and rename the policy accordingly.
+
 ### How Microsoft populates `agentIdRiskLevels`
 
 Microsoft Identity Protection generates agent risk detections based on signals that are specific to agentic workloads:
@@ -121,7 +123,7 @@ Limits evaluation to authentication events where Microsoft Identity Protection h
 
 **`conditions.clientApplications.includeAgentIdServicePrincipals: ["All"]`**
 
-This condition targets all Agent ID principals in the tenant. It is the Agent ID equivalent of `clientApplications.includeServicePrincipals: ["All"]` for service principals. Using `"All"` ensures every provisioned Agent ID is in scope; there is no per-agent inclusion list to maintain.
+This condition targets all Agent ID principals in the tenant. It is the Agent ID equivalent of `clientApplications.includeServicePrincipals: ["All"]` for service principals. Using `"All"` in CA-COV011 ensures every provisioned Agent ID is in scope. `"All"` is not the only available target, however: Microsoft documents selecting specific agents three ways — the enhanced object picker (tabs All, Agent blueprint principals, and Agent identities), individual agent identities by object ID, and custom security attributes (attribute set AgentAttributes with attribute AgentApprovalStatus, and attribute set ResourceAttributes with attribute Department, matched with the Contains operator). The companion property `clientApplications.excludeAgentIdServicePrincipals` takes a set of approved agent identity object IDs. These selection and exclusion methods are what `CA-COV012-Agents-AllowOnlyApprovedAgents` uses to express an allow-only posture: include all agents, exclude the approved set, block. The enhanced object picker and individual selection require the Conditional Access Administrator role; the custom security attribute method additionally requires the Attribute Assignment Reader role. See `Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.md`.
 
 **`conditions.users.includeUsers: ["None"]`**
 

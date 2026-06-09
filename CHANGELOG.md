@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Frameworks/Conditional-Access-Baseline/Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.json and its paired contract CA-COV012-Agents-AllowOnlyApprovedAgents.md — new Agents persona allow-only policy. Includes all agent identities, excludes an approved set via `excludeAgentIdServicePrincipals` (the `REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS` placeholder), and blocks, so only sanctioned agents operate. The contract documents the deny-by-default-except-approved design, the two selection methods (enhanced object picker with the All / Agent blueprint principals / Agent identities tabs, and the custom security attribute method using AgentAttributes/AgentApprovalStatus and ResourceAttributes/Department with the Contains operator), the required roles (Conditional Access Administrator, plus Attribute Assignment Reader for the attribute method), and a confirm-in-tenant note that the includeAgentIdServicePrincipals "All" literal and the attribute-based targeting JSON are not yet published in the Microsoft Graph reference. Ships in report-only.
+
 ### Changed
 
 - Documented the three Microsoft agent access patterns (on-behalf-of with the user as subject, application-only with the agent identity as subject, and agent-acting-as-a-user with the agent user account as subject), replacing the single-class agent model.
 - Verified the Agent ID Conditional Access field set against the Microsoft Graph beta reference (2026-06-03 refresh); reaffirmed the beta-endpoint commitment and flagged the unpublished AllAgentIdResources and includeAgentIdServicePrincipals All tokens as confirm-in-tenant.
+- Documented the expanded agent-identity targeting options (the enhanced object picker tabs All / Agent blueprint principals / Agent identities, individual agent identities, and custom security attributes) in POLICY-DESIGN.md and AGENTS-PERSONA-MODEL.md, correcting the prior "All-only, no inclusion list" framing of the Agents persona.
+- Documented the CA-COV011 risk-threshold posture: the baseline deliberately keeps `agentIdRiskLevels = "medium,high"` as a stricter-than-recommended CHC default, noting Microsoft recommends `high` for agent-identity policies and how an adopter can align to it.
 
 ### Fixed
 

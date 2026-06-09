@@ -61,6 +61,10 @@ Microsoft documents three agent access patterns, and each carries a different to
 
 The agent user account is a distinct identity sub-class from the agent identity. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. The baseline addresses the application-only pattern today and treats the agent user account as a separate coverage item. See `Design/AGENTS-PERSONA-MODEL.md` section 2 for the full three-pattern model and the targeting limitations, and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
 
+Agent identities are not limited to an "All-only" target with no inclusion list. Microsoft documents three ways to select the specific agents a policy applies to or exempts. The first is the enhanced object picker, which presents three tabs: All (every agent identity in the tenant), Agent blueprint principals (agents grouped by the blueprint they were provisioned from), and Agent identities (individual agents selected one at a time). The second is selecting individual agent identities by object ID. The third is custom security attributes, which select agents by attribute value rather than by enumerating object IDs. Microsoft's documented scheme uses attribute set AgentAttributes with attribute AgentApprovalStatus (values New, In_Review, HR_Approved, Finance_Approved, IT_Approved) and attribute set ResourceAttributes with attribute Department (values Finance, HR, IT, Marketing, Sales), matched with the Contains operator. The enhanced object picker and individual selection require the Conditional Access Administrator role; the custom security attribute method additionally requires the Attribute Assignment Reader role. These selection methods are what make an allow-only posture possible: `CA-COV012-Agents-AllowOnlyApprovedAgents` includes all agent identities, excludes the approved set, and blocks, so only sanctioned agents operate. See `Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.md` and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
+
+`CA-COV011-Agents-BlockMediumAndHighRisk` evaluates `agentIdRiskLevels = "medium,high"`. Microsoft recommends `agentIdRiskLevels = high` for agent-identity policies. The baseline deliberately keeps `medium,high` as the stricter CHC posture: blocking at medium catches a compromised or misbehaving agent one risk tier earlier than Microsoft's high-only recommendation. This deviation is intentional and is the default; an adopter who wants to align to Microsoft's recommendation instead can set `agentIdRiskLevels` to `high` in the CA-COV011 template.
+
 #### Per-policy exclusion judgment replaces blanket exclusion set
 
 The v1.2 architecture excluded EmergencyAccess, WorkloadIdentities, and ServiceAccounts from virtually all policies by default. v1.3 applies exclusions on a per-policy basis with documented rationale. The pattern is stricter: if a persona is excluded, Section 6 records why. If a persona is not excluded, it is in scope by design.
@@ -140,7 +144,7 @@ Eight personas are defined in this baseline. Each persona maps to an identity cl
 | Guests | `users.includeGuestsOrExternalUsers` or `users.includeGroups: [CA-Persona-Guests]` | EA excluded per-policy | B2B collaboration guests, external users, service providers. |
 | ServiceAccounts | `users.includeGroups: [CA-Persona-ServiceAccounts]` | EA, WI excluded from CA-COV009 | Positive inclusion target for CA-COV009. Excluded from all human-targeted policies via CA-EXC002. |
 | WorkloadIdentities | `clientApplications.includeServicePrincipals: [ServicePrincipalsInMyTenant]` | Not applicable (not a user persona) | Inclusion target for CA-COV010. Excluded from human-targeted user policies by virtue of not being users. |
-| Agents | `clientApplications.includeAgentIdServicePrincipals: ["All"]` | Not applicable (not a user persona) | Inclusion target for CA-COV011. Microsoft Agent IDs. Persona governed by CA-EXC003. |
+| Agents | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, with `excludeAgentIdServicePrincipals` for approved agents | Not applicable (not a user persona) | Inclusion target for CA-COV011 (risk-based block) and CA-COV012 (allow-only-approved). Microsoft Agent IDs. Agents are selectable via the enhanced object picker (All, Agent blueprint principals, Agent identities) or custom security attributes, not "All-only". Persona governed by CA-EXC003. |
 | EmergencyAccess | `users.excludeGroups: [CA-Persona-EmergencyAccess]` | Permanent exclusion from all policies | Exactly 2 accounts. Cloud-only. Governed by CA-EXC001. |
 
 ### 3.1 Persona group naming convention
@@ -649,6 +653,36 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 **Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md` and `Design/AGENTS-PERSONA-MODEL.md` section 5 for the full rollout recommendation.
 
 **Exclusion rationale:** No user group exclusions are needed. The policy does not evaluate user authentication flows. See `Policies/CA-EXC003-Agents-Persona.md` for the full exclusion model.
+
+**Risk threshold posture:** Microsoft recommends `agentIdRiskLevels = high` for agent-identity policies. CA-COV011 deliberately blocks at `medium,high` instead, one tier stricter than Microsoft's recommendation, so a compromised or misbehaving agent is caught earlier. This is the default CHC posture. An adopter who prefers Microsoft's recommendation can set `agentIdRiskLevels` to `high` in the template and rename it accordingly.
+
+---
+
+### 6.14a CA-COV012-Agents-AllowOnlyApprovedAgents
+
+**Intent:** Establish an allow-only posture for the Agents persona: block every agent identity in the tenant except an approved set. Where CA-COV011 is risk-based (block on medium or high agent risk), CA-COV012 is a standing allow-list (block any agent that is not sanctioned to operate at all). The two are complementary layers, not duplicates.
+
+**Principle mapping:** 1.1 Identity-wide coverage (Agents persona) and 1.2 No standing exclusions (the approved set is a positive, governed allow-list rather than an open default).
+
+**Scope:**
+
+| Dimension | Value |
+|---|---|
+| Users | `includeUsers: ["None"]` — Agents do not authenticate as users |
+| Agent ID principals | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, `excludeAgentIdServicePrincipals: ["REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS"]` — include all agents, exclude the approved set |
+| Applications | `includeApplications: ["All"]` — portal label "All resources (formerly 'All cloud apps')" |
+
+**Grant control:** `builtInControls: ["block"]` with `operator: "OR"`. Any in-scope agent (every agent not on the approved set) is blocked. Block is the only enforceable control for a non-human principal.
+
+**Selection of the approved set:** Two methods. The enhanced object picker (tabs All, Agent blueprint principals, Agent identities) or individual agent identity selection populates the exclude set by object ID. The custom security attribute method selects agents by attribute (AgentAttributes/AgentApprovalStatus and ResourceAttributes/Department, with the Contains operator). The object picker and individual selection require Conditional Access Administrator; the attribute method also requires Attribute Assignment Reader.
+
+**Confirm-in-tenant:** The `includeAgentIdServicePrincipals` `"All"` literal and the attribute-based targeting JSON are referenced in the Conditional Access for Agents documentation but are not yet typed in the published Microsoft Graph reference. Adopters confirm them in-tenant before REST import. See `Design/AGENTS-PERSONA-MODEL.md` section 6.
+
+**License requirements:** Same as CA-COV011 — Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Graph beta endpoint (all agent fields are beta-only).
+
+**Validation steps:** See `Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.md`. In report-only, confirm CA-COV012 would block only unapproved or unknown agent identities and that every approved agent is present in the exclude set before enforcement.
+
+**Exclusion rationale:** No user group exclusions are needed; the policy does not evaluate user authentication flows. The agent-side exclude set is the approved-agent allow-list, not a standing bypass.
 
 ---
 
