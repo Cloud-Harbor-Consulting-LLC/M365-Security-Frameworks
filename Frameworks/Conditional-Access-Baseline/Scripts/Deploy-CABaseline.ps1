@@ -214,9 +214,12 @@ function Resolve-AuthStrengthId {
 
 function Resolve-NamedLocationId {
     param([Parameter(Mandatory)][string]$DisplayName)
-    $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/v1.0/identity/conditionalAccess/namedLocations?$select=id,displayName'
+    $response = Invoke-MgGraphRequest -Method GET -Uri 'https://graph.microsoft.com/beta/identity/conditionalAccess/namedLocations?$select=id,displayName'
     $match = @($response.value | Where-Object { $_.displayName -eq $DisplayName })
     if ($match.Count -eq 0) {
+        if ($DisplayName -eq 'All Compliant Network locations') {
+            throw "Named location not found in tenant: '$DisplayName'. Enable Global Secure Access compliant network in the tenant. This is a system location and is not provisioned from a Supporting-Artifacts template."
+        }
         throw "Named location not found in tenant: '$DisplayName'. Provision it from Supporting-Artifacts/ before running this script."
     }
     if ($match.Count -gt 1) {
