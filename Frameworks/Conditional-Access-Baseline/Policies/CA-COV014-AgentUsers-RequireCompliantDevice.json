@@ -2,21 +2,12 @@
   "displayName": "CA-COV014-AgentUsers-RequireCompliantDevice",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
-    "applications": {
-      "includeApplications": [
-        "All"
-      ]
-    },
-    "users": {
-      "includeUsers": [
-        "REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"
-      ]
-    }
+    "clientAppTypes": ["all"],
+    "applications": { "includeApplications": ["AllAgentIdResources"] },
+    "users": { "includeUsers": ["None"] },
+    "locations": { "includeLocations": ["All"] },
+    "agents": { "includeAgentUsers": ["All"] },
+    "agentContext": { "includeAgentContexts": ["agentUserSessionsInitiatedFromEndpoints"] }
   },
-  "grantControls": {
-    "operator": "OR",
-    "builtInControls": [
-      "compliantDevice"
-    ]
-  }
+  "grantControls": { "operator": "OR", "builtInControls": ["compliantDevice"] }
 }

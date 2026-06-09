@@ -27,9 +27,9 @@ exclude the approved set, and block. Applied to agent identities, the three cond
 
 | Condition | Value | Effect |
 |---|---|---|
-| `conditions.applications.includeApplications` | `["All"]` | Scopes the policy across all resources (the portal labels this "All resources (formerly 'All cloud apps')"). |
+| `conditions.applications.includeApplications` | `["All"]` | Targets All resources (the portal labels this "All resources (formerly 'All cloud apps')"). The policy must target All resources; an empty target leaves the allow-list inert because there is no resource for the block to apply against. |
 | `conditions.clientApplications.includeAgentIdServicePrincipals` | `["All"]` | Brings every agent identity in the tenant into scope. |
-| `conditions.clientApplications.excludeAgentIdServicePrincipals` | `["REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS"]` | Carves the approved agent identities back out, so they are not blocked. |
+| `conditions.clientApplications.agentIdServicePrincipalFilter` | `{ "mode": "exclude", "rule": "CustomSecurityAttribute.AgentIdAttributes_AgentIdApprovedForUse -eq \"yes\"" }` | Carves the approved agent identities back out by custom security attribute, so they are not blocked. |
 | `conditions.users.includeUsers` | `["None"]` | Agents do not authenticate as users; this keeps the user authentication path out of scope. |
 | `grantControls.builtInControls` | `["block"]` | Any in-scope agent identity (every agent that is not on the approved set) is blocked. |
 
@@ -40,10 +40,13 @@ satisfy an interactive MFA, authentication strength, or device compliance challe
 mirrors the block-only approach taken for service accounts (`CA-COV009`), workload
 identities (`CA-COV010`), and the agent risk control (`CA-COV011`).
 
-`excludeAgentIdServicePrincipals` takes the approved agent identity object IDs. The
-`REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS` placeholder is the slot for that approved set;
-populate it with the object IDs of the agent identities your organization has sanctioned
-before you import or enforce the policy.
+The approved set is expressed through `agentIdServicePrincipalFilter` rather than an
+enumerated object ID list. With `mode` set to `exclude`, the filter rule matches the agent
+identities that carry the approval attribute and carves them out of the block. The verified
+rule is `CustomSecurityAttribute.AgentIdAttributes_AgentIdApprovedForUse -eq "yes"`: it
+matches every agent whose `AgentIdAttributes` custom security attribute set has the
+`AgentIdApprovedForUse` String attribute set to `yes`. Assign that attribute value to each
+agent your organization has sanctioned before you import or enforce the policy.
 
 ---
 
@@ -63,23 +66,24 @@ The Conditional Access agent identity picker presents three tabs:
 - **Agent identities** — individual agent identities selected one at a time.
 
 Use this method when the approved set is a known, enumerable list of individual agents or
-blueprints. The selected agent identity object IDs become the
-`excludeAgentIdServicePrincipals` set.
+blueprints. The template ships the attribute method (Method 2) instead, because the filter
+rule is the verified wire shape.
 
 ### Method 2: custom security attributes
 
-For a larger or attribute-governed fleet, agents can be selected by custom security
-attribute rather than by enumerating object IDs. Microsoft's documented scheme uses two
-attribute sets:
+For a larger or attribute-governed fleet, agents are selected by custom security attribute
+rather than by enumerating object IDs. This is the method the template uses. The verified
+scheme is a single attribute:
 
-- Attribute set **AgentAttributes**, attribute **AgentApprovalStatus**, with the predefined
-  values `New`, `In_Review`, `HR_Approved`, `Finance_Approved`, `IT_Approved`.
-- Attribute set **ResourceAttributes**, attribute **Department**, with the values
-  `Finance`, `HR`, `IT`, `Marketing`, `Sales`.
+- Custom security attribute set **AgentIdAttributes**, attribute **AgentIdApprovedForUse**,
+  of type String, with the value `yes` assigned to each sanctioned agent.
 
-Selection uses the `Contains` operator against these attribute values, so an approved set
-can be expressed as, for example, agents whose `AgentApprovalStatus` Contains `IT_Approved`.
-The attribute method requires the Attribute Assignment Reader role in addition to the
+Selection uses the `agentIdServicePrincipalFilter` rule with the `-eq` operator. The filter
+grammar is `CustomSecurityAttribute.<Set>_<Attribute> -eq "<value>"`, so the approved set is
+expressed as
+`CustomSecurityAttribute.AgentIdAttributes_AgentIdApprovedForUse -eq "yes"`. With the
+filter `mode` set to `exclude`, every agent that matches the rule is carved out of the
+block. The attribute method requires the Attribute Assignment Reader role in addition to the
 Conditional Access Administrator role, so the administrator can read the attribute values
 used to scope the policy.
 
@@ -94,27 +98,25 @@ used to scope the policy.
 
 ---
 
-## Confirm-in-tenant note
+## Verified field shapes
 
-Two elements of this policy are referenced in the Conditional Access for Agents
-documentation but are not yet typed in the published Microsoft Graph reference, so adopters
-must confirm them against the live tenant before a REST import:
+Every field in this policy is verified against raw Microsoft Graph beta exports
+(`GET /beta/policies/conditionalAccessPolicies`):
 
-1. The `includeAgentIdServicePrincipals` `"All"` literal. The Microsoft Graph reference
-   types this property as a collection of agent identity object IDs and documents no `"All"`
-   literal. The template ships `["All"]` as a confirm-in-tenant value.
-2. The attribute-based targeting JSON ("Select agent identities based on attributes"). The
-   AgentAttributes/AgentApprovalStatus and ResourceAttributes/Department scheme with the
-   `Contains` operator is documented in the Conditional Access for Agents guidance but is not
-   yet published in the Graph reference, so the wire shape must be confirmed in-tenant before
-   automated import.
+1. The `includeAgentIdServicePrincipals` `"All"` value is tenant-verified.
+2. The `agentIdServicePrincipalFilter` object and its rule grammar
+   (`CustomSecurityAttribute.<Set>_<Attribute> -eq "<value>"`, with `mode` set to `exclude`)
+   are tenant-verified. The attribute set `AgentIdAttributes`, the String attribute
+   `AgentIdApprovedForUse`, and the value `yes` matched with `-eq` are the verified scheme.
 
-The confirmed properties this policy relies on are
-`conditionalAccessClientApplications.includeAgentIdServicePrincipals` and
-`excludeAgentIdServicePrincipals`, `conditions.applications.includeApplications` value
-`"All"`, `conditions.users.includeUsers` value `"None"`, and `grantControls.builtInControls`
-value `"block"`. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the full field-status
-table and the GA tracking commitment.
+The properties this policy relies on are
+`conditionalAccessClientApplications.includeAgentIdServicePrincipals`,
+`conditionalAccessClientApplications.agentIdServicePrincipalFilter`,
+`conditions.applications.includeApplications` value `"All"` (the policy targets All
+resources; an empty target leaves the allow-list inert), `conditions.users.includeUsers`
+value `"None"`, and `grantControls.builtInControls` value `"block"`. See
+`Design/AGENTS-PERSONA-MODEL.md` section 6 for the full field-status table and the GA
+tracking commitment.
 
 ---
 

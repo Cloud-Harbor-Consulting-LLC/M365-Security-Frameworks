@@ -1,11 +1,14 @@
 {
-  "displayName": "CA-COV013-AgentUsers-BlockMediumAndHighRisk",
+  "displayName": "CA-COV015-AgentUsers-BlockNonCompliantNetwork",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "clientAppTypes": ["all"],
-    "agentIdRiskLevels": "medium,high",
     "applications": { "includeApplications": ["AllAgentIdResources"] },
     "users": { "includeUsers": ["None"] },
+    "locations": {
+      "includeLocations": ["All"],
+      "excludeLocations": ["REPLACE_WITH_COMPLIANT_NETWORK_LOCATION_ID"]
+    },
     "agents": { "includeAgentUsers": ["All"] }
   },
   "grantControls": { "operator": "OR", "builtInControls": ["block"] }

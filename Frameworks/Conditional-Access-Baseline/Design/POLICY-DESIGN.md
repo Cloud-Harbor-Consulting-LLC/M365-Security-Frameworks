@@ -61,7 +61,7 @@ Microsoft documents three agent access patterns, and each carries a different to
 
 The agent user account is a distinct identity sub-class from the agent identity. A policy targeting agent identities does not apply to the agent user account, and a policy targeting all users does not include agent user accounts. The baseline addresses the application-only pattern today and treats the agent user account as a separate coverage item. See `Design/AGENTS-PERSONA-MODEL.md` section 2 for the full three-pattern model and the targeting limitations, and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
 
-Agent identities are not limited to an "All-only" target with no inclusion list. Microsoft documents three ways to select the specific agents a policy applies to or exempts. The first is the enhanced object picker, which presents three tabs: All (every agent identity in the tenant), Agent blueprint principals (agents grouped by the blueprint they were provisioned from), and Agent identities (individual agents selected one at a time). The second is selecting individual agent identities by object ID. The third is custom security attributes, which select agents by attribute value rather than by enumerating object IDs. Microsoft's documented scheme uses attribute set AgentAttributes with attribute AgentApprovalStatus (values New, In_Review, HR_Approved, Finance_Approved, IT_Approved) and attribute set ResourceAttributes with attribute Department (values Finance, HR, IT, Marketing, Sales), matched with the Contains operator. The enhanced object picker and individual selection require the Conditional Access Administrator role; the custom security attribute method additionally requires the Attribute Assignment Reader role. These selection methods are what make an allow-only posture possible: `CA-COV012-Agents-AllowOnlyApprovedAgents` includes all agent identities, excludes the approved set, and blocks, so only sanctioned agents operate. See `Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.md` and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
+Agent identities are not limited to an "All-only" target with no inclusion list. Microsoft documents three ways to select the specific agents a policy applies to or exempts. The first is the enhanced object picker, which presents three tabs: All (every agent identity in the tenant), Agent blueprint principals (agents grouped by the blueprint they were provisioned from), and Agent identities (individual agents selected one at a time). The second is selecting individual agent identities by object ID. The third is custom security attributes via the `agentIdServicePrincipalFilter` rule, which selects agents by attribute value rather than by enumerating object IDs. The verified rule grammar is `CustomSecurityAttribute.<Set>_<Attribute> -eq "<value>"` with `mode` include or exclude; the verified scheme is the `AgentIdAttributes` set with the String attribute `AgentIdApprovedForUse` matched with the `-eq` operator. The enhanced object picker and individual selection require the Conditional Access Administrator role; the custom security attribute method additionally requires the Attribute Assignment Reader role. These selection methods are what make an allow-only posture possible: `CA-COV012-Agents-AllowOnlyApprovedAgents` includes all agent identities, excludes the approved set by filter, and blocks, so only sanctioned agents operate. See `Policies/CA-COV012-Agents-AllowOnlyApprovedAgents.md` and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-autonomous-agents>.
 
 `CA-COV011-Agents-BlockMediumAndHighRisk` evaluates `agentIdRiskLevels = "medium,high"`. Microsoft recommends `agentIdRiskLevels = high` for agent-identity policies. The baseline deliberately keeps `medium,high` as the stricter CHC posture: blocking at medium catches a compromised or misbehaving agent one risk tier earlier than Microsoft's high-only recommendation. This deviation is intentional and is the default; an adopter who wants to align to Microsoft's recommendation instead can set `agentIdRiskLevels` to `high` in the CA-COV011 template.
 
@@ -144,7 +144,7 @@ Eight personas are defined in this baseline. Each persona maps to an identity cl
 | Guests | `users.includeGuestsOrExternalUsers` or `users.includeGroups: [CA-Persona-Guests]` | EA excluded per-policy | B2B collaboration guests, external users, service providers. |
 | ServiceAccounts | `users.includeGroups: [CA-Persona-ServiceAccounts]` | EA, WI excluded from CA-COV009 | Positive inclusion target for CA-COV009. Excluded from all human-targeted policies via CA-EXC002. |
 | WorkloadIdentities | `clientApplications.includeServicePrincipals: [ServicePrincipalsInMyTenant]` | Not applicable (not a user persona) | Inclusion target for CA-COV010. Excluded from human-targeted user policies by virtue of not being users. |
-| Agents | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, with `excludeAgentIdServicePrincipals` for approved agents | Not applicable (not a user persona) | Inclusion target for CA-COV011 (risk-based block) and CA-COV012 (allow-only-approved). Microsoft Agent IDs. Agents are selectable via the enhanced object picker (All, Agent blueprint principals, Agent identities) or custom security attributes, not "All-only". Persona governed by CA-EXC003. |
+| Agents | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, with `agentIdServicePrincipalFilter` (mode exclude) for approved agents | Not applicable (not a user persona) | Inclusion target for CA-COV011 (risk-based block) and CA-COV012 (allow-only-approved). Microsoft Agent IDs. Agents are selectable via the enhanced object picker (All, Agent blueprint principals, Agent identities) or custom security attributes, not "All-only". Persona governed by CA-EXC003. |
 | EmergencyAccess | `users.excludeGroups: [CA-Persona-EmergencyAccess]` | Permanent exclusion from all policies | Exactly 2 accounts. Cloud-only. Governed by CA-EXC001. |
 
 ### 3.1 Persona group naming convention
@@ -669,14 +669,14 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 | Dimension | Value |
 |---|---|
 | Users | `includeUsers: ["None"]` — Agents do not authenticate as users |
-| Agent ID principals | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, `excludeAgentIdServicePrincipals: ["REPLACE_WITH_APPROVED_AGENT_ID_OBJECT_IDS"]` — include all agents, exclude the approved set |
-| Applications | `includeApplications: ["All"]` — portal label "All resources (formerly 'All cloud apps')" |
+| Agent ID principals | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, `agentIdServicePrincipalFilter: { "mode": "exclude", "rule": "CustomSecurityAttribute.AgentIdAttributes_AgentIdApprovedForUse -eq \"yes\"" }` — include all agents, exclude the approved set by custom security attribute |
+| Applications | `includeApplications: ["All"]` — targets All resources (portal label "All resources (formerly 'All cloud apps')"). An empty target leaves the allow-list inert. |
 
 **Grant control:** `builtInControls: ["block"]` with `operator: "OR"`. Any in-scope agent (every agent not on the approved set) is blocked. Block is the only enforceable control for a non-human principal.
 
-**Selection of the approved set:** Two methods. The enhanced object picker (tabs All, Agent blueprint principals, Agent identities) or individual agent identity selection populates the exclude set by object ID. The custom security attribute method selects agents by attribute (AgentAttributes/AgentApprovalStatus and ResourceAttributes/Department, with the Contains operator). The object picker and individual selection require Conditional Access Administrator; the attribute method also requires Attribute Assignment Reader.
+**Selection of the approved set:** The template uses the custom security attribute method via `agentIdServicePrincipalFilter`. The verified scheme is the `AgentIdAttributes` custom security attribute set with the String attribute `AgentIdApprovedForUse` set to `yes`, matched with the `-eq` operator (filter grammar `CustomSecurityAttribute.<Set>_<Attribute> -eq "<value>"`, `mode` exclude). The enhanced object picker (tabs All, Agent blueprint principals, Agent identities) and individual agent selection are alternatives. The object picker and individual selection require Conditional Access Administrator; the attribute method also requires Attribute Assignment Reader.
 
-**Confirm-in-tenant:** The `includeAgentIdServicePrincipals` `"All"` literal and the attribute-based targeting JSON are referenced in the Conditional Access for Agents documentation but are not yet typed in the published Microsoft Graph reference. Adopters confirm them in-tenant before REST import. See `Design/AGENTS-PERSONA-MODEL.md` section 6.
+**Verified field shapes:** The `includeAgentIdServicePrincipals` `"All"` value and the `agentIdServicePrincipalFilter` object with its rule grammar are tenant-verified against raw Microsoft Graph beta exports. See `Design/AGENTS-PERSONA-MODEL.md` section 6.
 
 **License requirements:** Same as CA-COV011 — Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Graph beta endpoint (all agent fields are beta-only).
 
@@ -996,11 +996,11 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, ma
 
 ## 6a. AgentUsers persona per-policy specifications
 
-The AgentUsers persona grouping covers the agent user account identity sub-class (Pattern 3: agent acting as a user / digital worker). The token subject is the agent user account, which is distinct from both the user persona set and the agent identity covered by `CA-COV011` and `CA-COV012`. Agent user accounts cannot be scoped by group membership; targeting is via the All agent users selector. The three policies below ship in report-only. Their confirm-in-tenant fields (the All agent users selector, the Agent execution environments condition, and the Require compliant network control) and the requirement to add the Agent execution environments condition in the portal before enforcement are documented in `Policies/CA-EXC003-Agents-Persona.md`.
+The AgentUsers persona grouping covers the agent user account identity sub-class (Pattern 3: agent acting as a user / digital worker). The token subject is the agent user account, which is distinct from both the user persona set and the agent identity covered by `CA-COV011` and `CA-COV012`. Agent user accounts cannot be scoped by group membership; the subject is targeted through `conditions.agents.includeAgentUsers: ["All"]`. The three policies below ship in report-only. Their field shapes are verified against raw Microsoft Graph beta exports: the agent-user subject `conditions.agents.includeAgentUsers` and the execution-environments condition `conditions.agentContext.includeAgentContexts` (value `agentUserSessionsInitiatedFromEndpoints`).
 
-**Execution-environments scoping rationale:** `CA-COV014` and `CA-COV015` require the Agent execution environments condition so the device and network requirements apply only to endpoint-initiated agent user sessions. Cloud-native agents that have no device or no Global Secure Access client are excluded by the condition rather than blocked with no path to compliance. Device compliance is evaluated only on Intune-managed Windows 365 Cloud PCs for Agents. Because the condition property name is unverified in the published Microsoft Graph reference, the JSON ships without it; adopters add it in the portal and keep the device and network policies report-only until they do.
+**Execution-environments scoping rationale:** `CA-COV014` requires the `conditions.agentContext.includeAgentContexts` condition (value `agentUserSessionsInitiatedFromEndpoints`) so the device requirement applies only to endpoint-initiated agent user sessions. Cloud-native agents that have no device are excluded by the condition rather than blocked with no path to compliance. Device compliance is evaluated only on Intune-managed Windows 365 Cloud PCs for Agents.
 
-**Limitations and report-only rollout:** The agent user account sub-class carries documented Conditional Access boundaries: a policy targeting all users does not include agent user accounts, agent user accounts cannot be scoped by group membership, a policy targeting agent identities does not apply to the agent user account, and Conditional Access does not apply at the Microsoft Entra Token Exchange Endpoint, to blueprint token acquisition for creating agents, when Security Defaults are enabled (Security Defaults disables Conditional Access for agents), or to API-key access. `CA-COV013`, `CA-COV014`, and `CA-COV015` ship report-only (`enabledForReportingButNotEnforced`); validate each with policy impact analysis or report-only mode before moving it to On, and keep `CA-COV014` and `CA-COV015` report-only until the Agent execution environments condition is added in the portal. When confirming whether one of these policies applied to a sign-in, filter the Microsoft Entra sign-in logs on the `agentType` field (value list confirm-in-tenant). See `Policies/CA-EXC003-Agents-Persona.md`.
+**Limitations and report-only rollout:** The agent user account sub-class carries documented Conditional Access boundaries: a policy targeting all users does not include agent user accounts, agent user accounts cannot be scoped by group membership, a policy targeting agent identities does not apply to the agent user account, and Conditional Access does not apply at the Microsoft Entra Token Exchange Endpoint, to blueprint token acquisition for creating agents, when Security Defaults are enabled (Security Defaults disables Conditional Access for agents), or to API-key access. `CA-COV013`, `CA-COV014`, and `CA-COV015` ship report-only (`enabledForReportingButNotEnforced`); validate each with policy impact analysis or report-only mode before moving it to On. When confirming whether one of these policies applied to a sign-in, filter the Microsoft Entra sign-in logs on the `agentType` field (value list confirm-in-tenant). See `Policies/CA-EXC003-Agents-Persona.md`.
 
 ---
 
@@ -1014,8 +1014,9 @@ The AgentUsers persona grouping covers the agent user account identity sub-class
 
 | Dimension | Value |
 |---|---|
-| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
-| Applications | `includeApplications: ["All"]` |
+| Users | `includeUsers: ["None"]` — agent user accounts are not the user persona set |
+| Agent user subject | `agents.includeAgentUsers: ["All"]` — the agent-user subject |
+| Applications | `includeApplications: ["AllAgentIdResources"]` |
 | Agent risk | `agentIdRiskLevels: "medium,high"` |
 
 **Grant control:** `builtInControls: ["block"]` with `operator: "OR"`.
@@ -1026,7 +1027,7 @@ The AgentUsers persona grouping covers the agent user account identity sub-class
 
 **License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Identity Protection for agent risk signals (P2); Microsoft Graph beta endpoint.
 
-**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value in-tenant before import. `CA-COV013` does not depend on the Agent execution environments condition, but it ships report-only alongside `CA-COV014` and `CA-COV015` for a consistent soak.
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. `CA-COV013` does not depend on the Agent execution environments condition, but it ships report-only alongside `CA-COV014` and `CA-COV015` for a consistent soak.
 
 **Exclusion rationale:** No user group exclusions. The policy targets the agent user account sub-class via the All agent users selector, not the user persona set.
 
@@ -1042,9 +1043,11 @@ The AgentUsers persona grouping covers the agent user account identity sub-class
 
 | Dimension | Value |
 |---|---|
-| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
-| Applications | `includeApplications: ["All"]` |
-| Agent execution environments | Added in the portal before enforcement (condition property unverified; confirm-in-tenant). Value: agent user sessions initiated from endpoints |
+| Users | `includeUsers: ["None"]` — agent user accounts are not the user persona set |
+| Agent user subject | `agents.includeAgentUsers: ["All"]` — the agent-user subject |
+| Applications | `includeApplications: ["AllAgentIdResources"]` |
+| Locations | `locations.includeLocations: ["All"]` |
+| Agent execution environments | `agentContext.includeAgentContexts: ["agentUserSessionsInitiatedFromEndpoints"]` — scopes the policy to endpoint-initiated agent user sessions |
 
 **Grant control:** `builtInControls: ["compliantDevice"]` with `operator: "OR"`.
 
@@ -1052,36 +1055,37 @@ The AgentUsers persona grouping covers the agent user account identity sub-class
 
 **License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Intune for the compliant-device signal on Windows 365 Cloud PCs for Agents; Microsoft Graph beta endpoint.
 
-**Enforcement gate:** MUST stay in report-only until the Agent execution environments condition is added in the portal. Enforcing without that scope would block cloud-native agent user accounts that have no device and no path to compliance. The Intune signal consumed by this policy is cross-referenced in `Design/CA-ICB-INTEGRATION.md`.
+**Enforcement gate:** Ships report-only. The `agentContext.includeAgentContexts` condition scopes the policy to endpoint-initiated agent user sessions so cloud-native agent user accounts that have no device are excluded rather than blocked with no path to compliance. The Intune signal consumed by this policy is cross-referenced in `Design/CA-ICB-INTEGRATION.md`.
 
-**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value and add the Agent execution environments condition before enforcement.
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Validate in report-only before enforcement.
 
 **Exclusion rationale:** No user group exclusions. The execution-environments condition is the scoping mechanism, not a group exclusion.
 
 ---
 
-### 6a.3 CA-COV015-AgentUsers-RequireCompliantNetwork
+### 6a.3 CA-COV015-AgentUsers-BlockNonCompliantNetwork
 
-**Intent:** Require a compliant network for agent user account sign-ins. The Agent execution environments condition scopes the policy to endpoint-initiated agent user sessions so cloud-native agents with no Global Secure Access client are excluded rather than blocked.
+**Intent:** Block agent user account sign-ins that do not originate from the compliant network. Rather than a require-compliant-network grant (which is not a `builtInControls` value), the policy targets All locations, excludes the compliant-network named location, and blocks. The net effect is that any agent user sign-in from outside the compliant network is blocked, while sign-ins from inside it fall outside scope.
 
-**Principle mapping:** 1.3 Layered signals. Network compliance combined with the agent user account sub-class scope and the execution-environments scope.
+**Principle mapping:** 1.3 Layered signals. Network posture combined with the agent user account sub-class scope.
 
 **Scope:**
 
 | Dimension | Value |
 |---|---|
-| Users | `includeUsers: ["REPLACE_WITH_VERIFIED_ALL_AGENT_USERS_SELECTOR"]` — the All agent users selector (confirm-in-tenant) |
-| Applications | `includeApplications: ["All"]` |
-| Agent execution environments | Added in the portal before enforcement (condition property unverified; confirm-in-tenant). Value: agent user sessions initiated from endpoints |
+| Users | `includeUsers: ["None"]` — agent user accounts are not the user persona set |
+| Agent user subject | `agents.includeAgentUsers: ["All"]` — the agent-user subject |
+| Applications | `includeApplications: ["AllAgentIdResources"]` |
+| Locations | `locations.includeLocations: ["All"]`, `excludeLocations: ["REPLACE_WITH_COMPLIANT_NETWORK_LOCATION_ID"]` — all locations except the compliant-network named location |
 
-**Grant control:** `builtInControls: ["REPLACE_WITH_VERIFIED_COMPLIANT_NETWORK_CONTROL"]` with `operator: "OR"`. Require compliant network is not a `builtInControls` value; it is the Microsoft Entra Global Secure Access network control (auth-plane GA, data-plane Preview). The placeholder ships pending in-tenant confirmation of the correct control representation.
+**Grant control:** `builtInControls: ["block"]` with `operator: "OR"`. Any in-scope sign-in (every agent user session originating outside the compliant-network named location) is blocked.
 
 **Session controls:** None.
 
-**License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Entra Internet Access with the Global Secure Access client deployed on the endpoint; Microsoft Graph beta endpoint.
+**License requirements:** Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user; Microsoft Entra Internet Access with the Global Secure Access client deployed on the endpoint so the compliant-network location is signalled; Microsoft Graph beta endpoint.
 
-**Enforcement gate:** MUST stay in report-only until the Agent execution environments condition is added in the portal and the Global Secure Access client is deployed. Enforcing without the execution-environments scope would block cloud-native agent user accounts that have no Global Secure Access client and no path to compliance.
+**Deployer resolution:** `REPLACE_WITH_COMPLIANT_NETWORK_LOCATION_ID` is resolved by `Deploy-CABaseline.ps1` from the `-CompliantNetworkLocationName` named location (default `Compliant Network`), mirroring the trusted-countries location resolver.
 
-**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Confirm the All agent users selector value and the compliant-network control representation, deploy the Global Secure Access client, and add the Agent execution environments condition before enforcement.
+**Validation steps:** See `Policies/CA-EXC003-Agents-Persona.md`. Provision the compliant-network named location, deploy the Global Secure Access client, and validate in report-only before enforcement.
 
-**Exclusion rationale:** No user group exclusions. The execution-environments condition is the scoping mechanism.
+**Exclusion rationale:** No user group exclusions. The compliant-network location exclusion is the scoping mechanism.
