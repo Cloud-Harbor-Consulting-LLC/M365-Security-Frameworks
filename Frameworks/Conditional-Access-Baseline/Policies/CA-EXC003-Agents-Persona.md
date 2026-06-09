@@ -83,6 +83,34 @@ See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/policy-
 
 ---
 
+## Limitations
+
+Microsoft documents specific boundaries on where Conditional Access for agents applies. Account for each of these when planning coverage. None of the agent policies in this baseline closes these gaps, because the gaps are in the evaluation surface itself, not in the policy set.
+
+**Targeting gaps between the agent identity and the agent user account:**
+
+- A policy targeting all users does not include agent user accounts. A broad user policy leaves the agent user account uncovered.
+- Agent user accounts cannot be scoped by group membership. The group-based persona pattern used elsewhere in this baseline does not apply to them.
+- A policy targeting agent identities does not apply to the agent user account. Agent identity targeting reaches the application-only pattern (Pattern 2) only.
+- Agent identity blueprint targeting covers the agent identity, not the agent user account.
+
+**Authentication surfaces where Conditional Access does not apply:**
+
+- Conditional Access does not apply at the Microsoft Entra Token Exchange Endpoint.
+- Conditional Access does not apply to blueprint token acquisition for creating agents.
+- Conditional Access does not apply when Security Defaults are enabled. Security Defaults disables Conditional Access for agents, so a tenant relying on Security Defaults has no agent Conditional Access enforcement regardless of the policies defined.
+- Conditional Access does not apply to API-key access.
+
+See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
+
+---
+
+## Report-only rollout for the agent policies
+
+All 5 agent policies in this baseline ship in report-only (`enabledForReportingButNotEnforced`): `CA-COV011` and `CA-COV012` for the agent identity (Pattern 2), and `CA-COV013`, `CA-COV014`, and `CA-COV015` for the agent user account sub-class (Pattern 3). Validate each with policy impact analysis or report-only mode before moving it to On. Promote one policy at a time and confirm the report-only output before enforcing the next. `CA-COV014` and `CA-COV015` additionally MUST stay in report-only until the Agent execution environments condition is added in the portal, as described in the Agent user accounts coverage section above.
+
+---
+
 ## Scope of this contract
 
 This contract establishes:
@@ -131,7 +159,7 @@ Invoke-MgGraphRequest -Method GET -Uri $uri |
 
 When Microsoft Identity Protection raises an Agent ID risk level to `high`:
 
-1. **Immediate:** Confirm that `CA-COV011-Agents-BlockMediumAndHighRisk` is in `enabled` state (not just `enabledForReportingButNotEnforced`). If still in report-only, the high-risk agent has not been blocked — escalate to an emergency enforcement decision.
+1. **Immediate:** Confirm that `CA-COV011-Agents-BlockMediumAndHighRisk` is in `enabled` state (not just `enabledForReportingButNotEnforced`). If still in report-only, the high-risk agent has not been blocked — escalate to an emergency enforcement decision. To confirm whether an agent policy actually applied to the affected sign-ins, open the Microsoft Entra sign-in logs and filter on the `agentType` field, which isolates agent entries from user and service principal sign-ins. The `agentType` field is confirmed, but its enumerated values are not published, so confirm the value list in-tenant. Review the applied and report-only policy results on the filtered entries to see whether `CA-COV011` (or `CA-COV013` for an agent user account event) evaluated and what action it took or would have taken.
 2. **Within 1 hour:** Identify the Agent ID object and its owner. Review the risk detection events in the Microsoft Entra admin center under Protection → Identity Protection → Risk detections.
 3. **Revocation:** Disable the Agent ID in the tenant. This prevents further authentication regardless of CA policy state. Contact the Agent ID owner to coordinate.
 4. **Investigation:** Determine whether the risk signal indicates prompt injection (agent instructed to exfiltrate data or act outside its authorized scope), credential theft (Agent ID credentials extracted and replayed from attacker infrastructure), or a false positive (Microsoft detection error — document and submit feedback to Microsoft).
