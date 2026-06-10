@@ -1,7 +1,7 @@
 # Agents Persona Model — Design Document
 
-**Framework:** Conditional Access Baseline v1.3
-**Status:** Preview — v1.3.0-rc.1
+**Framework:** Conditional Access Baseline v1.4
+**Status:** Preview — v1.4.0
 **Endpoint dependency:** Microsoft Graph beta (all Agent ID condition fields; GA promotion tracked below)
 
 ---
@@ -226,7 +226,7 @@ Every agent-specific Conditional Access field is Microsoft Graph beta-only. None
 
 - Agent identity blueprint targeting.
 
-The baseline framework targets the beta endpoint (`https://graph.microsoft.com/beta/identity/conditionalAccess/policies`) for all 24 policies to avoid conditional endpoint logic in the deployer. Splitting the policy set between v1.0 and beta endpoints would require maintaining two deployer code paths, two sets of test fixtures, and runtime logic to decide which endpoint applies to which policy.
+The baseline framework targets the beta endpoint (`https://graph.microsoft.com/beta/identity/conditionalAccess/policies`) for all 28 policies to avoid conditional endpoint logic in the deployer. Splitting the policy set between v1.0 and beta endpoints would require maintaining two deployer code paths, two sets of test fixtures, and runtime logic to decide which endpoint applies to which policy.
 
 **GA promotion tracking:** When Microsoft promotes the agent fields above to the v1.0 Graph API, this framework will flip the deployer endpoint to v1.0 as a single change. That change will be documented in the CHANGELOG and will not require updates to any policy JSON template, because the conditions use the same field names in both beta and v1.0. The unpublished `AllAgentIdResources` bundle and `includeAgentIdServicePrincipals` `"All"` token will be reconciled against the published reference at that time.
 

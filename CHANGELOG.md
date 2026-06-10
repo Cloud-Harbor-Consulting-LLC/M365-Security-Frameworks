@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Synced stale policy counts and a version string in Frameworks/Conditional-Access-Baseline docs to the v1.4.0 surface (28 policies): Design/AGENTS-PERSONA-MODEL.md (version header and beta-endpoint count), Scripts/README.md (deployer table and usage counts), and Policies/CA-EXC003-Agents-Persona.md (beta-endpoint count).
+
 ---
 
 ## [1.4.0] - 2026-06-10

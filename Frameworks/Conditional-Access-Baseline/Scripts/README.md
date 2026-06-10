@@ -4,12 +4,12 @@ This folder contains deployment automation for the Conditional Access Baseline f
 
 | Script | Purpose |
 |---|---|
-| Deploy-CABaseline.ps1 | Imports all 23 CA policy templates into a Microsoft Entra tenant. Resolves tenant-specific placeholders at runtime. Defaults to report-only state. Supports `-WhatIf` for safe preview without a Graph connection. Targets the Microsoft Graph beta endpoint. |
+| Deploy-CABaseline.ps1 | Imports all 28 CA policy templates into a Microsoft Entra tenant. Resolves tenant-specific placeholders at runtime. Defaults to report-only state. Supports `-WhatIf` for safe preview without a Graph connection. Targets the Microsoft Graph beta endpoint. |
 | Get-CABaselineImpact.ps1 | Analyzes Entra sign-in logs to report what each report-only CA policy would have done if enforced. Use this before promoting any policy from `enabledForReportingButNotEnforced` to `enabled` state. Targets the Microsoft Graph beta sign-in log endpoint. |
 
 ## Beta endpoint commitment
 
-Both scripts target `https://graph.microsoft.com/beta/` endpoints. Three policies in the baseline require beta-only features: `CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`, and `CA-COV011` uses the Microsoft Agent ID condition family (`agentIdRiskLevels`, `AllAgentIdResources`, `IncludeAgentIdServicePrincipals`). The framework commits to the beta endpoint for all 23 policies to keep a single deployer code path. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the GA promotion tracking commitment.
+Both scripts target `https://graph.microsoft.com/beta/` endpoints. Three policies in the baseline require beta-only features: `CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`, and `CA-COV011` uses the Microsoft Agent ID condition family (`agentIdRiskLevels`, `AllAgentIdResources`, `IncludeAgentIdServicePrincipals`). The framework commits to the beta endpoint for all 28 policies to keep a single deployer code path. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the GA promotion tracking commitment.
 
 ## Prerequisites
 
@@ -68,7 +68,7 @@ Parses every JSON template in the Policies/ folder and reports what it would do.
 .\Deploy-CABaseline.ps1
 ```
 
-Creates all 23 policies in `enabledForReportingButNotEnforced` state via the beta endpoint. Policies evaluate every sign-in and log the outcome, but never block or challenge a user.
+Creates all 28 policies in `enabledForReportingButNotEnforced` state via the beta endpoint. Policies evaluate every sign-in and log the outcome, but never block or challenge a user.
 
 #### Enforced deployment (requires confirmation)
 
@@ -76,7 +76,7 @@ Creates all 23 policies in `enabledForReportingButNotEnforced` state via the bet
 .\Deploy-CABaseline.ps1 -Enforce
 ```
 
-Creates all 23 policies in `enabled` state. Prompts for confirmation before touching the tenant. Only run this after completing the report-only soak per `Design/POLICY-DESIGN.md` section 5.
+Creates all 28 policies in `enabled` state. Prompts for confirmation before touching the tenant. Only run this after completing the report-only soak per `Design/POLICY-DESIGN.md` section 5.
 
 #### Custom persona group names
 
