@@ -178,7 +178,7 @@ The Agents persona and `CA-COV011-Agents-BlockMediumAndHighRisk` depend on featu
 
 **Admin roles:** Creating and managing Conditional Access policies for agents requires the Conditional Access Administrator role. The custom-security-attribute targeting method also requires the Attribute Assignment Reader role so the administrator can read the attribute values used to scope the policy.
 
-**Microsoft Graph beta endpoint:** All Agent ID condition fields — `agentIdRiskLevels`, `IncludeAgentIdServicePrincipals`, and `IncludeApplications: ["AllAgentIdResources"]` — are Microsoft Graph beta-only as of May 2026. The baseline framework targets the beta endpoint for all 23 policies to avoid conditional endpoint logic in the deployer. See `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
+**Microsoft Graph beta endpoint:** All Agent ID condition fields — `agentIdRiskLevels`, `IncludeAgentIdServicePrincipals`, and `IncludeApplications: ["AllAgentIdResources"]` — are Microsoft Graph beta-only as of May 2026. The baseline framework targets the beta endpoint for all 28 policies to avoid conditional endpoint logic in the deployer. See `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
 
 **Identity Protection for Agent IDs:** Risk-based enforcement in `CA-COV011` requires that Microsoft Identity Protection is generating `agentIdRiskLevels` signals for your tenant's Agent IDs. Identity Protection for Agent IDs is included in Entra ID P2 licensing. Verify that risk detections are appearing before treating the report-only output of CA-COV011 as a complete picture of agent risk.
 
