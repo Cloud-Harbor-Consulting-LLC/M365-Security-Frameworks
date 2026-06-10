@@ -1,12 +1,12 @@
 # Conditional Access Baseline — Intune Compliance Baseline Integration
 
-Cross-framework integration specification: how the v1.3 Conditional Access Baseline consumes the Intune Compliance Baseline compliance signal. This document is required reading before enforcing CA-COV008-Internal-RequireCompliantDeviceOnDesktops, CA-SIG001-SensitiveApps-RequireCompliantDevice, or CA-SIG007-Internal-TokenProtection.
+Cross-framework integration specification: how the v1.4 Conditional Access Baseline consumes the Intune Compliance Baseline compliance signal. This document is required reading before enforcing CA-COV008-Internal-RequireCompliantDeviceOnDesktops, CA-SIG001-SensitiveApps-RequireCompliantDevice, or CA-SIG007-Internal-TokenProtection.
 
 ---
 
 ## 1. Introduction
 
-Three policies in the v1.3 Conditional Access Baseline depend on a device compliance signal that originates outside the CA framework entirely:
+Three policies in the v1.4 Conditional Access Baseline depend on a device compliance signal that originates outside the CA framework entirely:
 
 - **CA-COV008-Internal-RequireCompliantDeviceOnDesktops** — uses a `compliantDevice` or `domainJoinedDevice` grant control for Internal users on Windows, macOS, and Linux. Either the device is Intune-compliant or it is hybrid Azure AD joined; if neither is true, access is blocked regardless of the user's authentication strength or risk level.
 - **CA-SIG001-SensitiveApps-RequireCompliantDevice** — applies the same `compliantDevice` or `domainJoinedDevice` grant for Internal users accessing Azure Service Management. The highest-value application in most Microsoft 365 tenants cannot be reached from an unmanaged device.
@@ -101,11 +101,11 @@ The dashed line from the Entra device object to the CA evaluation step reflects 
 
 ---
 
-## 4. CA policies in v1.3 that consume the ICB signal
+## 4. CA policies in v1.4 that consume the ICB signal
 
-This section documents the three CA policies in v1.3 that depend on the ICB compliance signal. For each policy, the grant control mechanic, user and application scope, required ICB policy assignment, and satisfying `complianceState` values are documented. The table below summarizes the key characteristics at a glance; the per-policy subsections provide the full specification.
+This section documents the three CA policies in v1.4 that depend on the ICB compliance signal. For each policy, the grant control mechanic, user and application scope, required ICB policy assignment, and satisfying `complianceState` values are documented. The table below summarizes the key characteristics at a glance; the per-policy subsections provide the full specification.
 
-**Summary of ICB signal consumers in v1.3:**
+**Summary of ICB signal consumers in v1.4:**
 
 | Policy | Grant mechanism | Application scope | Required ICB policy | Satisfying device state |
 |---|---|---|---|---|

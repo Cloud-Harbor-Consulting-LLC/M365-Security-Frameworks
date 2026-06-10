@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Synced stale policy counts and a version string in Frameworks/Conditional-Access-Baseline docs to the v1.4.0 surface (28 policies): Design/AGENTS-PERSONA-MODEL.md (version header and beta-endpoint count), Scripts/README.md (deployer table and usage counts), and Policies/CA-EXC003-Agents-Persona.md (beta-endpoint count).
+- Cleared stale v1.3-era references left over after the v1.4 release in Frameworks/Conditional-Access-Baseline docs: Scripts/README.md (example deployer output and Policies/ reference line still said 23 templates), Design/AGENTS-PERSONA-MODEL.md (Pattern 3 coverage now points to CA-COV013 through CA-COV015 instead of a planned later PR, and the shipped WORKLOAD-IDENTITY-IP-PATTERNS and CA-ICB-INTEGRATION design docs are no longer described as future work), Design/POLICY-DESIGN.md (intro version label), Business-Case/ROI-CONDITIONAL-ACCESS.md (current-baseline version labels), and Design/CA-ICB-INTEGRATION.md (current-baseline version labels).
 
 ---
 

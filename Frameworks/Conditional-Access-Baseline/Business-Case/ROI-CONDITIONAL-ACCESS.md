@@ -32,7 +32,7 @@ In return, the organization gets a defensible, auditable identity security postu
 
 Every year since the Verizon DBIR began tracking credential-based attacks as a distinct category, stolen or misused credentials have ranked among the top initial access vectors across industries and organization sizes. Phishing, password spray, adversary-in-the-middle token theft, and reuse of credentials exposed in third-party breaches all converge on the same point of failure: an identity that authenticates successfully with insufficient verification.
 
-The risk surface has grown. In 2026, the identity surface includes not only human users and service principals, but also AI agents operating under delegated permissions in Microsoft 365. Most identity security frameworks were designed before this identity class existed at scale. The v1.3 baseline is designed for the current attack surface, not the 2022 one.
+The risk surface has grown. In 2026, the identity surface includes not only human users and service principals, but also AI agents operating under delegated permissions in Microsoft 365. Most identity security frameworks were designed before this identity class existed at scale. The v1.4 baseline is designed for the current attack surface, not the 2022 one.
 
 ### The financial exposure is substantial
 
@@ -284,9 +284,9 @@ Deploy the risk policies — CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009 — and 
 
 ### Phase 5 — Enforcement promotion (weeks 17 to 20)
 
-Promote all remaining report-only policies to enforcement on the documented soak-completion schedule. Pair with the Intune Compliance Baseline rollout per `Design/CA-ICB-INTEGRATION.md` to ensure that the compliant-device signal that CA-COV008 and CA-SIG001 depend on is clean before enforcement decisions are made. Establish the quarterly review cadence described in the Operational cost estimate section. Declare the v1.3 baseline deployment complete.
+Promote all remaining report-only policies to enforcement on the documented soak-completion schedule. Pair with the Intune Compliance Baseline rollout per `Design/CA-ICB-INTEGRATION.md` to ensure that the compliant-device signal that CA-COV008 and CA-SIG001 depend on is clean before enforcement decisions are made. Establish the quarterly review cadence described in the Operational cost estimate section. Declare the v1.4 baseline deployment complete.
 
-Total: a twenty-week phased rollout. Up from the v1.2 estimate of twelve weeks. The extension is driven by the Agents persona soak and Agent ID inventory, the Workload Identities Trusted IPs initial setup and SPN scoping exercise, and the additional enforcement-promotion phase the larger v1.3 surface requires.
+Total: a twenty-week phased rollout. Up from the v1.2 estimate of twelve weeks. The extension is driven by the Agents persona soak and Agent ID inventory, the Workload Identities Trusted IPs initial setup and SPN scoping exercise, and the additional enforcement-promotion phase the larger v1.4 surface requires.
 
 ## References
 

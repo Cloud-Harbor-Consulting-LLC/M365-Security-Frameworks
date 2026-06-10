@@ -1,6 +1,6 @@
 # Conditional Access Baseline — Policy Design
 
-This document specifies the design philosophy, naming convention, persona model, exclusion strategy, rollout sequence, and per-policy design specifications for the Conditional Access Baseline framework (v1.3). It is the prerequisite reading for anyone deploying, extending, or auditing the baseline.
+This document specifies the design philosophy, naming convention, persona model, exclusion strategy, rollout sequence, and per-policy design specifications for the Conditional Access Baseline framework (v1.4). It is the prerequisite reading for anyone deploying, extending, or auditing the baseline.
 
 ---
 
