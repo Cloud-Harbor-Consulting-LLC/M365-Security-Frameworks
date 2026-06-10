@@ -18,7 +18,7 @@ ICB defines what "compliant" means at the device layer. The Conditional Access B
 - Deployment script (Deploy-ICBaseline.ps1).
 - Cross-framework integration doc covering the Conditional Access "require compliant device" plus ICB handoff.
 
-These items land between v0.1.0-preview and the Q3 2026 framework-completion target. The signal contract with Conditional Access v1.2 CA-SIG-* policies is documented in [POLICY-DESIGN.md](./POLICY-DESIGN.md) but remains advisory until ICB v0.1.0 GA.
+These items land between v0.1.0-preview and the Q3 2026 framework-completion target. The signal contract with Conditional Access v1.2 CA-SIG-* policies is documented in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md) but remains advisory until ICB v0.1.0 GA.
 
 ## Naming convention
 
@@ -37,7 +37,7 @@ Numbering starts at 001 per platform. Each template covers one logical complianc
 | Template | Status |
 |----------|--------|
 | ICB-WIN001 | Shipped (v0.1.0-preview) |
-| ICB-WIN002 onward | Secure Boot, Code Integrity, OS-version floor, password requirements, EALAM driver, Healthy Device Report. Called out as roadmap items in [POLICY-DESIGN.md](./POLICY-DESIGN.md). |
+| ICB-WIN002 onward | Secure Boot, Code Integrity, OS-version floor, password requirements, EALAM driver, Healthy Device Report. Called out as roadmap items in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md). |
 | ICB-MAC001, ICB-IOS001, ICB-AND001, ICB-LIN001 | Post-v0.1.0-preview, before Q3 2026 framework completion |
 
 Release-level milestones:
@@ -49,7 +49,7 @@ Release-level milestones:
 
 ## Design principles
 
-See [POLICY-DESIGN.md](./POLICY-DESIGN.md) for device personas, platform scope, action-for-noncompliance defaults, and the signal-handoff contract with the Conditional Access Baseline.
+See [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md) for device personas, platform scope, action-for-noncompliance defaults, and the signal-handoff contract with the Conditional Access Baseline.
 
 ## Contributing
 

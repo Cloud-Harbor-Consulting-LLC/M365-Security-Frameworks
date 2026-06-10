@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Synced stale policy counts and a version string in Frameworks/Conditional-Access-Baseline docs to the v1.4.0 surface (28 policies): Design/AGENTS-PERSONA-MODEL.md (version header and beta-endpoint count), Scripts/README.md (deployer table and usage counts), and Policies/CA-EXC003-Agents-Persona.md (beta-endpoint count).
+- Corrected repo-wide documentation consistency issues outside the Conditional Access Baseline: the three broken POLICY-DESIGN.md links in Frameworks/Intune-Compliance-Baseline/README.md now point to Design/POLICY-DESIGN.md, the four malformed CHANGELOG footer link definitions (1.2.0, 1.1.0, 1.0.1, 1.0.0) no longer carry a space before the colon, the Entra ID Governance Toolkit row in the root README Frameworks table now carries its 2026-06-05 release date, and the Security Reporting Decision Rubric status banner now reflects the pending, not-yet-tagged state to match the root README table.
 - Cleared stale v1.3-era references left over after the v1.4 release in Frameworks/Conditional-Access-Baseline docs: Scripts/README.md (example deployer output and Policies/ reference line still said 23 templates), Design/AGENTS-PERSONA-MODEL.md (Pattern 3 coverage now points to CA-COV013 through CA-COV015 instead of a planned later PR, and the shipped WORKLOAD-IDENTITY-IP-PATTERNS and CA-ICB-INTEGRATION design docs are no longer described as future work), Design/POLICY-DESIGN.md (intro version label), Business-Case/ROI-CONDITIONAL-ACCESS.md (current-baseline version labels), and Design/CA-ICB-INTEGRATION.md (current-baseline version labels).
 
 ---
@@ -262,10 +263,10 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 [1.3.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.2.0...v1.3.0>
 
-[1.2.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...v1.2.0>
+[1.2.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.1.0...v1.2.0>
 
-[1.1.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.1...v1.1.0>
+[1.1.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.1...v1.1.0>
 
-[1.0.1] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.0...v1.0.1>
+[1.0.1]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.0.0...v1.0.1>
 
-[1.0.0] : <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/releases/tag/v1.0.0>
+[1.0.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/releases/tag/v1.0.0>
