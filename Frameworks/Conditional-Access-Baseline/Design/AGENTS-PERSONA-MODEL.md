@@ -57,7 +57,7 @@ An agent does not have one fixed authentication model. Microsoft documents three
 
 **Pattern 2, application-only (client credentials, autonomous).** The agent authenticates with its own identity using the client credentials flow, with no user present. The token subject is the agent identity. Conditional Access targets the agent identity through `includeAgentIdServicePrincipals` together with the agent application bundle. This is the pattern the baseline addresses today, via `CA-COV011-Agents-BlockMediumAndHighRisk`.
 
-**Pattern 3, agent acting as a user (agent user account, digital worker).** The agent is provisioned with its own user account, including a mailbox and group membership, and acts as a distinct digital worker. The token subject is the agent user account, which is a separate identity sub-class from the agent identity. Conditional Access targets agent users through the All agent users target (Preview). Coverage for this sub-class is planned for a later PR in the v1.4 series and is not addressed by `CA-COV011`.
+**Pattern 3, agent acting as a user (agent user account, digital worker).** The agent is provisioned with its own user account, including a mailbox and group membership, and acts as a distinct digital worker. The token subject is the agent user account, which is a separate identity sub-class from the agent identity. Conditional Access targets agent users through the All agent users target (Preview). Agent user account coverage ships via `CA-COV013-AgentUsers-BlockMediumAndHighRisk`, `CA-COV014-AgentUsers-RequireCompliantDevice`, and `CA-COV015-AgentUsers-BlockNonCompliantNetwork`.
 
 The three patterns map to three token subjects and three targeting models:
 
@@ -252,10 +252,10 @@ CA-COV011 provides risk-based enforcement at the medium and high risk threshold.
 
 ---
 
-## 8. Cross-framework future hooks
+## 8. Cross-framework hooks
 
 **Defender XDR Detection Rules framework (planned Q1 2027):** The planned Defender XDR Detection Rules framework will ship hunt queries targeting Agent ID risk signals, including cross-correlation between `agentIdRiskLevels` events and Microsoft Purview audit events for data access patterns. This will provide a detection layer below the CA medium/high threshold — surfacing low-level agent anomalies that Identity Protection has not yet elevated to medium risk. The CA-COV011 policy and the Defender XDR hunt queries will be documented as complementary layers in that framework's cross-framework integration section.
 
-**Workload Identity IP Allow-Listing Patterns (PR 4):** PR 4 of the v1.3 series will add `Design/WORKLOAD-IDENTITY-IP-PATTERNS.md`, documenting egress-based controls for service principals via CA-COV010. That document will include a section on the distinction between workload identity egress controls and agent-specific controls — specifically, why IP-based allow-listing is a useful compensating control for service principals but is less applicable to Agent IDs (which may authenticate from dynamic Microsoft-managed infrastructure rather than customer-controlled egress).
+**Workload Identity IP Allow-Listing Patterns (shipped in v1.3):** `Design/WORKLOAD-IDENTITY-IP-PATTERNS.md` documents egress-based controls for service principals via CA-COV010. That document covers the distinction between workload identity egress controls and agent-specific controls, specifically why IP-based allow-listing is a useful compensating control for service principals but is less applicable to Agent IDs (which may authenticate from dynamic Microsoft-managed infrastructure rather than customer-controlled egress).
 
-**CA-ICB Integration (PR 5):** PR 5 will add `Design/CA-ICB-INTEGRATION.md`, documenting the signal handoff between the Conditional Access Baseline and the Intune Compliance Baseline. The Agent ID identity class is currently out of scope for device compliance signals (Agent IDs do not have device attributes). This will be documented as an explicit out-of-scope item in the CA-ICB integration document.
+**CA-ICB Integration (shipped in v1.3):** `Design/CA-ICB-INTEGRATION.md` documents the signal handoff between the Conditional Access Baseline and the Intune Compliance Baseline. The Agent ID identity class is currently out of scope for device compliance signals (Agent IDs do not have device attributes), and the CA-ICB integration document records this as an explicit out-of-scope item.

@@ -112,12 +112,12 @@ Successful report-only deployment produces output similar to:
 [OK]     REPLACE_WITH_STANDARDAUTH_STRENGTH_ID -> <guid>
 [OK]     REPLACE_WITH_STRONGAUTH_STRENGTH_ID -> <guid>
 [OK]     REPLACE_WITH_ADMINAUTH_STRENGTH_ID -> <guid>
-[OK]   Found 23 policy templates in ../Policies
+[OK]   Found 28 policy templates in ../Policies
 [INFO] Processing: CA-AUT001-Global-RegisterDevice.json
 [OK]     Created: CA-AUT001-Global-RegisterDevice [<guid>]
 [INFO] Processing: CA-AUT002-Global-RegisterSecurityInfo.json
 ... (one entry per template) ...
-[INFO] Created: 23  Previewed: 0  Errors: 0
+[INFO] Created: 28  Previewed: 0  Errors: 0
 [INFO] Reminder: Policies are in report-only mode. Soak, validate with Get-CABaselineImpact.ps1, and promote per Design/POLICY-DESIGN.md section 5.
 ```
 
@@ -210,6 +210,6 @@ Before promoting a policy from report-only to enabled state:
 ## Reference
 
 - `Design/POLICY-DESIGN.md` — baseline philosophy, naming convention, persona model, rollout sequence, per-policy specs
-- `Policies/` — the 23 JSON policy templates consumed by Deploy-CABaseline.ps1
+- `Policies/` — the 28 JSON policy templates consumed by Deploy-CABaseline.ps1
 - `Design/AGENTS-PERSONA-MODEL.md` — Microsoft Agent ID technical overview and beta endpoint commitment
 - Root README — framework overview and deployment workflow
