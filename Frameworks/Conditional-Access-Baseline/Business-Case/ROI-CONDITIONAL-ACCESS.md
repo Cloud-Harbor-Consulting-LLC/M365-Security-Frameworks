@@ -6,15 +6,17 @@
 
 Identity is the modern enterprise perimeter. Over the last five years, industry data from Verizon's annual *Data Breach Investigations Report (DBIR)*, IBM's annual *Cost of a Data Breach Report*, and the *Microsoft Digital Defense Report* consistently ranks stolen or misused credentials as the leading initial access vector for enterprise breaches. Organizations that deploy a mature Conditional Access baseline materially reduce the probability of credential-driven incidents, without adding meaningful user friction when scoped correctly.
 
-This v1.3 baseline delivers twenty-four Conditional Access policies across seven personas — Global, Internal, Admins, Guests, ServiceAccounts, WorkloadIdentities, and Agents — plus a Sensitive-Applications scope. Every policy ships in report-only by default. Operators promote to enforcement on a documented soak schedule, with a minimum of seven to fourteen days of impact validation per policy before any enforcement decision is made.
+This v1.4 baseline delivers twenty-eight Conditional Access policies across eight personas — Global, Internal, Admins, Guests, ServiceAccounts, WorkloadIdentities, Agents, and AgentUsers — plus a Sensitive-Applications scope. Every policy ships in report-only by default. Operators promote to enforcement on a documented soak schedule, with a minimum of seven to fourteen days of impact validation per policy before any enforcement decision is made.
 
-Three developments distinguish v1.3 from prior releases and define its executive narrative:
+Four developments define this baseline's executive narrative:
 
 **The Agents persona.** Microsoft Agent ID is a distinct identity class in Microsoft Entra ID for AI agents and Copilot agents. Agent IDs cannot be governed by user-targeted Conditional Access policies. Without a dedicated Agents lane, agentic AI workloads run completely outside the Conditional Access policy surface — even in tenants that have otherwise deployed a mature identity baseline. The v1.3 baseline introduces CA-COV011, which covers Agent ID sign-ins via Microsoft Identity Protection signals, making this one of the first community Conditional Access baselines to include native Agent ID coverage as of 2026.
 
-**Microsoft Graph beta endpoint commitment.** Three policies require the beta endpoint because Microsoft has not yet completed general availability promotion of specific features as of May 2026: the `signInFrequency: everyTime` interval used in the risk policies, and the Microsoft Agent ID condition family used in the Agents persona policy. For operational simplicity, all twenty-four policies target the beta endpoint consistently, with a documented migration path when Microsoft completes GA promotion.
+**Microsoft Graph beta endpoint commitment.** Seven policies require the beta endpoint because Microsoft has not yet completed general availability promotion of specific features: the `signInFrequency: everyTime` interval used in the risk policies, and the Microsoft agent condition family used across the Agents and AgentUsers persona policies. For operational simplicity, all twenty-eight policies target the beta endpoint consistently, with a documented migration path when Microsoft completes GA promotion.
 
 **A graduated authentication strength model.** The v1.3 model replaces the v1.2 framing of always-on phishing-resistant MFA for privileged accounts with three distinct authentication strength tiers, applied at the moment and context where each tier adds the most coverage: StandardAuth at registration time for all users, AdminAuth (FIDO2 only) on admin portal surfaces for privileged roles, and StrongAuth (FIDO2 or Windows Hello for Business) on risk-elevated sessions for any user.
+
+**Expanded agent governance (v1.4).** v1.3 covered the agent surface with a single risk-based policy on the agent identity (CA-COV011). v1.4 extends that to a four-policy agent surface across two personas. The Agents persona gains CA-COV012, an allow-only-approved-agents control that blocks every agent identity in the tenant except an approved set, turning the agent surface from open-by-default into a governed allow-list. A new AgentUsers persona covers the agent user account, the identity Microsoft uses when an agent acts as a user (the digital worker pattern), which is a distinct identity from the agent itself: CA-COV013 blocks risky agent user sign-ins, CA-COV014 requires a compliant device, and CA-COV015 blocks sign-ins from outside the compliant network. Most community baselines still address neither the agent identity nor the agent user account as of 2026.
 
 The ask of executive leadership is threefold:
 
@@ -48,7 +50,7 @@ MFA is necessary but no longer sufficient as the sole authentication defense. At
 
 ## What the baseline delivers
 
-Twenty-four policies, each addressing a specific business risk. Policies are grouped below by the persona segment they target. Columns: Policy ID, Persona, Intent, License floor, Business outcome.
+Twenty-eight policies, each addressing a specific business risk. Policies are grouped below by the persona segment they target. Columns: Policy ID, Persona, Intent, License floor, Business outcome.
 
 ### AUT series — Authentication Strength policies
 
@@ -73,6 +75,10 @@ Twenty-four policies, each addressing a specific business risk. Policies are gro
 | CA-COV009 | ServiceAccounts | Block service-account sign-ins from outside the Trusted Countries named location | Entra ID P1 | Closes the coverage gap created by the ServiceAccounts persona exclusion from human-targeted policies |
 | CA-COV010 | WorkloadIdentities | Restrict service-principal sign-ins to a defined egress | Workload Identities Premium | Closes the workload-identity coverage gap left by user-scoped policies |
 | CA-COV011 | Agents | Block Agent ID sign-ins at medium or high agent risk per Identity Protection | Entra ID P2 + Agent 365 (per user) | Covers the agentic AI workload surface; most community baselines ignore Agent IDs entirely |
+| CA-COV012 | Agents | Block every agent identity except an approved set (allow-only-approved-agents) | Entra ID P1 + Agent 365 (per user) | Turns the agent surface into a governed allow-list; only sanctioned agents operate |
+| CA-COV013 | AgentUsers | Block agent user account sign-ins at medium or high agent risk | Entra ID P2 + Agent 365 (per user) | Extends risk-based blocking to the agent-acting-as-a-user identity that user-targeted policies do not reach |
+| CA-COV014 | AgentUsers | Require a compliant device for agent user account sign-ins | Entra ID P1 + Agent 365 + Intune | Agent user work runs only from Intune-managed Windows 365 Cloud PCs for Agents |
+| CA-COV015 | AgentUsers | Block agent user account sign-ins from outside the compliant network | Entra ID P1 + Agent 365 + Entra Internet Access | Confines agent user sessions to the trusted corporate network via Global Secure Access |
 
 ### SIG series — Layered Signal policies
 
@@ -139,44 +145,57 @@ CA-COV011 blocks Agent ID sign-ins when Microsoft Identity Protection detects me
 
 Operationally, CA-COV011 requires a monthly Agent ID risk-event review to ensure the Agents persona is current with the tenant's deployed agent inventory and to catch risk signals that warrant investigation. This cadence is included in the operational cost estimate in the Operational cost estimate section.
 
+### What CA-COV012 does (allow-only-approved agents)
+
+CA-COV011 blocks an agent only when it turns risky. CA-COV012 closes the prior question: should this agent be operating at all? It establishes an allow-only posture. The policy includes every agent identity in the tenant, excludes an approved set selected by a custom security attribute, and blocks. The net effect is that only sanctioned agents operate; any new, unknown, or shadow agent is blocked until it is reviewed and added to the approved set. This converts the agent surface from open-by-default, where any provisioned agent can authenticate, into a governed allow-list with a named owner and an approval gate.
+
+For the business, this is the difference between knowing which agents are risky and knowing which agents are authorized. As Copilot agents and AI-integrated workflows proliferate inside the tenant, the approved-agent allow-list is the control that keeps the agent population from growing faster than governance can track. CA-COV011 and CA-COV012 are complementary layers, not duplicates: one blocks sanctioned agents that go bad, the other blocks unsanctioned agents outright.
+
+### Covering the agent user account (AgentUsers persona)
+
+Microsoft describes three agent access patterns, and they do not all use the same identity. An agent can act on behalf of a user (the user is the subject, and existing user-targeted policies already cover it), it can act on its own (the agent identity is the subject, covered by CA-COV011 and CA-COV012), or it can act as a user, a digital worker with its own agent user account as the subject. The agent user account is a distinct identity. A policy that targets all users does not include it, and a policy that targets agent identities does not apply to it. Left uncovered, the digital-worker pattern is a coverage seam that sits between the human and agent identity lanes.
+
+The AgentUsers persona closes that seam with three policies. CA-COV013 blocks agent user account sign-ins at medium and high agent risk, the same risk-based control CA-COV011 provides for the agent identity. CA-COV014 requires a compliant device, scoped so it applies only to endpoint-initiated agent user sessions on Intune-managed Windows 365 Cloud PCs for Agents, so cloud-native agents with no device are not blocked with no path to compliance. CA-COV015 blocks agent user account sign-ins from outside the compliant network, confining digital-worker sessions to the trusted corporate network. All three ship report-only so adopters validate impact before enforcement.
+
 ### The competitive positioning point
 
 As of 2026, few community Conditional Access baselines include explicit coverage of Microsoft Agent IDs. Most frameworks were designed before the Agent ID identity class existed at scale and have not been updated to address the agentic AI identity surface. This baseline treats Agents as a first-class persona with a dedicated policy lane, a written exclusion contract (CA-EXC003), and a full design document covering the technical risk model and operational runbook (`Design/AGENTS-PERSONA-MODEL.md`). Adopters who deploy this baseline are covered on the agentic workload surface that most other published frameworks currently leave unaddressed.
 
 ### Licensing dependency
 
-Covering agents with Conditional Access carries two cost lines the organization should budget for:
+Covering agents with Conditional Access carries the following cost lines the organization should budget for. They back all four agent policies (CA-COV012 on the agent identity, and CA-COV013 through CA-COV015 on the agent user account), not just the v1.3 risk policy:
 
-- **A Microsoft Agent 365 license for each user.** Conditional Access for agents requires Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user. This is a per-user subscription cost on top of the existing Entra ID license. Microsoft has said it will begin enforcing the Agent 365 licensing requirement soon, so the organization should confirm this entitlement is purchased and assigned before it depends on the Agents persona for protection. Risk-based blocking of risky agents, the headline benefit of CA-COV011, requires the P2 tier of Entra ID.
-- **Microsoft Entra Internet Access for network controls.** If the organization wants to restrict agents to a trusted corporate network, that control requires the Microsoft Entra Internet Access subscription, and the Global Secure Access client must be installed on the endpoints in scope. This is a separate subscription and a software rollout, so plan for both the license cost and the deployment effort before committing to network-based agent controls.
+- **A Microsoft Agent 365 license for each user.** Conditional Access for agents requires Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user. This is a per-user subscription cost on top of the existing Entra ID license, and it applies to every agent policy in the baseline. Microsoft has said it will begin enforcing the Agent 365 licensing requirement soon, so the organization should confirm this entitlement is purchased and assigned before it depends on the Agents or AgentUsers personas for protection. Risk-based blocking, the mechanism behind CA-COV011 and CA-COV013, requires the P2 tier of Entra ID; the allow-list (CA-COV012) and the device and network controls (CA-COV014, CA-COV015) work at P1.
+- **Microsoft Intune for the compliant-device control.** CA-COV014 requires a compliant device for agent user sessions and evaluates that signal only on Intune-managed Windows 365 Cloud PCs for Agents. Budget for the Intune entitlement and the Cloud PC for Agents footprint where the digital-worker pattern is in use.
+- **Microsoft Entra Internet Access for network controls.** CA-COV015 blocks agent user account sign-ins from outside the compliant network. That control requires the Microsoft Entra Internet Access subscription, and the Global Secure Access client must be installed on the endpoints in scope. This is a separate subscription and a software rollout, so plan for both the license cost and the deployment effort before committing to network-based agent controls.
 
 ## Beta endpoint commitment
 
-The framework targets the Microsoft Graph beta endpoint for all twenty-four policies. This is a deliberate architectural decision.
+The framework targets the Microsoft Graph beta endpoint for all twenty-eight policies. This is a deliberate architectural decision.
 
-Three policies require the beta endpoint because Microsoft has not yet completed general availability promotion of specific features as of May 2026:
+Seven policies require the beta endpoint because Microsoft has not yet completed general availability promotion of specific features:
 
 - **CA-SIG003** (medium user risk) and **CA-SIG004** (medium sign-in risk) use `signInFrequency.frequencyInterval: "everyTime"` — a condition that enforces sign-in frequency on every session rather than on a fixed time interval. This parameter has not yet been promoted to the Microsoft Graph v1.0 endpoint.
-- **CA-COV011** (Agents persona) uses the Microsoft Agent ID condition family (`IncludeAgentIdServicePrincipals: ["All"]` and `IncludeApplications: ["AllAgentIdResources"]`) — condition types that exist only in the beta endpoint as of May 2026.
+- **CA-COV011** and **CA-COV012** (Agents persona) and **CA-COV013** through **CA-COV015** (AgentUsers persona) use the Microsoft agent condition family (the agent identity selectors, the agent user account subject, the agent execution-environments condition, and the agent risk levels) — condition types that exist only in the beta endpoint as of 2026.
 
-For operational simplicity, all twenty-four policies target the beta endpoint consistently rather than maintaining a split deployment with twenty-one policies at v1.0 and three at beta. A split-endpoint deployment increases operational surface without a proportional security benefit; a single endpoint target is simpler to operate, audit, and maintain.
+For operational simplicity, all twenty-eight policies target the beta endpoint consistently rather than maintaining a split deployment with twenty-one policies at v1.0 and seven at beta. A split-endpoint deployment increases operational surface without a proportional security benefit; a single endpoint target is simpler to operate, audit, and maintain.
 
-Microsoft Graph beta is designed to be production-capable. The documented caveat is that beta features may change before GA promotion. This framework commits to publishing a v1.4 migration to the v1.0 endpoint when Microsoft completes GA promotion of `signInFrequency: everyTime` and the Agent ID condition family. Adopters should monitor the Microsoft Graph changelog and this repository for migration guidance.
+Microsoft Graph beta is designed to be production-capable. The documented caveat is that beta features may change before GA promotion. This framework commits to publishing a future migration to the v1.0 endpoint when Microsoft completes GA promotion of `signInFrequency: everyTime` and the agent condition family. Adopters should monitor the Microsoft Graph changelog and this repository for migration guidance.
 
-For executive audiences: targeting the beta endpoint is not the same as running pre-release software in production. Microsoft Graph beta is the delivery channel Microsoft uses to make real, production-deployed features available before the formal GA promotion is complete. The three beta-dependent conditions in this baseline are active in Microsoft-operated production environments today.
+For executive audiences: targeting the beta endpoint is not the same as running pre-release software in production. Microsoft Graph beta is the delivery channel Microsoft uses to make real, production-deployed features available before the formal GA promotion is complete. The beta-dependent conditions in this baseline are active in Microsoft-operated production environments today.
 
 ## Licensing
 
 | Component | Required by | Note |
 |---|---|---|
-| Microsoft Entra ID P1 | All 24 policies (minimum) | Required for basic Conditional Access, device compliance integration, and named-location controls |
-| Microsoft Entra ID P2 — Identity Protection | CA-SIG003, CA-SIG004, CA-SIG005, CA-SIG008, CA-SIG009, CA-COV011 | User risk, sign-in risk, and agent risk signals; required for the risk-response policy tier |
+| Microsoft Entra ID P1 | All 28 policies (minimum) | Required for basic Conditional Access, device compliance integration, and named-location controls |
+| Microsoft Entra ID P2 — Identity Protection | CA-SIG003, CA-SIG004, CA-SIG005, CA-SIG008, CA-SIG009, CA-COV011, CA-COV013 | User risk, sign-in risk, and agent risk signals; required for the risk-response policy tier on users, agent identities, and agent user accounts |
 | Microsoft Entra ID P2 — Privileged Identity Management | Operational model (Section 4) | PIM activation enforces phishing-resistant MFA at role elevation; assumed in the AuthN strength model |
 | Microsoft Entra ID P2 — Terms of Use | CA-SIG010 | Terms of Use feature for B2B guest consent gating. The 1:5 guest-licensing ratio applies. |
 | Microsoft Entra Workload Identities Premium | CA-COV010 | Separate SKU from Entra ID P1/P2. Required for service-principal Conditional Access. |
-| Microsoft Intune | CA-COV008, CA-SIG001 | Required for `compliantDevice` grant control. Hybrid Azure AD join is an accepted alternative for both. |
-| Microsoft Agent 365 (per user) | CA-COV011 | Conditional Access for agents requires Entra ID P1 or P2 plus a Microsoft Agent 365 license per user. Risk-based enforcement requires P2. Enforcement of the Agent 365 requirement is described as coming soon. |
-| Microsoft Entra Internet Access | Agent network controls | Required for the compliant-network grant on agent policies. Relies on the Global Secure Access client on the endpoint. Separate subscription from Entra ID P1/P2. |
+| Microsoft Intune | CA-COV008, CA-SIG001, CA-COV014 | Required for `compliantDevice` grant control. Hybrid Azure AD join is an accepted alternative for CA-COV008 and CA-SIG001; CA-COV014 evaluates compliance on Intune-managed Windows 365 Cloud PCs for Agents. |
+| Microsoft Agent 365 (per user) | CA-COV011, CA-COV012, CA-COV013, CA-COV014, CA-COV015 | Conditional Access for agents requires Entra ID P1 or P2 plus a Microsoft Agent 365 license per user, across both the Agents and AgentUsers personas. Risk-based enforcement (CA-COV011, CA-COV013) requires P2. Enforcement of the Agent 365 requirement is described as coming soon. |
+| Microsoft Entra Internet Access | CA-COV015 | Required for the compliant-network block on agent user account sign-ins. Relies on the Global Secure Access client on the endpoint. Separate subscription from Entra ID P1/P2. |
 
 If P1 is already licensed for all users, the incremental cost of this baseline covers the P2 upgrade for Identity Protection, PIM, and Terms of Use; the Workload Identities Premium SKU; the per-user Microsoft Agent 365 license for agent coverage; and Microsoft Entra Internet Access if network-based agent controls are in scope.
 
@@ -229,7 +248,7 @@ For organizations with dedicated security operations, this effort can be absorbe
 
 ## Compliance mapping
 
-This baseline supports the access control requirements in major compliance frameworks. The mapping below reflects the v1.3 policy surface. Organizations should validate specific control numbers against current framework revisions with their audit team.
+This baseline supports the access control requirements in major compliance frameworks. The mapping below reflects the v1.4 policy surface. Organizations should validate specific control numbers against current framework revisions with their audit team.
 
 | Framework | Control | How this baseline supports it |
 |---|---|---|
@@ -257,7 +276,7 @@ Deploy CA-COV001 through CA-COV007 plus CA-AUT001 and CA-AUT002 in report-only m
 
 ### Phase 3 — Persona-specific (weeks 9 to 12)
 
-Deploy persona-specific policies in report-only mode: Internal persona (CA-COV008, CA-SIG007), Admins persona (CA-AUT003, CA-SIG005), Guests persona (CA-SIG002, CA-SIG006, CA-SIG010), ServiceAccounts persona (CA-COV009), WorkloadIdentities persona (CA-COV010), and Agents persona (CA-COV011). Inventory Token Protection client compatibility — Windows build and modern auth confirmed — before the CA-SIG007 soak. Complete the phishing-resistant method rollout to privileged users before CA-AUT003 enforcement. Soak each policy for a minimum of seven to fourteen days.
+Deploy persona-specific policies in report-only mode: Internal persona (CA-COV008, CA-SIG007), Admins persona (CA-AUT003, CA-SIG005), Guests persona (CA-SIG002, CA-SIG006, CA-SIG010), ServiceAccounts persona (CA-COV009), WorkloadIdentities persona (CA-COV010), Agents persona (CA-COV011, CA-COV012), and AgentUsers persona (CA-COV013, CA-COV014, CA-COV015). Inventory Token Protection client compatibility — Windows build and modern auth confirmed — before the CA-SIG007 soak. Complete the phishing-resistant method rollout to privileged users before CA-AUT003 enforcement. Soak each policy for a minimum of seven to fourteen days.
 
 ### Phase 4 — Risk and Token Protection (weeks 13 to 16)
 

@@ -40,12 +40,12 @@ The v1.3 slate makes the following changes relative to prior Unreleased state. T
 
 #### Beta endpoint commitment
 
-All 24 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use features that are Microsoft Graph beta-only:
+All 28 policies in this baseline target `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Several policies use features that are Microsoft Graph beta-only:
 
 - `CA-SIG003-Global-MediumUserRisk` and `CA-SIG004-Global-MediumSignInRisk` use `signInFrequency.frequencyInterval: "everyTime"`, which is not available in the v1.0 endpoint.
-- `CA-COV011-Agents-BlockMediumAndHighRisk` uses the agent-specific fields. As of the 2026-06-03 Conditional Access for Agents documentation refresh, every agent-specific field is beta-only (absent from the v1.0 endpoint) and labelled Preview in the portal. The condition-set property `agentIdRiskLevels` (not `agentRiskLevels`) and the client-application properties `includeAgentIdServicePrincipals`, `excludeAgentIdServicePrincipals`, and `agentIdServicePrincipalFilter` are verified against the Microsoft Graph `conditionalAccessConditionSet` and `conditionalAccessClientApplications` reference pages. The `AllAgentIdResources` application bundle and the `includeAgentIdServicePrincipals` `"All"` token are not yet published in the Graph reference and ship as confirm-in-tenant pending GA.
+- `CA-COV011-Agents-BlockMediumAndHighRisk`, `CA-COV012-Agents-AllowOnlyApprovedAgents`, and the AgentUsers policies `CA-COV013` through `CA-COV015` use the agent-specific fields. As of the 2026-06-03 Conditional Access for Agents documentation refresh, every agent-specific field is beta-only (absent from the v1.0 endpoint) and labelled Preview in the portal. The condition-set property `agentIdRiskLevels` (not `agentRiskLevels`) and the client-application properties `includeAgentIdServicePrincipals`, `excludeAgentIdServicePrincipals`, and `agentIdServicePrincipalFilter` are verified against the Microsoft Graph `conditionalAccessConditionSet` and `conditionalAccessClientApplications` reference pages. The `AllAgentIdResources` application bundle and the `includeAgentIdServicePrincipals` `"All"` token are not yet published in the Graph reference and ship as confirm-in-tenant pending GA.
 
-Rather than maintain two endpoint paths, the framework commits all 24 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the verified field-status table and the GA tracking commitment.
+Rather than maintain two endpoint paths, the framework commits all 28 policies to the beta endpoint. When Microsoft completes GA promotion of these fields, the endpoint URL can be flipped in one deployer change without updating any policy template. See `Design/AGENTS-PERSONA-MODEL.md` section 6 for the verified field-status table and the GA tracking commitment.
 
 #### Agents persona as first-class identity class
 
@@ -194,7 +194,7 @@ Section 6 documents the exclusion rationale for each policy. The pattern:
 
 ## 5. Rollout sequence
 
-All 24 policies ship in `enabledForReportingButNotEnforced` state. The table below documents the recommended enforcement sequence. Enforce one policy at a time; validate with `Get-CABaselineImpact.ps1` before promoting the next.
+All 28 policies ship in `enabledForReportingButNotEnforced` state. The table below documents the recommended enforcement sequence for the 24 core policies; the four agent policies (`CA-COV012` through `CA-COV015`) soak in report-only and are specified in Sections 6.14a and 6a. Enforce one policy at a time; validate with `Get-CABaselineImpact.ps1` before promoting the next.
 
 | Position | Policy | Min soak (report-only) | Prerequisites |
 |---|---|---|---|
@@ -227,7 +227,7 @@ All 24 policies ship in `enabledForReportingButNotEnforced` state. The table bel
 
 ## 6. Per-policy design specifications
 
-This section provides one subsection per policy. The 24 policies are ordered to match the rollout sequence table above.
+This section provides one subsection per policy. The first 24 are ordered to match the rollout sequence table above; the four agent policies (`CA-COV012` through `CA-COV015`) follow in Sections 6.14a and 6a, completing the 28-policy baseline.
 
 ---
 

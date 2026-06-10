@@ -1,10 +1,10 @@
 # Conditional Access Baseline
 
-A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-four policies covering eight identity personas, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
+A defensible-baseline framework for Microsoft Entra ID Conditional Access. Twenty-eight policies covering eight identity personas, scoped to the access paths attackers exploit most frequently, with every policy shipped in report-only by default so adopters validate impact before enforcement. Companion reading: [Why Entra ID Conditional Access Fails in Practice (And How to Fix It)](https://www.cloudharborconsulting.cloud/post/why-entra-id-conditional-access-fails-in-practice-and-how-to-fix-it).
 
-**Status:** 🟢 Released — v1.3.0
+**Status:** 🟢 Released — v1.4.0
 
-> **Beta endpoint:** This framework targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies` for all 24 policies. Three policies use Microsoft Graph beta-only features as of May 2026 (`CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`; `CA-COV011` uses the Microsoft Agent ID condition family). See the Prerequisites section and `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
+> **Beta endpoint:** This framework targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies` for all 28 policies. Three policies use Microsoft Graph beta-only features as of May 2026 (`CA-SIG003` and `CA-SIG004` use `signInFrequency.frequencyInterval: "everyTime"`; `CA-COV011` uses the Microsoft Agent ID condition family). See the Prerequisites section and `Design/AGENTS-PERSONA-MODEL.md` for the GA promotion tracking commitment.
 
 ---
 
@@ -46,9 +46,9 @@ File names mirror policy names. The JSON template for `CA-COV001-AllUsers-BlockL
 
 ---
 
-## The 24 starter policies
+## The 28 starter policies
 
-All 24 policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
+All 28 policies ship in report-only on first deployment. Operators opt in to enforcement explicitly via the `-Enforce` switch on the deployer.
 
 ### Global scope (9)
 
@@ -114,7 +114,7 @@ All 24 policies ship in report-only on first deployment. Operators opt in to enf
 |---|---|
 | CA-COV010-WorkloadIdentities-TrustedLocations | Restrict service-principal sign-ins to a defined egress (requires Workload Identities Premium). |
 
-### Agents persona (1)
+### Agents persona (2)
 
 | Policy | Intent |
 |---|---|
@@ -167,7 +167,8 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - **Guests** — B2B collaboration guests and external users
 - **ServiceAccounts** — non-interactive user-type identities (`CA-Persona-ServiceAccounts`, governed by CA-EXC002)
 - **WorkloadIdentities** — service principals (governed by CA-COV010 on the service-principal authentication path)
-- **Agents** — Microsoft Agent IDs (governed by CA-EXC003 and CA-COV011)
+- **Agents** — Microsoft Agent IDs (governed by CA-EXC003, CA-COV011, and CA-COV012)
+- **AgentUsers** — agent user accounts, the agent-acting-as-a-user sub-class (governed by CA-EXC003 and CA-COV013 through CA-COV015)
 - **EmergencyAccess** — break-glass accounts (`CA-Persona-EmergencyAccess`, governed by CA-EXC001, monitored by alert rule, never members of any other group)
 
 ---
@@ -182,7 +183,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - **Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user**. Required by CA-COV011 for Conditional Access for agents. Risk-based enforcement through Identity Protection requires P2. Microsoft describes enforcement of the Agent 365 licensing requirement as coming soon.
 - **Microsoft Entra Internet Access**. Required for agent network controls. The compliant-network grant relies on the Global Secure Access client on the endpoint.
 - **Conditional Access Administrator role**. Required to create and manage agent policies. The custom-security-attribute targeting method also requires the Attribute Assignment Reader role.
-- **Microsoft Graph beta endpoint**. Required by all 23 policies. The deployer targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use beta-only features (`CA-SIG003`, `CA-SIG004` use `frequencyInterval: "everyTime"`; `CA-COV011` uses the Agent ID condition family).
+- **Microsoft Graph beta endpoint**. Required by all 28 policies. The deployer targets `https://graph.microsoft.com/beta/identity/conditionalAccess/policies`. Three policies use beta-only features (`CA-SIG003`, `CA-SIG004` use `frequencyInterval: "everyTime"`; `CA-COV011` uses the Agent ID condition family).
 - **PowerShell 7.0 or later** and the **`Microsoft.Graph.Authentication` module** for the deployer.
 - **Persona groups** created in Entra ID and populated before deployment.
 - **Two emergency-access accounts** provisioned per `Policies/CA-EXC001-EmergencyAccess-Exclusion.md`.
@@ -257,7 +258,16 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 - [x] CA-ICB cross-framework integration doc (Design/CA-ICB-INTEGRATION.md) — signal flow narrative with Mermaid diagram, per-policy ICB requirements for CA-COV008, CA-SIG001, and CA-SIG007, failure-mode matrix, CA-to-ICB rollout sequence, 5-test verification procedure, and out-of-scope disclosure
 - [x] ROI-CONDITIONAL-ACCESS.md v1.3 wholesale rewrite; CHANGELOG v1.3.0 promotion; root README and framework README sync (this PR)
 
-### v1.4 — Candidates (not committed)
+### v1.4 — Released (2026-06-10)
+
+- [x] CA-COV012 Agents-AllowOnlyApprovedAgents — allow-only-approved-agents governance via the `agentIdServicePrincipalFilter` custom security attribute exclude
+- [x] AgentUsers persona for the agent user account sub-class — CA-COV013 (block medium and high agent risk), CA-COV014 (require compliant device on Windows 365 Cloud PCs for Agents), CA-COV015 (block non-compliant network)
+- [x] Three Microsoft agent access patterns documented (on-behalf-of, application-only, agent acting as a user)
+- [x] Agent field shapes grounded in verified Microsoft Graph beta JSON; CA-COV015 deployer compliant-network location resolver
+- [x] POLICY-DESIGN.md sections 6.14a and 6a per-policy specs; CA-EXC003 limitations and report-only rollout sections
+- [x] ROI-CONDITIONAL-ACCESS.md v1.4 rollup; CHANGELOG v1.4.0 promotion; root README and framework README sync (this PR)
+
+### v1.5 — Candidates (not committed)
 
 - [ ] Microsoft Agent ID v1.0 schema migration once Microsoft completes GA promotion of the Agent ID condition family
 - [ ] `signInFrequency: everyTime` v1.0 migration once Microsoft promotes `frequencyInterval: "everyTime"` to the v1.0 endpoint
