@@ -1,6 +1,6 @@
 # Security Reporting Decision Rubric
 
-**Status:** v0.1.0-preview
+**Status:** v0.1.0-preview (pending, not yet tagged)
 **Maintainer:** Cloud Harbor Consulting
 **Pillar mapping:** Security ROI & Business Case (primary); Threat Detection & Response (secondary)
 
