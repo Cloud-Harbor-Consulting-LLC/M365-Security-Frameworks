@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [1.4.0] - 2026-06-10
+
+The v1.4 release closes the Conditional Access for Agents development cycle. It extends agent coverage from a single risk-based policy on the agent identity (CA-COV011, shipped in v1.3) to a four-policy agent surface across two personas. The Agents persona gains CA-COV012, an allow-only-approved-agents governance control that blocks every agent identity except an approved set selected by the `agentIdServicePrincipalFilter` custom security attribute exclude. A new AgentUsers persona covers the agent user account identity sub-class (Pattern 3: agent acting as a user, the digital worker) with three policies: CA-COV013 blocks agent user account sign-ins at medium and high agent risk, CA-COV014 requires a compliant device on Intune-managed Windows 365 Cloud PCs for Agents, and CA-COV015 blocks agent user account sign-ins from outside the compliant network. All four ship report-only. The release grounds the agent field shapes in verified Microsoft Graph beta JSON, documents the three Microsoft agent access patterns, and records the Conditional Access boundaries that agent policies do not close. The deployable baseline now totals 28 policies across 8 personas plus a Sensitive-Applications scope. This release prep folds the agent slate into the executive ROI document, the framework README, and POLICY-DESIGN, cuts this dated CHANGELOG section, and tags v1.4.0.
+
 ### Added
 
 - Documented Microsoft's agent Conditional Access limitations and the `agentType` sign-in-log investigation guidance. CA-EXC003-Agents-Persona.md gains a Limitations section (the targeting gaps between the agent identity and the agent user account, plus the authentication surfaces where Conditional Access does not apply: the Microsoft Entra Token Exchange Endpoint, blueprint token acquisition for creating agents, tenants with Security Defaults enabled, and API-key access) and a Report-only rollout section covering CA-COV011 through CA-COV015; its incident response runbook now uses the `agentType` sign-in-log filter to confirm whether an agent policy applied, noting the enumerated value list is confirm-in-tenant. AGENTS-PERSONA-MODEL.md gains a Boundaries and limitations subsection mirroring the full list and the `agentType` investigation reference. POLICY-DESIGN.md adds a limitations and report-only rollout note to the Agents (CA-COV011/CA-COV012) and AgentUsers (CA-COV013 through CA-COV015) per-policy sections. Cites <https://learn.microsoft.com/en-us/entra/identity/conditional-access/agent-id>.
@@ -243,7 +249,9 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 ---
 
-[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/eig-v0.1.0-preview...HEAD>
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.4.0...HEAD>
+
+[1.4.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/eig-v0.1.0-preview...v1.4.0>
 
 [eig-v0.1.0-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.3.0...eig-v0.1.0-preview>
 
