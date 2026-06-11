@@ -73,7 +73,7 @@ The v1.2 architecture excluded EmergencyAccess, WorkloadIdentities, and ServiceA
 
 The prior Unreleased state included `CA-AUT001-PrivAccounts-RequirePhishResistantMFA` and `CA-AUT002-PrivRoles-RequirePhishResistantMFA` as always-on phishing-resistant MFA policies for privileged accounts. v1.3 replaces this with:
 
-- `CA-AUT003-Admins-RequireAdminAuthOnAdminPortals`: FIDO2-only (`AdminAuth`) on Azure Service Management and Microsoft Admin Portals, targeting the 14 privileged directory roles.
+- `CA-AUT003-Admins-RequireAdminAuthOnAdminPortals`: FIDO2-only (`AdminAuth`) on Azure Service Management and Microsoft Admin Portals, targeting the 39 privileged directory roles.
 - `CA-SIG003-Global-MediumUserRisk` and `CA-SIG004-Global-MediumSignInRisk`: StrongAuth (WHfB or FIDO2) required when Identity Protection raises medium user or sign-in risk. Risk remediation is required alongside the authentication strength.
 - PIM activation: always-on phishing-resistant enforcement for role activation is handled out-of-baseline via Privileged Identity Management configuration.
 
@@ -83,24 +83,73 @@ This model targets the phishing-resistant requirement at the highest-risk surfac
 
 **Global scope** means all users in the tenant. Policies with `Global` in the name target `users.includeUsers: ["All"]` with the standard exclusion set applied per-policy.
 
-**Admins scope** means the 14 highly-privileged Entra ID directory roles by template ID. These roles are:
+**Admins scope** means the 39 highly-privileged Entra ID directory roles by template ID. The set is aligned to Microsoft's `isPrivileged` classification confirmed against the tenant role catalog, plus a few defense-in-depth roles. These roles are:
 
 | Role | Template ID |
 |---|---|
 | Global Administrator | `62e90394-69f5-4237-9190-012177145e10` |
 | Privileged Role Administrator | `e8611ab8-c189-46e8-94e1-60213ab1f814` |
+| Privileged Authentication Administrator | `7be44c8a-adaf-4e2a-84d6-ab2649e08a13` |
 | Security Administrator | `194ae4cb-b126-40b2-bd5b-6091b380977d` |
-| Compliance Administrator | `7be44c8a-adaf-4e2a-84d6-ab2649e08a13` |
-| Exchange Administrator | `158c047a-c907-4556-b7ef-446551a6b5f7` |
-| SharePoint Administrator | `9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3` |
-| Helpdesk Administrator | `fe930be7-5e62-47db-91af-98c3a49a38b1` |
-| Authentication Administrator | `966707d0-3269-4727-9be2-8c3a10f19b9d` |
-| Cloud Application Administrator | `c4e39bd9-1100-46d3-8c65-fb160da0071f` |
-| Directory Synchronization Account | `29232cdf-9323-42fd-ade2-1d097af3e4de` |
+| Security Operator | `5f2222b1-57c3-48ba-8ad5-d4759f1fde6f` |
+| Security Reader | `5d6b6bb7-de71-4623-b4af-96380a352509` |
+| User Administrator | `fe930be7-5e62-47db-91af-98c3a49a38b1` |
+| Authentication Administrator | `c4e39bd9-1100-46d3-8c65-fb160da0071f` |
+| Authentication Extensibility Administrator | `25a516ed-2fa0-40ea-a2d0-12923a21473a` |
+| Authentication Extensibility Password Administrator | `0b00bede-4072-4d22-b441-e7df02a1ef63` |
+| Password Administrator | `966707d0-3269-4727-9be2-8c3a10f19b9d` |
+| Helpdesk Administrator | `729827e3-9c14-49f7-bb1b-9608f156bbb8` |
+| Conditional Access Administrator | `b1be1c3e-b65d-4f19-8427-f6fa0d97feb9` |
+| Application Administrator | `9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3` |
+| Application Developer | `cf1c38e5-3621-4004-a7cb-879624dced7c` |
+| Cloud Application Administrator | `158c047a-c907-4556-b7ef-446551a6b5f7` |
+| Cloud Device Administrator | `7698a772-787b-4ac8-901f-60d6b08affd2` |
+| Intune Administrator | `3a2c62db-5318-420d-8d74-23affee5d9d5` |
+| Hybrid Identity Administrator | `8ac3fc64-6eca-42ea-9e69-59f4c7b60eb2` |
+| Domain Name Administrator | `8329153b-31d0-4727-b945-745eb3bc5f31` |
+| External Identity Provider Administrator | `be2f45a1-457d-42af-a067-6ec1fa63bc45` |
+| B2C IEF Keyset Administrator | `aaf43236-0c0d-4d5f-883a-6955382ac081` |
+| Directory Writers | `9360feb5-f418-4baa-8175-e2a00bac4301` |
+| Global Reader | `f2ef992c-3afb-46b9-b7cf-a126ee74c451` |
+| Partner Tier1 Support | `4ba39ca4-527c-499a-b93d-d9b492c50246` |
+| Partner Tier2 Support | `e00e864a-17c5-4a4b-9c06-f5b95a8d5bd8` |
+| Identity Governance Administrator | `45d8d3c5-c802-45c6-b32a-1d70b5e1e86e` |
+| Lifecycle Workflows Administrator | `59d46f88-662b-457b-bceb-5c3809e5908f` |
+| Attribute Provisioning Administrator | `ecb2c6bf-0ab6-418e-bd87-7986f8d63bbe` |
+| Attribute Provisioning Reader | `422218e4-db15-4ef9-bbe0-8afb41546d79` |
+| AI Administrator | `d2562ede-74db-457e-a7b6-544e236ebb61` |
+| AI Reader | `1fe13547-53f6-408d-ac04-7f8eed167b38` |
+| Agent ID Administrator | `db506228-d27e-4b7d-95e5-295956d6615f` |
+| Exchange Administrator | `29232cdf-9323-42fd-ade2-1d097af3e4de` |
+| SharePoint Administrator | `f28a1f50-f6e7-4571-818b-6a12f2af6b6c` |
+| Billing Administrator | `b0f54661-2d74-4c50-afa3-1ec803f12efe` |
+| Authentication Policy Administrator | `0526716b-113d-4c15-b2c8-68e3c22b9f80` |
 | Teams Administrator | `69091246-20e8-4a56-aa4d-066075b2a7a8` |
-| Power Platform Administrator | `3a2c62db-5318-420d-8d74-23affee5d9d5` |
-| Dynamics Administrator | `f28a1f50-f6e7-4571-818b-6a12f2af6b6c` |
-| Reports Reader | `729827e3-9c14-49f7-bb1b-9608f156bbb8` |
+| Groups Administrator | `fdd7a751-b60b-444a-984c-02652fe8fa1c` |
+
+The role template IDs above are deployed identically and in the same order in the `conditions.users.includeRoles` array of both `CA-AUT003-Admins-RequireAdminAuthOnAdminPortals` and `CA-SIG005-Admins-BlockMediumAndHighSignInRisk`.
+
+#### Optional additional privileged-adjacent roles (not deployed by default)
+
+The 13 roles below are privileged-adjacent and are documented for organizations that run the corresponding workloads (backup and restore, AI agents, Global Secure Access, permissions management, custom security attributes). They are not part of the shipped `includeRoles` set; an organization running those workloads can add the relevant template IDs to both Admins policies.
+
+| Role | Template ID |
+|---|---|
+| Compliance Administrator | `17315797-102d-40b4-93e0-432062caca18` |
+| Compliance Data Administrator | `e6d1a23a-da11-4be4-9570-befc86d067a7` |
+| Entra Backup Administrator | `b6a27b2b-f905-4b2e-81b5-0d90e0ef1fdb` |
+| Microsoft 365 Backup Administrator | `1707125e-0aa2-4d4d-8655-a7c786c76a25` |
+| Exchange Backup Administrator | `49eb8f75-97e9-4e37-9b2b-6c3ebfcffa31` |
+| SharePoint Backup Administrator | `9d3e04ba-3ee4-4d1b-a3a7-9aef423a09be` |
+| Agent Registry Administrator | `6b942400-691f-4bf0-9d12-d8a254a2baf5` |
+| Agent ID Developer | `adb2368d-a9be-41b5-8667-d96778e081b0` |
+| Dragon Administrator | `e93e3737-fa85-474a-aee4-7d3fb86510f3` |
+| Global Secure Access Administrator | `ac434307-12b9-4fa1-a708-88bf58caabc1` |
+| Permissions Management Administrator | `af78dc32-cf4d-46f9-ba4e-4428526346b5` |
+| Attribute Definition Administrator | `8424c6f0-a189-499e-bbd0-26c1753c96d4` |
+| Attribute Assignment Administrator | `58a13ea3-c632-46ae-9ee0-9c0d43cd7f3d` |
+
+Directory Synchronization Accounts and the On-Premises Directory Sync Account are intentionally excluded from the Admins set. These are service identities used by Entra Connect synchronization, not interactive admin identities, and targeting them with admin authentication-strength or risk-block policies would disrupt directory synchronization without adding a defensible control.
 
 Both Global and Admins scope segments inherit the per-policy exclusion contract documented in Section 4 and detailed per-policy in Section 6.
 
@@ -140,7 +189,7 @@ Eight personas are defined in this baseline. Each persona maps to an identity cl
 |---|---|---|---|
 | Global | `users.includeUsers: ["All"]` | Per-policy (EA, SA excluded; WI excluded from user-context policies) | Universal baseline scope. Applies to all users including guests unless overridden. |
 | Internal | `users.includeGroups: [CA-Persona-InternalUsers]` | EA, WI, SA excluded per-policy | Member users only. Dynamic group recommended (`userType eq 'Member'`). |
-| Admins | `users.includeRoles: [14 template IDs]` | EA, WI, SA excluded per-policy | 14 highly-privileged Entra ID directory roles. Scoped via role template IDs, not a static group. |
+| Admins | `users.includeRoles: [39 template IDs]` | EA, WI, SA excluded per-policy | 39 highly-privileged Entra ID directory roles. Scoped via role template IDs, not a static group. |
 | Guests | `users.includeGuestsOrExternalUsers` or `users.includeGroups: [CA-Persona-Guests]` | EA excluded per-policy | B2B collaboration guests, external users, service providers. |
 | ServiceAccounts | `users.includeGroups: [CA-Persona-ServiceAccounts]` | EA, WI excluded from CA-COV009 | Positive inclusion target for CA-COV009. Excluded from all human-targeted policies via CA-EXC002. |
 | WorkloadIdentities | `clientApplications.includeServicePrincipals: [ServicePrincipalsInMyTenant]` | Not applicable (not a user persona) | Inclusion target for CA-COV010. Excluded from human-targeted user policies by virtue of not being users. |
@@ -208,7 +257,7 @@ All 28 policies ship in `enabledForReportingButNotEnforced` state. The table bel
 | 8 | CA-COV007-Global-BlockByLocation | 14 days | TrustedCountries named location provisioned and validated |
 | 9 | CA-COV003-Global-NoPersistentBrowserSessionOnNonCorpDevices | 14 days | Device filter rule validated against fleet |
 | 10 | CA-SIG002-Guests-RequireMFA | 7 days | Guest MFA registration confirmed |
-| 11 | CA-AUT003-Admins-RequireAdminAuthOnAdminPortals | 14 days | AdminAuth strength provisioned; FIDO2 keys issued to all 14-role holders |
+| 11 | CA-AUT003-Admins-RequireAdminAuthOnAdminPortals | 14 days | AdminAuth strength provisioned; FIDO2 keys issued to all 39-role holders |
 | 12 | CA-SIG005-Admins-BlockMediumAndHighSignInRisk | 7 days | Identity Protection P2 active; review existing risk events |
 | 13 | CA-SIG001-SensitiveApps-RequireCompliantDevice | 14 days | Intune compliance policy for internal users active and clean |
 | 14 | CA-COV008-Internal-RequireCompliantDeviceOnDesktops | 14 days | Intune compliance policy for internal users active; Hybrid Join validated |
@@ -332,7 +381,7 @@ This section provides one subsection per policy. The first 24 are ordered to mat
 
 | Dimension | Value |
 |---|---|
-| Users | `includeRoles: [14 privileged directory role template IDs]` |
+| Users | `includeRoles: [39 privileged directory role template IDs]` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
 | Applications | `includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013", "MicrosoftAdminPortals"]` — Azure Service Management + Microsoft Admin Portals |
 | Client app types | `["all"]` |
@@ -341,13 +390,13 @@ This section provides one subsection per policy. The first 24 are ordered to mat
 
 **Session controls:** None.
 
-**License requirements:** Entra ID P1. AdminAuth custom authentication strength must exist in the tenant. FIDO2 hardware keys must be issued and registered for all users in the 14 roles before enforcement.
+**License requirements:** Entra ID P1. AdminAuth custom authentication strength must exist in the tenant. FIDO2 hardware keys must be issued and registered for all users in the 39 roles before enforcement.
 
 **Validation steps:**
 
 1. Provision AdminAuth in the tenant from `Supporting-Artifacts/CA-AUTH-STRENGTH-AdminAuth.json`.
-2. Enumerate all current role holders in the 14 roles. Confirm each has a registered FIDO2 key.
-3. In report-only, verify that admin portal sign-ins from 14-role holders show `reportOnlyInterrupted` if using non-FIDO2 methods.
+2. Enumerate all current role holders in the 39 roles. Confirm each has a registered FIDO2 key.
+3. In report-only, verify that admin portal sign-ins from 39-role holders show `reportOnlyInterrupted` if using non-FIDO2 methods.
 4. After enforcement, verify that a FIDO2 sign-in to the Azure portal succeeds, and that a non-FIDO2 (e.g., Authenticator app) sign-in is blocked.
 
 **Exclusion rationale:** EmergencyAccess accounts may be excluded to retain emergency console access. This is a deliberate risk acceptance — document the decision in the CA-EXC001 contract.
@@ -816,7 +865,7 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, fa
 
 ### 6.19 CA-SIG005-Admins-BlockMediumAndHighSignInRisk
 
-**Intent:** Hard-block admin sign-ins when Identity Protection detects medium or high sign-in risk for a 14-role holder. Admin accounts in risk-flagged sessions do not receive a re-challenge path — blocking is the only appropriate response because an admin credential being used in a risky session indicates a high likelihood of compromise.
+**Intent:** Hard-block admin sign-ins when Identity Protection detects medium or high sign-in risk for a 39-role holder. Admin accounts in risk-flagged sessions do not receive a re-challenge path — blocking is the only appropriate response because an admin credential being used in a risky session indicates a high likelihood of compromise.
 
 **Principle mapping:** 1.3 Layered signals (sign-in risk + admin scope). Intentionally stricter than the Global medium sign-in risk policy because of the elevated blast radius of admin credential misuse.
 
@@ -824,7 +873,7 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, fa
 
 | Dimension | Value |
 |---|---|
-| Users | `includeRoles: [14 privileged directory role template IDs]` |
+| Users | `includeRoles: [39 privileged directory role template IDs]` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
 | Applications | `includeApplications: ["All"]` |
 | Client app types | `["all"]` |
@@ -836,7 +885,7 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, fa
 
 **License requirements:** Entra ID P2 (Identity Protection sign-in risk).
 
-**Validation steps:** Verify that all 14-role holders are aware that any sign-in flagged at medium or high risk will be blocked without a challenge option. Establish a process for admins to contact security operations if they are unexpectedly blocked during a legitimate session.
+**Validation steps:** Verify that all 39-role holders are aware that any sign-in flagged at medium or high risk will be blocked without a challenge option. Establish a process for admins to contact security operations if they are unexpectedly blocked during a legitimate session.
 
 **Exclusion rationale:** EmergencyAccess may need to be excluded if the emergency sign-in itself triggers a risk detection. This is a risk acceptance; document in CA-EXC001.
 
