@@ -163,7 +163,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 
 - **Global** — all users in the tenant (every interactive sign-in)
 - **Internal** — member users (`CA-Persona-InternalUsers`)
-- **Admins** — 14 highly-privileged Entra ID directory roles by template ID
+- **Admins** — 39 highly-privileged Entra ID directory roles by template ID
 - **Guests** — B2B collaboration guests and external users
 - **ServiceAccounts** — non-interactive user-type identities (`CA-Persona-ServiceAccounts`, governed by CA-EXC002)
 - **WorkloadIdentities** — service principals (governed by CA-COV010 on the service-principal authentication path)
