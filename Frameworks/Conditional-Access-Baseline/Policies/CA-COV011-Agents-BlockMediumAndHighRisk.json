@@ -5,7 +5,7 @@
     "agentIdRiskLevels": "medium,high",
     "applications": {
       "includeApplications": [
-        "AllAgentIdResources"
+        "All"
       ]
     },
     "clientAppTypes": [
