@@ -26,6 +26,7 @@ Every framework in this repo includes:
 | [Intune Compliance Baseline](./Frameworks/Intune-Compliance-Baseline/) | Preview | v0.1.0-preview (2026-05-15) | First Windows 10/11 compliance template + framework design spec; macOS, iOS, Android, Linux templates and Deploy-ICBaseline.ps1 land toward Q3 2026 full-framework completion |
 | [Security Reporting Decision Rubric](./Frameworks/Security-Reporting-Decision-Rubric/) | Preview | v0.1.0-preview (pending) | 4-question decision flow for designing audience-scoped security reports; severity floor guidance grounded in Defender XDR's severity model; 2 starter templates (board quarterly, CISO monthly) |
 | [Entra ID Governance Toolkit](./Frameworks/Entra-ID-Governance-Toolkit/) | Preview | v0.1.0-preview (2026-06-05) | 2 Access Reviews automations: quarterly guest access review and monthly dormant admin role review; PowerShell 7 against Microsoft Graph Identity Governance; deny-by-default with a reviewer chain and retained audit evidence |
+| [Zero Trust Readiness Assessment](./Frameworks/Zero-Trust-Readiness-Assessment/) | Planned | — | 6-pillar M365 ZT posture assessment aligned to CISA ZTMM v2.0 (Traditional → Optimal); collector script reads tenant config via read-only Graph scopes; produces technical detail, executive summary, and board 1-pager outputs; ships as ztra-v0.1.0-preview July 2026 |
 | Defender XDR Detection Rules | Planned | — | First custom KQL queries Month 7 Week 2 (Oct 2026); full framework Q1 2027 |
 
 ## Quickstart
