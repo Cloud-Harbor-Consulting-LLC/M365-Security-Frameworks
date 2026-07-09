@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Frameworks/Zero-Trust-Readiness-Assessment/README.md — skeleton landing page for the Zero Trust Readiness Assessment Framework (ZTRA). The framework assesses an M365 tenant's Zero Trust posture across Microsoft's 6 ZT pillars (Identities, Endpoints, Applications, Data, Infrastructure, Networks) scored against CISA ZTMM v2.0's 4 maturity stages (Traditional, Initial, Advanced, Optimal), with NIST SP 800-207 tenet citations per control row. Per-pillar and overall tenant stage use equal pillar weighting (16.67% each), aligned with CISA ZTMM v2.0's horizontal progress design. Assessment outputs include a technical detail report, an executive summary, and a board 1-pager, generated from a single read-only Microsoft Graph collector run. The scoring rubric (Design/SCORING-RUBRIC.md) is usable as a standalone assessment instrument independent of the collector. Scoring rubric, collector, formatter, examples, and ROI document follow in PRs B–F this week. Targets ztra-v0.1.0-preview.
+
 ### Fixed
 
 - Synced stale policy counts and a version string in Frameworks/Conditional-Access-Baseline docs to the v1.4.0 surface (28 policies): Design/AGENTS-PERSONA-MODEL.md (version header and beta-endpoint count), Scripts/README.md (deployer table and usage counts), and Policies/CA-EXC003-Agents-Persona.md (beta-endpoint count).
