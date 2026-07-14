@@ -76,7 +76,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | Phishing-resistant MFA enforced for admins via dedicated CA policy. Sign-in risk CA targets admin personas. PIM deployed with eligible assignments for most admin roles. |
 | 4 — Optimal | All admin roles in PIM eligible — zero permanent assignments except break-glass. JIT activation requires approval and justification. Dedicated admin accounts separate from daily-use accounts. Real-time risk response automated. |
 
-**M365 Signal:** CA policy targeting admin role set with phishing-resistant auth strength in enforced mode. PIM eligible assignment count vs. permanent assignment count across directory roles via `GET /privilegedAccess/aadRoles/resources/{tenantId}/roleAssignments`.
+**M365 Signal:** CA policy targeting admin role set with phishing-resistant auth strength in enforced mode. PIM eligible assignment count via `GET /roleManagement/directory/roleEligibilityScheduleInstances`; permanent standing assignment count via `GET /roleManagement/directory/roleAssignmentScheduleInstances` filtered to `assignmentType eq 'Assigned'` with a null `endDateTime`.
 
 ---
 
@@ -140,7 +140,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | Majority of admin roles eligible via PIM. Activation requires approval for high-impact roles (Global Admin, Privileged Role Admin, Security Admin). PIM audit logs reviewed regularly. Emergency access accounts exist and are monitored. |
 | 4 — Optimal | Zero permanent admin assignments except documented break-glass accounts. All role activations time-limited. Activation triggers automated alert. PIM access reviews run on all eligible assignments. Break-glass account usage monitored continuously. |
 
-**M365 Signal:** `GET /privilegedAccess/aadRoles/resources/{tenantId}/roleAssignments` — eligible vs. permanent assignment ratio. PIM role settings requiring approval for high-impact roles.
+**M365 Signal:** `GET /roleManagement/directory/roleEligibilityScheduleInstances` and `GET /roleManagement/directory/roleAssignmentScheduleInstances` — eligible vs. permanent standing assignment ratio (permanent = `assignmentType eq 'Assigned'` with null `endDateTime`). PIM role settings requiring approval via `GET /policies/roleManagementPolicyAssignments`.
 
 ---
 
@@ -526,7 +526,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | PIM covers both Entra directory roles and Azure resource roles for key subscriptions. Activation requires justification and MFA. High-impact role activations require approval. Time-bound access enforced. |
 | 4 — Optimal | Zero permanent assignments for Azure resource roles except documented break-glass. All activations time-limited. Activation triggers automated alert. Azure resource role usage audited continuously. Emergency access process documented and tested. |
 
-**M365 Signal:** `GET /privilegedAccess/azureResources/resources/{resourceId}/roleAssignments` — eligible vs. permanent ratio for Azure resource roles. Activation policy configuration for requiring approval.
+**M365 Signal:** Eligible vs. permanent ratio for Azure resource roles is an Azure Resource Manager signal (`Microsoft.Authorization/roleEligibilityScheduleInstances` and `roleAssignmentScheduleInstances`), not available via Microsoft Graph — manual review in the Graph-only v0.1.0-preview collector.
 
 ---
 
@@ -574,7 +574,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | Least-privilege RBAC applied at resource group level. Owner role usage minimized. RBAC assignments reviewed quarterly. Custom roles documented and scoped tightly. |
 | 4 — Optimal | Least privilege enforced at resource and resource-group level. No standing Owner or Contributor access except for automation identities managed via PIM. RBAC assignments reviewed automatically. Privileged resource assignments gated by PIM activation. |
 
-**M365 Signal:** Azure RBAC Owner and Contributor assignment count at subscription level is an Azure Management API signal. PIM coverage for Azure resource roles is available via `GET /privilegedAccess/azureResources`.
+**M365 Signal:** Azure RBAC Owner and Contributor assignment count at subscription level is an Azure Management API signal. PIM coverage for Azure resource roles is an Azure Resource Manager signal (`Microsoft.Authorization/roleEligibilityScheduleInstances`), not available via Microsoft Graph.
 
 ---
 

@@ -8,7 +8,7 @@ This folder contains two scripts for the Zero Trust Readiness Assessment Framewo
 |---|---|
 | PowerShell | 7.0 or later |
 | Module | `Microsoft.Graph.Authentication` — install via `Install-Module Microsoft.Graph.Authentication` |
-| Permissions | Global Reader, or a custom role granting the 7 Graph scopes below |
+| Permissions | Global Reader, or a custom role granting the 6 Graph scopes below |
 | License | Entra ID P2 required for PIM and ID Protection signals (ID-02, ID-04–ID-06) |
 ---
 ## Required Graph scopes
@@ -18,9 +18,8 @@ This folder contains two scripts for the Zero Trust Readiness Assessment Framewo
 | `IdentityRiskyUser.Read.All` | Identities (risky user count) |
 | `AuditLog.Read.All` | Cross-pillar (sign-in logs) |
 | `Device.Read.All` | Endpoints (device registration and join type) |
-| `RoleManagement.Read.Directory` | Identities (directory role assignments) |
+| `RoleManagement.Read.Directory` | Identities (directory role assignments; PIM role eligibility/assignment schedule instances) |
 | `Reports.Read.All` | Cross-pillar (authentication method registration) |
-| `PrivilegedAccess.Read.AzureAD` | Identities, Infrastructure (PIM assignments) |
 ---
 ## Authentication
 **Interactive (recommended for initial assessment):**
@@ -97,7 +96,7 @@ lists all controls requiring manual assessment in v0.1.0-preview and why.
 | DA-05 | Purview IRM not in Graph | Purview compliance portal > Insider risk management |
 | DA-06 | Purview retention not in Graph | Purview compliance portal > Data lifecycle management |
 | DA-07 | Purview Content Explorer not in Graph | Purview compliance portal > Content explorer |
-| IN-01* | Azure resource PIM may be inaccessible | Entra admin center > PIM > Azure resources |
+| IN-01 | PIM for Azure resource roles is managed via the Azure Resource Manager APIs, not Microsoft Graph | Entra admin center > PIM > Azure resources |
 | IN-02* | Managed identity coverage requires Azure Management API | Azure portal > resource > Identity |
 | IN-03 | Defender for Cloud + Sentinel require Azure Management API | Defender for Cloud + Sentinel |
 | IN-04 | Azure RBAC requires Azure Management API | Azure portal > Subscriptions > IAM |

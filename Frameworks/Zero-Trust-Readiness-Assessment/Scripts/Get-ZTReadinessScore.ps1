@@ -23,8 +23,7 @@
     Author:   Cloud Harbor Consulting LLC
     Requires: PowerShell 7+, Microsoft.Graph.Authentication module
     Scopes:   Policy.Read.All, IdentityRiskyUser.Read.All, AuditLog.Read.All,
-              Device.Read.All, RoleManagement.Read.Directory, Reports.Read.All,
-              PrivilegedAccess.Read.AzureAD
+              Device.Read.All, RoleManagement.Read.Directory, Reports.Read.All
 #>
 [CmdletBinding()]
 param(
@@ -41,8 +40,7 @@ $REQUIRED_SCOPES = @(
     'AuditLog.Read.All',
     'Device.Read.All',
     'RoleManagement.Read.Directory',
-    'Reports.Read.All',
-    'PrivilegedAccess.Read.AzureAD'
+    'Reports.Read.All'
 )
 # ── Helper functions ──────────────────────────────────────────────────────────
 function Write-Status {
@@ -219,9 +217,14 @@ $adminSignInRiskCA = Test-CAPolicyExists -Policies $caPolicies -Filter {
     ((Get-ZTProp $p 'conditions.signInRiskLevels') | Measure-Object).Count -gt 0
 }
 $pimData = try {
-    $assignments = Invoke-ZTGraphRequest -Uri "privilegedAccess/aadRoles/resources/$TenantId/roleAssignments" -ApiVersion 'beta'
-    $eligible  = @($assignments | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Eligible' }).Count
-    $permanent = @($assignments | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Active'   }).Count
+    # PIM for Microsoft Entra roles — unified role-management model (v1.0 GA).
+    # Eligible = roleEligibilityScheduleInstances; permanent standing = roleAssignmentScheduleInstances
+    # where assignmentType is 'Assigned' (not 'Activated') and endDateTime is null (perpetual).
+    $eligible  = @(Invoke-ZTGraphRequest -Uri 'roleManagement/directory/roleEligibilityScheduleInstances').Count
+    $active    = @(Invoke-ZTGraphRequest -Uri 'roleManagement/directory/roleAssignmentScheduleInstances')
+    $permanent = @($active | Where-Object {
+        (Get-ZTProp $_ 'assignmentType') -eq 'Assigned' -and $null -eq (Get-ZTProp $_ 'endDateTime')
+    }).Count
     @{ Eligible = $eligible; Permanent = $permanent }
 } catch {
     Write-Status 'PIM role assignment data unavailable — flagging ManualReview for ID-02 and ID-06.' -Level Warn
@@ -235,7 +238,7 @@ $id02Stage = if ($null -eq $pimData) { $null }
 $idControls.Add((New-ZTControl -Id 'ID-02' -Name 'Admin MFA and privileged identity protection' `
     -NistTenets @('T3','T4','T6') -RepoXRef 'CA-AUT001-003, CA-SIG005' -Stage $id02Stage `
     -ManualReview ($null -eq $pimData) `
-    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM role assignment data not returned. Review in Entra admin center > Identity Governance > Privileged Identity Management > Azure AD roles > Assignments.' } else { '' }) `
+    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM role assignment data not returned. Review in Entra admin center > Identity Governance > Privileged Identity Management > Microsoft Entra roles > Assignments.' } else { '' }) `
     -Signal @{ AdminMfaEnforced = $adminMfaEnforced; AdminSignInRiskCA = $adminSignInRiskCA; PimData = $pimData }))
 # ID-03: Block legacy authentication
 $legacyBlockEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
@@ -301,7 +304,7 @@ $id06Stage = if ($null -eq $pimData) { $null }
 $idControls.Add((New-ZTControl -Id 'ID-06' -Name 'Privileged identity management JIT access' `
     -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $id06Stage `
     -ManualReview ($null -eq $pimData) `
-    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM data unavailable. Review in Entra admin center > Identity Governance > PIM > Azure AD roles > Assignments.' } else { '' }) `
+    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM data unavailable. Review in Entra admin center > Identity Governance > PIM > Microsoft Entra roles > Assignments.' } else { '' }) `
     -Signal @{ PimData = $pimData }))
 # ID-07: External identity lifecycle governance
 $authPolicy        = try { Invoke-ZTGraphRequest -Uri 'policies/authorizationPolicy' } catch { $null }
@@ -482,26 +485,14 @@ Write-Status "Pillar 4 (Data) stage: $pillar4Stage" -Level OK
 Write-Status 'Assessing Pillar 5 — Infrastructure...'
 $infraControls = [System.Collections.Generic.List[PSCustomObject]]::new()
 $azureNote     = 'Requires Azure Management API signals, outside v0.1.0-preview Graph-only scope.'
-# IN-01: JIT privileged access for Azure resource roles
-$azureResPim = try {
-    $ra = Invoke-ZTGraphRequest -Uri 'privilegedAccess/azureResources/roleAssignments' -ApiVersion 'beta'
-    $e  = @($ra | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Eligible' }).Count
-    $p  = @($ra | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Active'   }).Count
-    @{ Eligible = $e; Permanent = $p }
-} catch {
-    Write-Status 'Azure resource PIM data unavailable — flagging ManualReview for IN-01.' -Level Warn
-    $null
-}
-$in01Stage = if ($null -eq $azureResPim) { $null }
-             elseif ($azureResPim.Permanent -eq 0 -and $azureResPim.Eligible -gt 0) { 4 }
-             elseif ($azureResPim.Eligible -ge $azureResPim.Permanent)               { 3 }
-             elseif ($azureResPim.Eligible -gt 0)                                    { 2 }
-             else                                                                    { 1 }
+# IN-01: JIT privileged access for Azure resource roles — ARM-only, not available via Microsoft Graph.
+# PIM for Azure resource roles is managed through the Azure Resource Manager APIs
+# (Microsoft.Authorization/roleEligibilityScheduleInstances), not Microsoft Graph, so this control
+# is manual-review in the Graph-only v0.1.0-preview collector.
 $infraControls.Add((New-ZTControl -Id 'IN-01' -Name 'JIT privileged access for Azure resource roles' `
-    -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $in01Stage `
-    -ManualReview ($null -eq $azureResPim) `
-    -ManualReviewNote $(if ($null -eq $azureResPim) { 'Azure resource PIM data not returned. Review in Entra admin center > Identity Governance > PIM > Azure resources > Assignments.' } else { '' }) `
-    -Signal @{ AzureResourcePim = $azureResPim }))
+    -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $null -ManualReview $true `
+    -ManualReviewNote "$azureNote PIM for Azure resource roles is managed via the Azure Resource Manager APIs, not Microsoft Graph. Review in Entra admin center > Identity Governance > Privileged Identity Management > Azure resources > Assignments." `
+    -Signal @{}))
 # IN-02: Workload identity — managed identities vs. secrets
 $appRegs      = try { Invoke-ZTGraphRequest -Uri 'applications' } catch { @() }
 $staleSecrets = @($appRegs | Where-Object {
