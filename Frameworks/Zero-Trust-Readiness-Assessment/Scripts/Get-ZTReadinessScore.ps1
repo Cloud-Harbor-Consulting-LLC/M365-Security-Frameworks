@@ -85,6 +85,25 @@ function Invoke-ZTGraphRequest {
     } while ($fullUri)
     return $results.ToArray()
 }
+function Get-ZTProp {
+    # Safely walk a dotted property path on a PSObject. Returns $Default if any
+    # segment is missing or null. Prevents PropertyNotFoundException under
+    # Set-StrictMode -Version Latest when Graph omits absent/empty optional properties.
+    [CmdletBinding()]
+    param(
+        [object]$InputObject,
+        [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Path,
+        $Default = $null
+    )
+    $current = $InputObject
+    foreach ($segment in $Path.Split('.')) {
+        if ($null -eq $current) { return $Default }
+        $prop = $current.PSObject.Properties[$segment]
+        if ($null -eq $prop -or $null -eq $prop.Value) { return $Default }
+        $current = $prop.Value
+    }
+    return $current
+}
 function New-ZTControl {
     [CmdletBinding()]
     param(
@@ -154,27 +173,27 @@ $idControls = [System.Collections.Generic.List[PSCustomObject]]::new()
 # ID-01: MFA enrollment and coverage
 $legacyAuthBlocked = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.conditions.clientAppTypes -contains 'exchangeActiveSync' -or
-     $p.conditions.clientAppTypes -contains 'other') -and
-    $p.grantControls.builtInControls -contains 'block'
+    ((Get-ZTProp $p 'conditions.clientAppTypes') -contains 'exchangeActiveSync' -or
+     (Get-ZTProp $p 'conditions.clientAppTypes') -contains 'other') -and
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'block'
 }
 $mfaCoverageEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.grantControls.builtInControls -contains 'mfa' -or
-     $null -ne $p.grantControls.authenticationStrength) -and
-    ($p.conditions.users.includeUsers -contains 'All' -or
-     $p.conditions.users.includeGroups.Count -gt 0)
+    ((Get-ZTProp $p 'grantControls.builtInControls') -contains 'mfa' -or
+     $null -ne (Get-ZTProp $p 'grantControls.authenticationStrength')) -and
+    ((Get-ZTProp $p 'conditions.users.includeUsers') -contains 'All' -or
+     ((Get-ZTProp $p 'conditions.users.includeGroups') | Measure-Object).Count -gt 0)
 }
 $phishResistantEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $null -ne $p.grantControls.authenticationStrength -and
-    ($p.conditions.users.includeUsers -contains 'All' -or
-     $p.conditions.users.includeGroups.Count -gt 0)
+    $null -ne (Get-ZTProp $p 'grantControls.authenticationStrength') -and
+    ((Get-ZTProp $p 'conditions.users.includeUsers') -contains 'All' -or
+     ((Get-ZTProp $p 'conditions.users.includeGroups') | Measure-Object).Count -gt 0)
 }
 $mfaReportOnly = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.grantControls.builtInControls -contains 'mfa' -or
-    $null -ne $p.grantControls.authenticationStrength
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'mfa' -or
+    $null -ne (Get-ZTProp $p 'grantControls.authenticationStrength')
 } -State 'enabledForReportingButNotEnforced'
 $id01Stage = if ($phishResistantEnforced -and $legacyAuthBlocked) { 4 }
              elseif ($mfaCoverageEnforced -and $legacyAuthBlocked) { 3 }
@@ -190,19 +209,19 @@ $idControls.Add((New-ZTControl -Id 'ID-01' -Name 'MFA enrollment and coverage' `
 # ID-02: Admin MFA and privileged identity protection
 $adminMfaEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.conditions.users.includeRoles.Count -gt 0 -and
-    ($null -ne $p.grantControls.authenticationStrength -or
-     $p.grantControls.builtInControls -contains 'mfa')
+    ((Get-ZTProp $p 'conditions.users.includeRoles') | Measure-Object).Count -gt 0 -and
+    ($null -ne (Get-ZTProp $p 'grantControls.authenticationStrength') -or
+     (Get-ZTProp $p 'grantControls.builtInControls') -contains 'mfa')
 }
 $adminSignInRiskCA = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.conditions.users.includeRoles.Count -gt 0 -and
-    $p.conditions.signInRiskLevels.Count -gt 0
+    ((Get-ZTProp $p 'conditions.users.includeRoles') | Measure-Object).Count -gt 0 -and
+    ((Get-ZTProp $p 'conditions.signInRiskLevels') | Measure-Object).Count -gt 0
 }
 $pimData = try {
     $assignments = Invoke-ZTGraphRequest -Uri "privilegedAccess/aadRoles/resources/$TenantId/roleAssignments" -ApiVersion 'beta'
-    $eligible  = @($assignments | Where-Object { $_.assignmentState -eq 'Eligible' }).Count
-    $permanent = @($assignments | Where-Object { $_.assignmentState -eq 'Active'   }).Count
+    $eligible  = @($assignments | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Eligible' }).Count
+    $permanent = @($assignments | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Active'   }).Count
     @{ Eligible = $eligible; Permanent = $permanent }
 } catch {
     Write-Status 'PIM role assignment data unavailable — flagging ManualReview for ID-02 and ID-06.' -Level Warn
@@ -221,15 +240,15 @@ $idControls.Add((New-ZTControl -Id 'ID-02' -Name 'Admin MFA and privileged ident
 # ID-03: Block legacy authentication
 $legacyBlockEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.conditions.clientAppTypes -contains 'exchangeActiveSync' -or
-     $p.conditions.clientAppTypes -contains 'other') -and
-    $p.grantControls.builtInControls -contains 'block'
+    ((Get-ZTProp $p 'conditions.clientAppTypes') -contains 'exchangeActiveSync' -or
+     (Get-ZTProp $p 'conditions.clientAppTypes') -contains 'other') -and
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'block'
 }
 $legacyBlockReportOnly = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.conditions.clientAppTypes -contains 'exchangeActiveSync' -or
-     $p.conditions.clientAppTypes -contains 'other') -and
-    $p.grantControls.builtInControls -contains 'block'
+    ((Get-ZTProp $p 'conditions.clientAppTypes') -contains 'exchangeActiveSync' -or
+     (Get-ZTProp $p 'conditions.clientAppTypes') -contains 'other') -and
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'block'
 } -State 'enabledForReportingButNotEnforced'
 $id03Stage = if ($legacyBlockEnforced)      { 3 }
              elseif ($legacyBlockReportOnly) { 2 }
@@ -240,13 +259,13 @@ $idControls.Add((New-ZTControl -Id 'ID-03' -Name 'Block legacy authentication' `
 # ID-04: Sign-in risk CA enforcement
 $signInRiskEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.conditions.signInRiskLevels -contains 'medium' -or
-     $p.conditions.signInRiskLevels -contains 'high') -and
-    $p.grantControls.builtInControls.Count -gt 0
+    ((Get-ZTProp $p 'conditions.signInRiskLevels') -contains 'medium' -or
+     (Get-ZTProp $p 'conditions.signInRiskLevels') -contains 'high') -and
+    ((Get-ZTProp $p 'grantControls.builtInControls') | Measure-Object).Count -gt 0
 }
 $signInRiskReportOnly = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.conditions.signInRiskLevels.Count -gt 0
+    ((Get-ZTProp $p 'conditions.signInRiskLevels') | Measure-Object).Count -gt 0
 } -State 'enabledForReportingButNotEnforced'
 $id04Stage = if ($signInRiskEnforced)      { 3 }
              elseif ($signInRiskReportOnly) { 2 }
@@ -257,14 +276,14 @@ $idControls.Add((New-ZTControl -Id 'ID-04' -Name 'Sign-in risk CA enforcement' `
 # ID-05: User risk CA enforcement
 $userRiskHighEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.conditions.userRiskLevels -contains 'high' -and
-    $p.grantControls.builtInControls.Count -gt 0
+    (Get-ZTProp $p 'conditions.userRiskLevels') -contains 'high' -and
+    ((Get-ZTProp $p 'grantControls.builtInControls') | Measure-Object).Count -gt 0
 }
 $userRiskMedEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    ($p.conditions.userRiskLevels -contains 'medium' -or
-     $p.conditions.userRiskLevels -contains 'high') -and
-    $p.grantControls.builtInControls.Count -gt 0
+    ((Get-ZTProp $p 'conditions.userRiskLevels') -contains 'medium' -or
+     (Get-ZTProp $p 'conditions.userRiskLevels') -contains 'high') -and
+    ((Get-ZTProp $p 'grantControls.builtInControls') | Measure-Object).Count -gt 0
 }
 $id05Stage = if ($userRiskMedEnforced -and $riskyUsers.Count -eq 0) { 4 }
              elseif ($userRiskHighEnforced -and $userRiskMedEnforced) { 3 }
@@ -286,7 +305,7 @@ $idControls.Add((New-ZTControl -Id 'ID-06' -Name 'Privileged identity management
     -Signal @{ PimData = $pimData }))
 # ID-07: External identity lifecycle governance
 $authPolicy        = try { Invoke-ZTGraphRequest -Uri 'policies/authorizationPolicy' } catch { $null }
-$guestInvitePolicy = if ($null -ne $authPolicy) { $authPolicy.allowInvitesFrom } else { 'unknown' }
+$guestInvitePolicy = if ($null -ne $authPolicy) { Get-ZTProp $authPolicy 'allowInvitesFrom' 'unknown' } else { 'unknown' }
 $guestPolicyStage = switch ($guestInvitePolicy) {
     'none'                          { 4 }
     'adminsAndGuestInviters'        { 3 }
@@ -296,7 +315,7 @@ $guestPolicyStage = switch ($guestInvitePolicy) {
 }
 $accessReviewsExist = try {
     $reviews = Invoke-ZTGraphRequest -Uri 'identityGovernance/accessReviews/definitions'
-    @($reviews | Where-Object { $_.scope.query -match 'guest' -or $_.displayName -match '(?i)guest' }).Count -gt 0
+    @($reviews | Where-Object { (Get-ZTProp $_ 'scope.query') -match 'guest' -or (Get-ZTProp $_ 'displayName') -match '(?i)guest' }).Count -gt 0
 } catch { $false }
 $id07Stage = if ($guestPolicyStage -ge 3 -and $accessReviewsExist) { $guestPolicyStage }
              elseif ($guestPolicyStage -ge 2)                       { $guestPolicyStage }
@@ -315,8 +334,8 @@ Write-Status "Pillar 1 (Identities) stage: $pillar1Stage" -Level OK
 Write-Status 'Assessing Pillar 2 — Endpoints...'
 $epControls = [System.Collections.Generic.List[PSCustomObject]]::new()
 # EP-01: Device registration with cloud identity
-$joinedCount     = @($devices | Where-Object { $_.trustType -in @('AzureAD','ServerAD') }).Count
-$registeredCount = @($devices | Where-Object { $_.trustType -eq 'Workplace' }).Count
+$joinedCount     = @($devices | Where-Object { (Get-ZTProp $_ 'trustType') -in @('AzureAD','ServerAD') }).Count
+$registeredCount = @($devices | Where-Object { (Get-ZTProp $_ 'trustType') -eq 'Workplace' }).Count
 $totalCount      = $devices.Count
 $ep01Stage = if ($totalCount -eq 0)                                               { 1 }
              elseif (($joinedCount + $registeredCount) -ge ($totalCount * 0.95))  { 4 }
@@ -334,11 +353,11 @@ $epControls.Add((New-ZTControl -Id 'EP-02' -Name 'Device compliance policies' `
 # EP-03: CA enforcement of device compliance
 $compliantDeviceEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.grantControls.builtInControls -contains 'compliantDevice'
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'compliantDevice'
 }
 $compliantDeviceReportOnly = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.grantControls.builtInControls -contains 'compliantDevice'
+    (Get-ZTProp $p 'grantControls.builtInControls') -contains 'compliantDevice'
 } -State 'enabledForReportingButNotEnforced'
 $ep03Stage = if ($compliantDeviceEnforced)      { 3 }
              elseif ($compliantDeviceReportOnly) { 2 }
@@ -375,10 +394,10 @@ $apControls.Add((New-ZTControl -Id 'AP-01' -Name 'Shadow IT discovery' `
     -Signal @{}))
 # AP-02: OAuth consent governance
 $consentPolicy  = try { Invoke-ZTGraphRequest -Uri 'policies/adminConsentRequestPolicy' } catch { $null }
-$consentEnabled = if ($null -ne $consentPolicy) { [bool]$consentPolicy.isEnabled } else { $false }
+$consentEnabled = if ($null -ne $consentPolicy) { [bool](Get-ZTProp $consentPolicy 'isEnabled' $false) } else { $false }
 $highPrivGrants = try {
     $grants = Invoke-ZTGraphRequest -Uri 'oauth2PermissionGrants'
-    @($grants | Where-Object { $_.scope -match 'Mail\.|Files\.|Directory\.' }).Count
+    @($grants | Where-Object { (Get-ZTProp $_ 'scope') -match 'Mail\.|Files\.|Directory\.' }).Count
 } catch { 0 }
 $ap02Stage = if ($consentEnabled -and $highPrivGrants -eq 0) { 4 }
              elseif ($consentEnabled)                         { 3 }
@@ -390,7 +409,7 @@ $apControls.Add((New-ZTControl -Id 'AP-02' -Name 'OAuth consent governance' `
 # AP-03: CAAC session controls
 $caacEnabled = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $null -ne $p.sessionControls.cloudAppSecurity
+    $null -ne (Get-ZTProp $p 'sessionControls.cloudAppSecurity')
 }
 $ap03Stage = if ($caacEnabled) { 3 } else { 1 }
 $apControls.Add((New-ZTControl -Id 'AP-03' -Name 'Conditional Access App Control session controls' `
@@ -466,8 +485,8 @@ $azureNote     = 'Requires Azure Management API signals, outside v0.1.0-preview 
 # IN-01: JIT privileged access for Azure resource roles
 $azureResPim = try {
     $ra = Invoke-ZTGraphRequest -Uri 'privilegedAccess/azureResources/roleAssignments' -ApiVersion 'beta'
-    $e  = @($ra | Where-Object { $_.assignmentState -eq 'Eligible' }).Count
-    $p  = @($ra | Where-Object { $_.assignmentState -eq 'Active'   }).Count
+    $e  = @($ra | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Eligible' }).Count
+    $p  = @($ra | Where-Object { (Get-ZTProp $_ 'assignmentState') -eq 'Active'   }).Count
     @{ Eligible = $e; Permanent = $p }
 } catch {
     Write-Status 'Azure resource PIM data unavailable — flagging ManualReview for IN-01.' -Level Warn
@@ -486,9 +505,9 @@ $infraControls.Add((New-ZTControl -Id 'IN-01' -Name 'JIT privileged access for A
 # IN-02: Workload identity — managed identities vs. secrets
 $appRegs      = try { Invoke-ZTGraphRequest -Uri 'applications' } catch { @() }
 $staleSecrets = @($appRegs | Where-Object {
-    @($_.passwordCredentials | Where-Object {
-        $null -eq $_.endDateTime -or
-        ([datetime]$_.endDateTime - [datetime]::UtcNow).TotalDays -gt 365
+    @((Get-ZTProp $_ 'passwordCredentials') | Where-Object {
+        $null -eq (Get-ZTProp $_ 'endDateTime') -or
+        ([datetime](Get-ZTProp $_ 'endDateTime') - [datetime]::UtcNow).TotalDays -gt 365
     }).Count -gt 0
 }).Count
 $in02Stage = if ($appRegs.Count -gt 0 -and $staleSecrets -eq 0)                              { 3 }
@@ -535,11 +554,11 @@ $namedLocations = try {
     Invoke-ZTGraphRequest -Uri 'identity/conditionalAccess/namedLocations' -ApiVersion 'beta'
 } catch { @() }
 $gsaLocationFound = @($namedLocations | Where-Object {
-    $_.displayName -match '(?i)(compliant|GSA|Global Secure)'
+    (Get-ZTProp $_ 'displayName') -match '(?i)(compliant|GSA|Global Secure)'
 }).Count -gt 0
 $compliantNetworkCA = Test-CAPolicyExists -Policies $caPolicies -Filter {
     param($p)
-    $p.conditions.locations.includeLocations.Count -gt 0
+    ((Get-ZTProp $p 'conditions.locations.includeLocations') | Measure-Object).Count -gt 0
 } -State 'enabled'
 $nw03Stage = if ($gsaLocationFound -and $compliantNetworkCA) { 3 }
              elseif ($namedLocations.Count -gt 0)             { 2 }
