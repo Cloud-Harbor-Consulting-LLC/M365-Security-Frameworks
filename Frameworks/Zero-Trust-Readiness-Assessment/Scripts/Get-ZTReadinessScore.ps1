@@ -132,7 +132,7 @@ function Get-PillarStage {
     param([PSCustomObject[]]$Controls)
     $scored = @($Controls | Where-Object { $null -ne $_.Stage } | ForEach-Object { [int]$_.Stage })
     if ($scored.Count -eq 0) { return $null }
-    $sorted = $scored | Sort-Object
+    $sorted = @($scored | Sort-Object)
     $count  = $sorted.Count
     if ($count % 2 -eq 1) {
         return $sorted[($count - 1) / 2]
@@ -583,8 +583,8 @@ $pillar6Stage = Get-PillarStage -Controls $nwControls.ToArray()
 Write-Status "Pillar 6 (Networks) stage: $pillar6Stage" -Level OK
 # ── Result assembly ───────────────────────────────────────────────────────────
 Write-Status 'Assembling result...'
-$allPillarStages = @($pillar1Stage, $pillar2Stage, $pillar3Stage, $pillar4Stage, $pillar5Stage, $pillar6Stage) |
-    Where-Object { $null -ne $_ } | Sort-Object
+$allPillarStages = @(@($pillar1Stage, $pillar2Stage, $pillar3Stage, $pillar4Stage, $pillar5Stage, $pillar6Stage) |
+    Where-Object { $null -ne $_ } | Sort-Object)
 $overallStage = if ($allPillarStages.Count -eq 0) { $null }
                elseif ($allPillarStages.Count % 2 -eq 1) {
                    $allPillarStages[($allPillarStages.Count - 1) / 2]
