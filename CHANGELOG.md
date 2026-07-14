@@ -25,6 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrected the PIM data-collection endpoints in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`
+  (controls ID-02, ID-06). The collector called the deprecated Azure AD PIM API
+  `GET /beta/privilegedAccess/aadRoles/resources/{tenantId}/roleAssignments`, which no longer
+  resolves and always fell through to `ManualReview`. Replaced with the current PIM v3 unified
+  role-management endpoints (v1.0 GA): eligible assignments via
+  `GET /roleManagement/directory/roleEligibilityScheduleInstances` and permanent standing
+  assignments via `GET /roleManagement/directory/roleAssignmentScheduleInstances` filtered to
+  `assignmentType eq 'Assigned'` with a null `endDateTime`. IN-01 (PIM for Azure resource roles)
+  is Azure Resource Manager-only — not exposed by Microsoft Graph — so its dead beta call was
+  removed and the control is now a direct `ManualReview`. Dropped the now-unused
+  `PrivilegedAccess.Read.AzureAD` scope (the collector runs on 6 read-only scopes; the new
+  endpoints are covered by the existing `RoleManagement.Read.Directory`). Updated the framework
+  README, Scripts/README, and the SCORING-RUBRIC M365 Signal fields (ID-02, ID-06, IN-01, IN-04)
+  to cite the correct endpoints.
 - Fixed a runtime failure in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`
   where three `New-ZTControl` calls (ID-02, ID-06, IN-01) passed an `if`/`else` statement to
   `-ManualReviewNote` using grouping parentheses — `(if ... { } else { })`. In argument position

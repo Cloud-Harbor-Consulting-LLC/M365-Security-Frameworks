@@ -26,7 +26,7 @@ Per-pillar stage = median of all control row scores within the pillar. Overall t
 | Artifact | Description |
 |---|---|
 | `Design/SCORING-RUBRIC.md` | Full assessment rubric — 6 pillars × 4 CISA ZTMM stages. Each control row includes NIST tenet citations, the observable M365 configuration signal used to score it, and a cross-reference to a deployed repo artifact where applicable. Usable without the collector script. |
-| `Scripts/Get-ZTReadinessScore.ps1` | Read-only Microsoft Graph collector. Runs against a live tenant using 7 delegated/application scopes (no write permissions) and returns a structured object consumed by the formatter. |
+| `Scripts/Get-ZTReadinessScore.ps1` | Read-only Microsoft Graph collector. Runs against a live tenant using 6 delegated/application scopes (no write permissions) and returns a structured object consumed by the formatter. |
 | `Scripts/Format-ZTReadinessReport.ps1` | Accepts the collector output and generates three Markdown reports: technical detail, executive summary, and board 1-pager. |
 | `Scripts/README.md` | Prerequisites, authentication setup, and end-to-end usage examples for both scripts. |
 | `Examples/Board-Summary-Template.md` | Blank board 1-pager template for practitioners who run the assessment manually against the rubric. |
@@ -47,7 +47,6 @@ The collector script uses read-only scopes only:
 | `Device.Read.All` | Endpoints |
 | `RoleManagement.Read.Directory` | Identities, Infrastructure |
 | `Reports.Read.All` | Cross-pillar |
-| `PrivilegedAccess.Read.AzureAD` | Identities, Infrastructure |
 
 ---
 
