@@ -25,6 +25,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a runtime failure in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`
+  where three `New-ZTControl` calls (ID-02, ID-06, IN-01) passed an `if`/`else` statement to
+  `-ManualReviewNote` using grouping parentheses — `(if ... { } else { })`. In argument position
+  PowerShell parses `if` as a command name (so the file parses cleanly) but fails at runtime with
+  "The term 'if' is not recognized as a name of a cmdlet". Replaced with the subexpression operator
+  `$(if ... { } else { })`. Surfaced against `cloudharbordemo.onmicrosoft.com` once the paging and
+  strict-mode fixes let execution reach the PIM controls.
+- Fixed strict-mode property access across the scoring predicates and inline accessors in
+  `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`. Under
+  `Set-StrictMode -Version Latest`, the CA-policy filter predicates (and several inline
+  accessors) read optional nested Graph properties directly — e.g. `$p.grantControls.builtInControls`
+  on a session-only or authentication-strength-only policy whose `grantControls` object has no
+  `builtInControls` member — throwing `PropertyNotFoundException` and aborting the assessment on the
+  first policy evaluated. Added a `Get-ZTProp` helper that walks a dotted property path and returns a
+  default when any segment is missing or null, and routed ~40 fragile accesses through it (CA-policy
+  predicates plus device, PIM assignment, OAuth grant, access-review, app-credential, and named-location
+  accessors). Collection checks use `Measure-Object` so a missing property counts as zero rather than
+  throwing on `.Count`. Confirmed against `cloudharbordemo.onmicrosoft.com` (27 CA policies of mixed
+  types): the collector previously exited with `PropertyNotFoundException` on the first CA policy;
+  the fix allows all six pillars to score.
 - Fixed `Invoke-ZTGraphRequest` in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`:
   direct property access on `$response.'@odata.nextLink'` and `$response.value` threw
   `PropertyNotFoundException` under `Set-StrictMode -Version Latest` when the API response
