@@ -70,12 +70,18 @@ function Invoke-ZTGraphRequest {
     $results = [System.Collections.Generic.List[object]]::new()
     do {
         $response = Invoke-MgGraphRequest -Method GET -Uri $fullUri -OutputType PSObject
-        if ($null -ne $response.value) {
+        $hasValue = ($null -ne $response) -and
+                    ($response.PSObject.Properties.Name -contains 'value')
+        if ($hasValue) {
             $results.AddRange([object[]]($response.value))
         } else {
             return $response
         }
-        $fullUri = $response.'@odata.nextLink'
+        $fullUri = if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
+            $response.'@odata.nextLink'
+        } else {
+            $null
+        }
     } while ($fullUri)
     return $results.ToArray()
 }
