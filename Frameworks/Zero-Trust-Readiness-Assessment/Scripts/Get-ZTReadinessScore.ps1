@@ -235,7 +235,7 @@ $id02Stage = if ($null -eq $pimData) { $null }
 $idControls.Add((New-ZTControl -Id 'ID-02' -Name 'Admin MFA and privileged identity protection' `
     -NistTenets @('T3','T4','T6') -RepoXRef 'CA-AUT001-003, CA-SIG005' -Stage $id02Stage `
     -ManualReview ($null -eq $pimData) `
-    -ManualReviewNote (if ($null -eq $pimData) { 'PIM role assignment data not returned. Review in Entra admin center > Identity Governance > Privileged Identity Management > Azure AD roles > Assignments.' } else { '' }) `
+    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM role assignment data not returned. Review in Entra admin center > Identity Governance > Privileged Identity Management > Azure AD roles > Assignments.' } else { '' }) `
     -Signal @{ AdminMfaEnforced = $adminMfaEnforced; AdminSignInRiskCA = $adminSignInRiskCA; PimData = $pimData }))
 # ID-03: Block legacy authentication
 $legacyBlockEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
@@ -301,7 +301,7 @@ $id06Stage = if ($null -eq $pimData) { $null }
 $idControls.Add((New-ZTControl -Id 'ID-06' -Name 'Privileged identity management JIT access' `
     -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $id06Stage `
     -ManualReview ($null -eq $pimData) `
-    -ManualReviewNote (if ($null -eq $pimData) { 'PIM data unavailable. Review in Entra admin center > Identity Governance > PIM > Azure AD roles > Assignments.' } else { '' }) `
+    -ManualReviewNote $(if ($null -eq $pimData) { 'PIM data unavailable. Review in Entra admin center > Identity Governance > PIM > Azure AD roles > Assignments.' } else { '' }) `
     -Signal @{ PimData = $pimData }))
 # ID-07: External identity lifecycle governance
 $authPolicy        = try { Invoke-ZTGraphRequest -Uri 'policies/authorizationPolicy' } catch { $null }
@@ -500,7 +500,7 @@ $in01Stage = if ($null -eq $azureResPim) { $null }
 $infraControls.Add((New-ZTControl -Id 'IN-01' -Name 'JIT privileged access for Azure resource roles' `
     -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $in01Stage `
     -ManualReview ($null -eq $azureResPim) `
-    -ManualReviewNote (if ($null -eq $azureResPim) { 'Azure resource PIM data not returned. Review in Entra admin center > Identity Governance > PIM > Azure resources > Assignments.' } else { '' }) `
+    -ManualReviewNote $(if ($null -eq $azureResPim) { 'Azure resource PIM data not returned. Review in Entra admin center > Identity Governance > PIM > Azure resources > Assignments.' } else { '' }) `
     -Signal @{ AzureResourcePim = $azureResPim }))
 # IN-02: Workload identity — managed identities vs. secrets
 $appRegs      = try { Invoke-ZTGraphRequest -Uri 'applications' } catch { @() }

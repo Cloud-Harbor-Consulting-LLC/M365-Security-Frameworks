@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a runtime failure in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`
+  where three `New-ZTControl` calls (ID-02, ID-06, IN-01) passed an `if`/`else` statement to
+  `-ManualReviewNote` using grouping parentheses — `(if ... { } else { })`. In argument position
+  PowerShell parses `if` as a command name (so the file parses cleanly) but fails at runtime with
+  "The term 'if' is not recognized as a name of a cmdlet". Replaced with the subexpression operator
+  `$(if ... { } else { })`. Surfaced against `cloudharbordemo.onmicrosoft.com` once the paging and
+  strict-mode fixes let execution reach the PIM controls.
 - Fixed strict-mode property access across the scoring predicates and inline accessors in
   `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`. Under
   `Set-StrictMode -Version Latest`, the CA-policy filter predicates (and several inline
