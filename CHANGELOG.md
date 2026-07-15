@@ -22,6 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prerequisites, required Graph scope table, authentication options (interactive and
   service principal), parameter reference, output object shape, manual review guidance
   table, and scoring logic explanation
+- `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1` —
+  ZTRA formatter; accepts a `ZTRAResult` PSCustomObject (via `-Result` parameter) or a
+  JSON file (via `-InputPath`); generates three audience-scoped Markdown reports in a
+  single run: technical detail (`-technical.md`) for security engineers, executive summary
+  (`-exec-summary.md`) for CISO and security leadership, and board 1-pager (`-board.md`)
+  for board and audit committee; output files named `<TenantName>-<date>-<shape>.md`
+- `Frameworks/Zero-Trust-Readiness-Assessment/Examples/Board-Summary-Template.md` —
+  blank board 1-pager template for practitioners running the assessment manually against
+  the scoring rubric without the collector script
+- `Frameworks/Zero-Trust-Readiness-Assessment/Examples/Sample-Tenant-Report.md` —
+  all three output shapes populated with fictional Contoso Ltd data (Overall: Stage 2 —
+  Initial; Identities, Endpoints, Applications, and Data at Stage 2; Infrastructure and
+  Networks at Stage 1); illustrates the framework's output before running against a real tenant
 
 ### Fixed
 
