@@ -38,6 +38,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrected a misattributed breach-cost statistic in the ZTRA board report output
+  (`Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1`) and in
+  `Examples/Sample-Tenant-Report.md`. Both stated that "organizations with a mature Zero Trust
+  program average $1.76M less per breach" and attributed it to the IBM Cost of a Data Breach 2024
+  report. That report publishes no Zero Trust-specific breakdown; in the 2024 edition $1.76M is the
+  additional cost borne by organizations with severe security staffing shortages. The $1.76M Zero
+  Trust figure is genuine but originates in IBM's 2021 report (mature Zero Trust $3.28M per breach
+  versus $5.04M for organizations that had not deployed Zero Trust). The board report now cites the
+  2021 edition explicitly and states both underlying figures, while continuing to source the current
+  $4.88M global / $9.36M US averages from the 2024 report. The 2021 edition is the most recent to
+  publish a Zero Trust-specific cut.
 - Corrected the PIM data-collection endpoints in `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`
   (controls ID-02, ID-06). The collector called the deprecated Azure AD PIM API
   `GET /beta/privilegedAccess/aadRoles/resources/{tenantId}/roleAssignments`, which no longer

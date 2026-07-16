@@ -284,9 +284,10 @@ device CA policy and enforced MFA coverage set, an attacker who obtains a valid 
 access corporate resources from any device.
 
 The IBM Cost of a Data Breach 2024 report places the average breach cost at $4.88M globally
-($9.36M in the United States). Organizations with a mature Zero Trust program average $1.76M
-less per breach than organizations without one. A Stage 2 organization typically falls into the
-higher-cost breach category.
+($9.36M in the United States). IBM's 2021 report, the most recent edition to publish a Zero
+Trust-specific breakdown, found that organizations with a mature Zero Trust strategy averaged
+$3.28M per breach compared with $5.04M for organizations that had not deployed Zero Trust, a
+difference of $1.76M. A Stage 2 organization typically falls into the higher-cost breach category.
 
 ---
 
