@@ -38,6 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Refreshed the breach-cost benchmarks in the ZTRA board report output
+  (`Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1`) and
+  `Examples/Sample-Tenant-Report.md` from the IBM Cost of a Data Breach 2024 report to the 2025
+  edition. The global average fell to $4.44M (from $4.88M, the first decrease in five years) while
+  the United States average rose to $10.22M (from $9.36M), an all-time high for any region. Added
+  the 2025 finding that phishing is the most common initial attack vector at 16% of breaches,
+  having overtaken compromised credentials. The Zero Trust comparison continues to cite IBM 2021,
+  confirmed against the 2025 report as the most recent edition to publish a Zero Trust-specific
+  breakdown (the 2025 edition contains no Zero Trust analysis); it is now expressed as a 35%
+  reduction alongside the underlying $3.28M and $5.04M figures.
 - Corrected a misattributed breach-cost statistic in the ZTRA board report output
   (`Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1`) and in
   `Examples/Sample-Tenant-Report.md`. Both stated that "organizations with a mature Zero Trust
