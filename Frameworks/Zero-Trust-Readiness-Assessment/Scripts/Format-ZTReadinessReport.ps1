@@ -300,7 +300,7 @@ $b.Add('- **Credential attacks succeeding** — phishing, password spray, and MF
 $b.Add('- **Lateral movement going undetected** — without device compliance enforcement and endpoint telemetry, an attacker who gains access to one account can move freely.')
 $b.Add('- **Data leaving without visibility** — without sensitivity labels and DLP enforcement, sensitive data can be exfiltrated or shared externally without triggering an alert.')
 $b.Add('')
-$b.Add('The IBM Cost of a Data Breach 2024 report places the average breach cost at $4.88M globally ($9.36M in the United States). Organizations with a mature Zero Trust program average $1.76M less per breach than organizations without one.')
+$b.Add('The IBM Cost of a Data Breach 2024 report places the average breach cost at $4.88M globally ($9.36M in the United States). IBM''s 2021 report, the most recent edition to publish a Zero Trust-specific breakdown, found that organizations with a mature Zero Trust strategy averaged $3.28M per breach compared with $5.04M for organizations that had not deployed Zero Trust, a difference of $1.76M.')
 $b.Add('')
 $b.Add('---')
 $b.Add('')
