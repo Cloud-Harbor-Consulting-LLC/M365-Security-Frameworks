@@ -35,6 +35,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   all three output shapes populated with fictional Contoso Ltd data (Overall: Stage 2 —
   Initial; Identities, Endpoints, Applications, and Data at Stage 2; Infrastructure and
   Networks at Stage 1); illustrates the framework's output before running against a real tenant
+- `Frameworks/Zero-Trust-Readiness-Assessment/Business-Case/ROI-ZT-READINESS.md` —
+  business case for Zero Trust readiness assessment. Breach cost benchmarks from the IBM Cost
+  of a Data Breach 2025 report (global average $4.44M, United States average $10.22M, breach
+  lifecycle 241 days, security AI and automation worth $1.9M and 80 days per breach) plus the
+  Zero Trust-specific comparison from IBM 2021 ($3.28M at mature Zero Trust versus $5.04M not
+  deployed, a 35% reduction), which is the most recent IBM edition to publish a Zero Trust cut.
+  Includes an expected-loss ROI model that holds breach probability constant as an explicitly
+  reader-supplied assumption and lets maturity reduce cost only, presented as a sensitivity
+  table across 10/20/30% probability for both the US and global cost bases; a statement of what
+  the model does and does not claim; the case that an assessment's return is avoided
+  misallocation of the remediation budget rather than risk reduction in itself; the cost of
+  remediating without a baseline; a compliance alignment table (NIST SP 800-53, SOC 2,
+  ISO 27001, HIPAA, PCI-DSS v4.0, CMMC 2.0); and a standard CHC ZTRA engagement structure
 
 ### Fixed
 
