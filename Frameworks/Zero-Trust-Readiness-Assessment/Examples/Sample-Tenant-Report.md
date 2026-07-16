@@ -283,11 +283,13 @@ credential theft are the top initial access vectors in M365 environments. Withou
 device CA policy and enforced MFA coverage set, an attacker who obtains a valid password can
 access corporate resources from any device.
 
-The IBM Cost of a Data Breach 2024 report places the average breach cost at $4.88M globally
-($9.36M in the United States). IBM's 2021 report, the most recent edition to publish a Zero
-Trust-specific breakdown, found that organizations with a mature Zero Trust strategy averaged
-$3.28M per breach compared with $5.04M for organizations that had not deployed Zero Trust, a
-difference of $1.76M. A Stage 2 organization typically falls into the higher-cost breach category.
+The IBM Cost of a Data Breach 2025 report places the average breach cost at $4.44M globally and
+$10.22M in the United States, an all-time high for any region. Phishing was the most common
+initial attack vector, accounting for 16% of breaches. IBM's 2021 report, the most recent edition
+to publish a Zero Trust-specific breakdown, found that organizations with a mature Zero Trust
+strategy averaged $3.28M per breach compared with $5.04M for organizations that had not deployed
+Zero Trust, a reduction of 35%. A Stage 2 organization typically falls into the higher-cost
+breach category.
 
 ---
 
