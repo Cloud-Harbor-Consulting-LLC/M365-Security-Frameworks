@@ -1,6 +1,6 @@
 # Zero Trust Readiness Assessment Framework
 
-> **Status:** 🔬 In Development — `ztra-v0.1.0-preview` shipping July 2026
+> **Status:** 🟡 Preview — `ztra-v0.1.0-preview` released July 2026
 
 Assesses an M365 tenant's Zero Trust posture across Microsoft's 6 ZT pillars, scores each pillar against CISA ZTMM v2.0's 4 maturity stages, and produces three audience-scoped output reports: a technical detail report for security engineers, an executive summary for the CISO, and a board 1-pager.
 

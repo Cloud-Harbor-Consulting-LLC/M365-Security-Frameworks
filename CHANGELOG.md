@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [ztra-v0.1.0-preview] - 2026-07-17
+
 ### Added
 
 - Frameworks/Zero-Trust-Readiness-Assessment/README.md — skeleton landing page for the Zero Trust Readiness Assessment Framework (ZTRA). The framework assesses an M365 tenant's Zero Trust posture across Microsoft's 6 ZT pillars (Identities, Endpoints, Applications, Data, Infrastructure, Networks) scored against CISA ZTMM v2.0's 4 maturity stages (Traditional, Initial, Advanced, Optimal), with NIST SP 800-207 tenet citations per control row. Per-pillar and overall tenant stage use equal pillar weighting (16.67% each), aligned with CISA ZTMM v2.0's horizontal progress design. Assessment outputs include a technical detail report, an executive summary, and a board 1-pager, generated from a single read-only Microsoft Graph collector run. The scoring rubric (Design/SCORING-RUBRIC.md) is usable as a standalone assessment instrument independent of the collector. Scoring rubric, collector, formatter, examples, and ROI document follow in PRs B–F this week. Targets ztra-v0.1.0-preview.
@@ -48,6 +52,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   misallocation of the remediation budget rather than risk reduction in itself; the cost of
   remediating without a baseline; a compliance alignment table (NIST SP 800-53, SOC 2,
   ISO 27001, HIPAA, PCI-DSS v4.0, CMMC 2.0); and a standard CHC ZTRA engagement structure
+
+### Changed
+
+- Frameworks/Zero-Trust-Readiness-Assessment/README.md status banner flipped from
+  `🔬 In Development — ztra-v0.1.0-preview shipping July 2026` to
+  `🟡 Preview — ztra-v0.1.0-preview released July 2026`.
+- Root README.md Frameworks table Zero Trust Readiness Assessment row updated:
+  Status changed from Planned to Preview, Latest set to `ztra-v0.1.0-preview (2026-07-17)`,
+  Notes column trimmed to remove the forward-looking "ships as ztra-v0.1.0-preview July 2026"
+  clause.
+- CHANGELOG.md version cut: [Unreleased] content moved to
+  `[ztra-v0.1.0-preview] - 2026-07-17` dated section; compare-link footer chain updated
+  to `ztra-v0.1.0-preview...HEAD` for [Unreleased] and new
+  `[ztra-v0.1.0-preview]: .../compare/v1.4.0...ztra-v0.1.0-preview` entry inserted.
 
 ### Fixed
 
@@ -358,7 +376,9 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 ---
 
-[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.4.0...HEAD>
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/ztra-v0.1.0-preview...HEAD>
+
+[ztra-v0.1.0-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.4.0...ztra-v0.1.0-preview>
 
 [1.4.0]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/eig-v0.1.0-preview...v1.4.0>
 
