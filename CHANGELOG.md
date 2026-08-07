@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `Frameworks/Security-Reporting-Decision-Rubric/REPORTING-DECISION-RUBRIC.md`: severity floor section now distinguishes alert severity from incident severity in Defender XDR; kill-list expanded with 3 entries (Copilot activity summary, Agent ID sign-in count, Secure Score weekly change); SOC lead weekly metrics updated — Security Copilot auto-triage measurement definition clarified, Agent ID risk detection metric added.
+
 ---
 
 ## [ztra-v0.1.0-preview] - 2026-07-17

@@ -28,6 +28,8 @@ If the report passes all 4 questions, it stays. If it fails any of them, it goes
 
 Microsoft Defender XDR classifies alerts as Informational, Low, Medium, or High, driven by what kind of activity triggered the alert and how confident Microsoft is that the alert is real. High severity covers confirmed malware, ransomware, or a successful exploit. Medium covers suspicious activity that needs analyst review. Low covers minor or informational events, blocked attacks, and routine admin actions. Source: Microsoft Learn, Investigate alerts in Microsoft Defender XDR.
 
+Defender XDR correlates individual alerts into incidents. An incident's severity is set by its highest-severity alert. Reports targeting the CISO and board should reference incident severity, not alert severity. Reports targeting the analyst queue reference alert severity. Mixing the two in a single report produces an audience mismatch that fails question 1 of the 4-question test. Source: Microsoft Learn, Incidents and alerts in the Microsoft Defender portal.
+
 Practical floor rules:
 
 - Anything below Medium should not appear in a CISO monthly except as a trend line.
@@ -40,10 +42,11 @@ Practical floor rules:
 ### SOC lead (weekly)
 
 - Mean time to detect (MTTD) and mean time to respond (MTTR), 7 day and 30 day trend
-- Percent of incidents auto triaged by Microsoft Security Copilot
+- Percent of incidents auto triaged by Microsoft Security Copilot. Measure as: incidents with a Copilot-generated investigation summary in the Defender XDR portal, not as auto-resolved incidents. Source: Microsoft Learn, Microsoft Security Copilot in Microsoft Defender XDR.
 - Percent of analyst hours on incidents versus false positives
 - Top 5 detection rules by false positive rate (tuning candidates)
 - Exception backlog count and age
+- Agent ID risk detections, 7-day count and mean time to detect (for tenants using Conditional Access for Agents)
 
 ### CISO (monthly)
 
@@ -71,6 +74,9 @@ Reports that almost always fail the 4 question test:
 - "Top users by data download volume" outside an active investigation. Without context, this is surveillance, not security.
 - "Phishing emails blocked this month." Vanity metric. Reader cannot change it.
 - "Total alerts triaged." Volume metric, not outcome metric. Replace with MTTD and MTTR.
+- "Microsoft 365 Copilot activity summary." User volume without a decision context. If a Copilot interaction triggers a DLP event, report the DLP incident count and severity, not the Copilot usage volume.
+- "Agent ID sign-in event count this month." Volume metric. Replace with Agent ID risk detection count and mean time to detect from Microsoft Entra Identity Protection, which are decision-relevant signals for tenants running Conditional Access for Agents.
+- "Secure Score change this week." Directional only. If the score changed, report the specific control change that drove it and the owner of the resulting decision, not the score delta itself.
 
 ## Versioning and updates
 
