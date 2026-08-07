@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: Entra ID P2 business case — core doc covering P1-vs-P2 feature comparison, P2-exclusive controls used in this repo (Identity Protection risk policies, PIM, Access Reviews), per-user licensing cost, and operational cost estimates. Compliance mapping and CFO summary ship in a follow-on PR.
+
 ### Changed
 
 - `Frameworks/Security-Reporting-Decision-Rubric/REPORTING-DECISION-RUBRIC.md`: severity floor section now distinguishes alert severity from incident severity in Defender XDR; kill-list expanded with 3 entries (Copilot activity summary, Agent ID sign-in count, Secure Score weekly change); SOC lead weekly metrics updated — Security Copilot auto-triage measurement definition clarified, Agent ID risk detection metric added.
