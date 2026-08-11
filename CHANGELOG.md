@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: Entra ID P2 business case — core doc covering P1-vs-P2 feature comparison, P2-exclusive controls used in this repo (Identity Protection risk policies, PIM, Access Reviews), per-user licensing cost, and operational cost estimates. Compliance mapping and CFO summary ship in a follow-on PR.
 - `Frameworks/Security-Reporting-Decision-Rubric/Examples/Board-Posture-Summary.md`: 1-page M365 Security Posture Summary template for boards. CISA ZTMM v2.0 stage ratings per pillar, top 3 material incidents QTD, investment vs risk-reduction achieved, and a single open ask of the board.
 - `Frameworks/Security-Reporting-Decision-Rubric/Examples/Exec-Committee-Quarterly.md`: Executive Committee quarterly review template. Sits between the CISO Monthly and Board Quarterly. Investment-approval and risk-acceptance decisions, top 3 material incidents, and 4 key metrics.
+- `Frameworks/Security-Reporting-Decision-Rubric/Examples/SOC-Lead-Weekly.md`: SOC lead weekly report template. MTTD/MTTR trend (7-day and 30-day), Copilot investigation summary coverage, analyst hours split, top 5 false-positive tuning candidates, exception backlog, and Agent ID risk detection metrics for tenants with CA-COV011.
+- `Frameworks/Security-Reporting-Decision-Rubric/Examples/Audit-Attestation.md`: Audit attestation template mapping Defender XDR metrics and Entra ID Access Review outputs to SOC 2 CC controls and ISO 27001:2022 controls. Uses 2022 revision numbering throughout.
 
 ### Changed
 
