@@ -136,7 +136,19 @@ The collector never scores a check it could not assess. Manual checks are exclud
 | D-05 | The Defender Coverage and maturity composite score has no API | Defender portal > Identities > Coverage and maturity |
 | O-01 to O-06 | Ownership is an organisational fact, not tenant configuration | `Examples/Ownership-Matrix-Template.md` |
 
-Any automated check also falls back to manual when its Graph call fails — most commonly because the tenant lacks the required license. In that case the check carries a `ManualReviewNote` naming the portal location instead of silently scoring zero.
+### Absent versus unassessable
+
+The collector distinguishes 3 outcomes per Graph call, and they are scored differently:
+
+| Outcome | Meaning | Scoring |
+|---|---|---|
+| Call succeeds, records returned | The control exists and can be evaluated | Scored on its merits |
+| Call succeeds, **zero records** | The control is genuinely **absent** | **Scored zero** and counted in the denominator |
+| Call fails | The control **could not be assessed** | `ManualReview`, excluded from the denominator |
+
+The middle row matters. A tenant with no access reviews configured, or no Conditional Access policies, has genuinely absent controls — those score zero rather than being excluded, because excluding them would inflate the dimension.
+
+When a call does fail, the `ManualReviewNote` carries **the actual error message returned by Graph**. Earlier versions asserted a probable cause (usually licensing) without evidence; the note now reports what happened and flags the common cause as a hypothesis to confirm rather than a conclusion.
 
 **Always report an automated-only run as a partial score.** The collector sets `IsPartialScore` and lists `UnscoredDimensions` so the formatter can label it, and all 3 reports carry the label automatically. Ownership is manual in full, so every automated-only run is partial by definition.
 
