@@ -171,6 +171,36 @@ function Get-DimensionScore {
     return [int][Math]::Round(($earned / $available) * 100, 0)
 }
 
+function Invoke-ITPSCollection {
+    # Wraps a Graph collection call and reports three distinct outcomes:
+    #   Ok = $true,  Items = @()      -> the endpoint answered and the set is genuinely empty
+    #   Ok = $true,  Items = @(...)   -> the endpoint answered with data
+    #   Ok = $false, Error = '...'    -> the call failed and the check cannot be assessed
+    #
+    # This distinction matters. Assigning a collection through a try/catch
+    # (`$x = try { @(fn) } catch { $null }`) silently yields $null when the result
+    # is empty, because PowerShell unrolls an empty collection to zero pipeline
+    # objects. That made "no records exist" indistinguishable from "call failed",
+    # which excluded genuinely-absent controls from scoring instead of scoring them
+    # zero. The scriptblock result is captured inside the try, never through it.
+    [OutputType([PSCustomObject])]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Uri,
+        [string]$ApiVersion = 'v1.0'
+    )
+    $items = @()
+    $ok = $true
+    $err = ''
+    try {
+        $items = @(Invoke-ITPSGraphRequest -Uri $Uri -ApiVersion $ApiVersion)
+    }
+    catch {
+        $ok = $false
+        $err = $_.Exception.Message
+    }
+    [PSCustomObject]@{ Ok = $ok; Items = $items; Error = $err }
+}
 function Get-ITPSTier {
     [OutputType([string])]
     [CmdletBinding()]
@@ -206,11 +236,17 @@ Write-Status 'Assessing Prevention...'
 $preventionChecks = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 # P-01 Secure Score attainment (0-50)
-$secureScore = try {
-    @(Invoke-ITPSGraphRequest -Uri 'security/secureScores?$top=1') | Select-Object -First 1
+$secureScoreCall = Invoke-ITPSCollection -Uri 'security/secureScores?$top=1'
+$secureScore = if ($secureScoreCall.Ok -and $secureScoreCall.Items.Count -gt 0) {
+    $secureScoreCall.Items[0]
 }
-catch {
-    Write-Status 'Secure Score unavailable — flagging P-01 for manual review.' -Level Warn
+else {
+    if (-not $secureScoreCall.Ok) {
+        Write-Status "Secure Score call failed — flagging P-01 for manual review. $($secureScoreCall.Error)" -Level Warn
+    }
+    else {
+        Write-Status 'Secure Score returned no records — flagging P-01 for manual review.' -Level Warn
+    }
     $null
 }
 
@@ -239,21 +275,27 @@ if ($null -ne $secureScore) {
             }))
 }
 else {
+    $p01Note = if (-not $secureScoreCall.Ok) {
+        "Secure Score call failed: $($secureScoreCall.Error) Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category."
+    }
+    else {
+        'Secure Score returned no records for this tenant. Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category.'
+    }
     $preventionChecks.Add((New-ITPSCheck -Id 'P-01' -Name 'Secure Score attainment' `
-                -ManualReview $true `
-                -ManualReviewNote 'Secure Score not returned. Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category.'))
+                -ManualReview $true -ManualReviewNote $p01Note))
 }
 
 # CA policy checks P-02 through P-06
-$caPolicies = try {
-    @(Invoke-ITPSGraphRequest -Uri 'identity/conditionalAccess/policies')
+$caCall = Invoke-ITPSCollection -Uri 'identity/conditionalAccess/policies'
+if (-not $caCall.Ok) {
+    Write-Status "Conditional Access policies unavailable — flagging P-02..P-06 for manual review. $($caCall.Error)" -Level Warn
 }
-catch {
-    Write-Status 'Conditional Access policies unavailable — flagging P-02..P-06 for manual review.' -Level Warn
-    $null
+elseif ($caCall.Items.Count -eq 0) {
+    Write-Status 'No Conditional Access policies exist in this tenant — P-02..P-06 score zero.' -Level Warn
 }
+$caPolicies = $caCall.Items
 
-if ($null -ne $caPolicies) {
+if ($caCall.Ok) {
     $mfaEnforced = Test-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'grantControls.builtInControls') -contains 'mfa' -or
@@ -305,7 +347,7 @@ else {
             @{ Id = 'P-05'; Name = 'Privileged roles targeted' },
             @{ Id = 'P-06'; Name = 'Phishing-resistant strength in use' })) {
         $preventionChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote 'Conditional Access policies not returned. Review in Entra admin center > Protection > Conditional Access > Policies.'))
+                    -ManualReviewNote "Conditional Access policy call failed: $($caCall.Error) Review in Entra admin center > Protection > Conditional Access > Policies."))
     }
 }
 
@@ -317,15 +359,16 @@ Write-Status "Prevention score: $preventionScore" -Level OK
 Write-Status 'Assessing Detection...'
 $detectionChecks = [System.Collections.Generic.List[PSCustomObject]]::new()
 
-$healthIssues = try {
-    @(Invoke-ITPSGraphRequest -Uri "security/identities/healthIssues?`$filter=Status eq 'open'")
+$healthCall = Invoke-ITPSCollection -Uri "security/identities/healthIssues?`$filter=Status eq 'open'"
+if (-not $healthCall.Ok) {
+    Write-Status "Defender for Identity health issues unavailable — flagging D-01..D-04 for manual review. $($healthCall.Error)" -Level Warn
 }
-catch {
-    Write-Status 'Defender for Identity health issues unavailable — flagging D-01..D-04 for manual review.' -Level Warn
-    $null
+elseif ($healthCall.Items.Count -eq 0) {
+    Write-Status 'No open Defender for Identity health issues — D-01..D-04 earn full points.' -Level OK
 }
+$healthIssues = $healthCall.Items
 
-if ($null -ne $healthIssues) {
+if ($healthCall.Ok) {
     $openHigh = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'high' }).Count
     $openMedium = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'medium' }).Count
     $openSensor = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'healthIssueType') -match '(?i)sensor' }).Count
@@ -350,7 +393,7 @@ else {
             @{ Id = 'D-03'; Name = 'Sensor health issues resolved' },
             @{ Id = 'D-04'; Name = 'Health signal reachable' })) {
         $detectionChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote 'Defender for Identity health issues not returned. This usually means Defender for Identity is not licensed or not provisioned. Review in Microsoft Defender portal > Settings > Identities > Health issues.'))
+                    -ManualReviewNote "Defender for Identity health issue call failed: $($healthCall.Error) This commonly means Defender for Identity is not licensed or not provisioned, but confirm against the error above rather than assuming. Review in Microsoft Defender portal > Settings > Identities > Health issues."))
     }
 }
 
@@ -368,15 +411,16 @@ Write-Status 'Assessing Governance...'
 $governanceChecks = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 # G-01, G-02 access reviews
-$accessReviews = try {
-    @(Invoke-ITPSGraphRequest -Uri 'identityGovernance/accessReviews/definitions')
+$reviewCall = Invoke-ITPSCollection -Uri 'identityGovernance/accessReviews/definitions'
+if (-not $reviewCall.Ok) {
+    Write-Status "Access review definitions unavailable — flagging G-01 and G-02 for manual review. $($reviewCall.Error)" -Level Warn
 }
-catch {
-    Write-Status 'Access review definitions unavailable — flagging G-01 and G-02 for manual review.' -Level Warn
-    $null
+elseif ($reviewCall.Items.Count -eq 0) {
+    Write-Status 'No access review definitions exist in this tenant — G-01 and G-02 score zero.' -Level Warn
 }
+$accessReviews = $reviewCall.Items
 
-if ($null -ne $accessReviews) {
+if ($reviewCall.Ok) {
     $reviewCount = $accessReviews.Count
     $guestReviewPresent = @($accessReviews | Where-Object {
             (Get-ITPSProp $_ 'displayName') -match '(?i)guest' -or
@@ -395,26 +439,31 @@ else {
             @{ Id = 'G-01'; Name = 'Access reviews configured' },
             @{ Id = 'G-02'; Name = 'Guest access reviewed' })) {
         $governanceChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote 'Access review definitions not returned. Requires Entra ID P2 or Entra ID Governance. Review in Entra admin center > Identity Governance > Access reviews.'))
+                    -ManualReviewNote "Access review definition call failed: $($reviewCall.Error) Access Reviews require Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Access reviews."))
     }
 }
 
 # G-03, G-04 PIM
-$pimData = try {
-    $eligible = @(Invoke-ITPSGraphRequest -Uri 'roleManagement/directory/roleEligibilityScheduleInstances').Count
-    $active = @(Invoke-ITPSGraphRequest -Uri 'roleManagement/directory/roleAssignmentScheduleInstances')
-    $permanent = @($active | Where-Object {
+$eligibleCall = Invoke-ITPSCollection -Uri 'roleManagement/directory/roleEligibilityScheduleInstances'
+$activeCall = Invoke-ITPSCollection -Uri 'roleManagement/directory/roleAssignmentScheduleInstances'
+$pimOk = $eligibleCall.Ok -and $activeCall.Ok
+$pimError = @($eligibleCall.Error, $activeCall.Error | Where-Object { $_ }) -join ' '
+$pimData = $null
+if ($pimOk) {
+    $permanent = @($activeCall.Items | Where-Object {
             (Get-ITPSProp $_ 'assignmentType') -eq 'Assigned' -and
             $null -eq (Get-ITPSProp $_ 'endDateTime')
         }).Count
-    @{ Eligible = $eligible; Permanent = $permanent }
+    $pimData = @{ Eligible = $eligibleCall.Items.Count; Permanent = $permanent }
+    if ($eligibleCall.Items.Count -eq 0 -and $permanent -eq 0) {
+        Write-Status 'No PIM role assignments found — G-03 and G-04 score against an empty assignment set.' -Level Warn
+    }
 }
-catch {
-    Write-Status 'PIM assignment data unavailable — flagging G-03 and G-04 for manual review.' -Level Warn
-    $null
+else {
+    Write-Status "PIM assignment data unavailable — flagging G-03 and G-04 for manual review. $pimError" -Level Warn
 }
 
-if ($null -ne $pimData) {
+if ($pimOk) {
     $totalAssignments = $pimData.Eligible + $pimData.Permanent
     # G-04 scales linearly: full points at zero standing privilege, zero points when
     # every privileged assignment is permanent.
@@ -438,20 +487,21 @@ else {
             @{ Id = 'G-03'; Name = 'PIM eligible assignments in use' },
             @{ Id = 'G-04'; Name = 'Standing privilege minimised' })) {
         $governanceChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote 'PIM assignment data not returned. Requires Entra ID P2 or Entra ID Governance. Review in Entra admin center > Identity Governance > Privileged Identity Management > Microsoft Entra roles > Assignments.'))
+                    -ManualReviewNote "PIM assignment call failed: $pimError PIM requires Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Privileged Identity Management > Microsoft Entra roles > Assignments."))
     }
 }
 
 # G-05 workload identity credential hygiene
-$appRegs = try {
-    @(Invoke-ITPSGraphRequest -Uri 'applications')
+$appCall = Invoke-ITPSCollection -Uri 'applications'
+if (-not $appCall.Ok) {
+    Write-Status "Application registrations unavailable — flagging G-05 for manual review. $($appCall.Error)" -Level Warn
 }
-catch {
-    Write-Status 'Application registrations unavailable — flagging G-05 for manual review.' -Level Warn
-    $null
+elseif ($appCall.Items.Count -eq 0) {
+    Write-Status 'No application registrations exist in this tenant — G-05 earns full points by default.' -Level OK
 }
+$appRegs = $appCall.Items
 
-if ($null -ne $appRegs) {
+if ($appCall.Ok) {
     $staleSecretApps = @($appRegs | Where-Object {
             $creds = @(Get-ITPSProp $_ 'passwordCredentials')
             @($creds | Where-Object {
@@ -470,7 +520,7 @@ if ($null -ne $appRegs) {
 else {
     $governanceChecks.Add((New-ITPSCheck -Id 'G-05' -Name 'Workload identity credential hygiene' `
                 -ManualReview $true `
-                -ManualReviewNote 'Application registrations not returned. Review in Entra admin center > Identity > Applications > App registrations > Certificates and secrets for each application.'))
+                -ManualReviewNote "Application registration call failed: $($appCall.Error) Review in Entra admin center > Identity > Applications > App registrations > Certificates and secrets for each application."))
 }
 
 $governanceScore = Get-DimensionScore -Checks $governanceChecks.ToArray()

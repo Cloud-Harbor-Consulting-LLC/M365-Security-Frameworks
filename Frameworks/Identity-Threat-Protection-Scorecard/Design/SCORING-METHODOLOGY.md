@@ -17,6 +17,8 @@
 
 Checks that cannot be assessed from Microsoft Graph are marked **Manual**. Score them by hand using the portal navigation given in the check, or leave them unassessed. The collector script excludes unassessed checks from the denominator rather than scoring them zero, so a partial assessment produces an honest partial score instead of an artificially depressed one.
 
+**An absent control is not an unassessable one.** If a Graph call succeeds and returns no records — no access reviews configured, no Conditional Access policies, no application registrations — the control is genuinely absent and scores **zero**, counted in the denominator. Exclusion is reserved for calls that fail, where the tenant's true state is unknown. Conflating the two inflates the score of exactly the tenants that need the assessment most.
+
 ---
 
 ## A required disclosure about the tier names
