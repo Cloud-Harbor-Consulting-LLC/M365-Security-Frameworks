@@ -17,8 +17,9 @@
 .PARAMETER OutputPath
     Directory for output files. Default: current directory.
 .PARAMETER TenantName
-    Optional display name used in file naming and report headers.
-    Default: TenantId from the result object.
+    Optional display name used in file naming and report headers. Overrides the
+    TenantName carried in the result object by the collector. When neither is
+    supplied, reports fall back to the tenant GUID.
 .EXAMPLE
     $result = .\Get-ITPScorecard.ps1 -TenantId 'xxxx'
     .\Format-ITPScorecardReport.ps1 -Result $result -OutputPath '.\Reports' -TenantName 'Fabrikam'
@@ -129,7 +130,17 @@ function Get-DimensionGap {
 $assessmentDateRaw = Get-ITPSValue -InputObject $Result -Name 'AssessmentDate' -Default (Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ')
 $dateStr = ([datetime]::Parse($assessmentDateRaw)).ToString('yyyy-MM-dd')
 $tenantId = Get-ITPSValue -InputObject $Result -Name 'TenantId' -Default 'unknown-tenant'
-$tenantLabel = if ($TenantName) { $TenantName } else { $tenantId }
+
+# Display-name precedence:
+#   1. -TenantName passed to this script  (explicit override wins)
+#   2. TenantName carried in the ITPSResult from the collector
+#   3. the tenant GUID
+# Step 2 is read defensively so that result files produced before the collector
+# carried TenantName still format correctly.
+$resultTenantName = Get-ITPSValue -InputObject $Result -Name 'TenantName' -Default ''
+$tenantLabel = if ($TenantName) { $TenantName }
+elseif (-not [string]::IsNullOrWhiteSpace([string]$resultTenantName)) { [string]$resultTenantName }
+else { $tenantId }
 $filePrefix = ($tenantLabel -replace '[^\w\-]', '-') + "-$dateStr"
 
 $overallRaw = Get-ITPSValue -InputObject $Result -Name 'OverallScore'
@@ -237,7 +248,10 @@ $e.Add('| Dimension | Score | Tier equivalent | Top gaps |')
 $e.Add('|---|---|---|---|')
 foreach ($d in $dimensions) {
     $ds = Get-ITPSValue -InputObject $d -Name 'Score'
-    $gaps = Get-DimensionGap -Dimension $d -Count 3
+    # Wrapped in @() because a function returning an empty collection unrolls to
+    # nothing, leaving $gaps as $null and making $gaps.Count throw under strict mode.
+    # A dimension with every check at full points and no manual checks hits this.
+    $gaps = @(Get-DimensionGap -Dimension $d -Count 3)
     $gapStr = if ($gaps.Count -gt 0) {
         ($gaps | ForEach-Object { Get-ITPSValue -InputObject $_ -Name 'Id' }) -join ', '
     }
@@ -252,7 +266,10 @@ $e.Add('')
 foreach ($d in $dimensions) {
     $e.Add("### $(Get-ITPSValue -InputObject $d -Name 'Name') — $(Get-ScoreLabel (Get-ITPSValue -InputObject $d -Name 'Score'))")
     $e.Add('')
-    $gaps = Get-DimensionGap -Dimension $d -Count 3
+    # Wrapped in @() because a function returning an empty collection unrolls to
+    # nothing, leaving $gaps as $null and making $gaps.Count throw under strict mode.
+    # A dimension with every check at full points and no manual checks hits this.
+    $gaps = @(Get-DimensionGap -Dimension $d -Count 3)
     if ($gaps.Count -eq 0) {
         $e.Add('- All checks in this dimension earned full points. Maintain and reassess next cycle.')
     }

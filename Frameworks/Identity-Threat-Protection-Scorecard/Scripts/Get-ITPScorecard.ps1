@@ -14,7 +14,12 @@
     Ownership is entirely manual and always returns a null score. The Defender
     Coverage and maturity composite score has no API and is also manual.
 .PARAMETER TenantId
-    The Entra tenant ID to assess.
+    The Entra tenant ID to assess. This is the tenant GUID and is used to authenticate.
+.PARAMETER TenantName
+    Optional friendly display name for the organisation, carried through into the
+    ITPSResult object. Format-ITPScorecardReport.ps1 uses it for report headers and
+    output filenames, so supplying it here means it does not have to be repeated at
+    format time. When omitted, reports fall back to the tenant GUID.
 .PARAMETER OutputPath
     Directory path for JSON export when -ExportJson is specified. Default: current directory.
 .PARAMETER ExportJson
@@ -22,7 +27,7 @@
 .EXAMPLE
     .\Get-ITPScorecard.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 .EXAMPLE
-    .\Get-ITPScorecard.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' -ExportJson -OutputPath 'C:\Reports'
+    .\Get-ITPScorecard.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath 'C:\Reports'
 .NOTES
     Version:  v0.1.0-preview
     Author:   Cloud Harbor Consulting LLC
@@ -36,6 +41,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$TenantId,
+    [string]$TenantName = '',
     [string]$OutputPath = '.',
     [switch]$ExportJson
 )
@@ -573,6 +579,7 @@ $isPartial = $unscoredDimensions.Count -gt 0
 
 $result = [PSCustomObject]@{
     TenantId          = $TenantId
+    TenantName        = $TenantName
     AssessmentDate    = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ')
     CollectorVersion  = $COLLECTOR_VERSION
     OverallScore      = $overallScore
@@ -591,7 +598,8 @@ $result = [PSCustomObject]@{
 Write-Host ''
 Write-Host '=============================================================='
 Write-Host "  ITPS - Identity Threat Protection Scorecard   $($result.AssessmentDate)"
-Write-Host "  Tenant:     $TenantId"
+$tenantDisplay = if ($TenantName) { "$TenantName ($TenantId)" } else { $TenantId }
+Write-Host "  Tenant:     $tenantDisplay"
 Write-Host "  Collector:  $COLLECTOR_VERSION"
 $scoreLabel = if ($null -ne $overallScore) { "$overallScore / 100 - $($result.MaturityTier)" } else { 'Not scored' }
 Write-Host "  Overall:    $scoreLabel"

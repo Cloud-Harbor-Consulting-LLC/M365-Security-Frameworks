@@ -78,7 +78,8 @@ $result = .\Get-ITPScorecard.ps1 -TenantId '<tenant-id>'
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `TenantId` | String | Yes | — | Entra tenant ID to assess |
+| `TenantId` | String | Yes | — | Entra tenant **GUID**. Used to authenticate |
+| `TenantName` | String | No | empty | Friendly organisation name, carried into `ITPSResult` so the formatter inherits it |
 | `OutputPath` | String | No | `.` | Directory for JSON export |
 | `ExportJson` | Switch | No | Off | Export the result to a timestamped JSON file |
 
@@ -89,9 +90,26 @@ $result = .\Get-ITPScorecard.ps1 -TenantId '<tenant-id>'
 | `Result` | PSCustomObject | Yes (Object set) | — | The `ITPSResult` object, accepts pipeline input |
 | `InputPath` | String | Yes (File set) | — | Path to an exported `ITPSResult` JSON file |
 | `OutputPath` | String | No | `.` | Directory for the 3 Markdown reports |
-| `TenantName` | String | No | TenantId | Display name used in filenames and headers |
+| `TenantName` | String | No | inherited | Overrides the `TenantName` carried in the result object |
 
 Output files are named `<TenantName>-<date>-technical.md`, `-exec-summary.md`, and `-board.md`.
+
+### How the display name is resolved
+
+`TenantId` is the tenant GUID and is what the collector authenticates with. `TenantName` is presentation only. The formatter resolves the label in this order:
+
+1. `-TenantName` passed to the formatter (explicit override)
+2. `TenantName` carried in the `ITPSResult` from the collector
+3. the tenant GUID
+
+Supplying `-TenantName` on the **collector** is usually enough — the name travels with the result object, so the JSON export is self-describing and the formatter picks it up without repeating it:
+
+```powershell
+.\Get-ITPScorecard.ps1 -TenantId '<tenant-guid>' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath '.\reports'
+.\Format-ITPScorecardReport.ps1 -InputPath '.\reports\ITPSResult-<timestamp>.json' -OutputPath '.\reports'
+```
+
+Result files produced before the collector carried `TenantName` still format correctly and fall back to the GUID.
 
 ---
 
@@ -99,7 +117,8 @@ Output files are named `<TenantName>-<date>-technical.md`, `-exec-summary.md`, a
 
 ```
 ITPSResult
-├── TenantId            (string)
+├── TenantId            (string — tenant GUID)
+├── TenantName          (string — friendly name, empty when not supplied)
 ├── AssessmentDate      (ISO 8601 string)
 ├── CollectorVersion    (string)
 ├── OverallScore        (int 0-100, nullable)
