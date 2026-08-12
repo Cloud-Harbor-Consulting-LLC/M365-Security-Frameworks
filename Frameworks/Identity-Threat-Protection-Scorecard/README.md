@@ -9,10 +9,10 @@ The scoring methodology is usable as a standalone assessment instrument. A read-
 **Companion reading:** this framework is the GitHub companion to The Security Bridge™ Series: Identity Threat Protection in Microsoft 365.
 
 - Part 1 — [Identity threat protection starts after authentication](https://www.cloudharborconsulting.cloud/post/identity-threat-protection-starts-after)
-- Part 2 — `[PART 2 BLOG URL — confirm with Derek]`
+- Part 2 — [Your tenant has more identities than employees](https://www.cloudharborconsulting.cloud/post/your-tenant-has-more-identities-than-employees)
 - Part 3 — [Conditional Access is a gate, not a guard](https://www.cloudharborconsulting.cloud/post/the-security-bridge-identity-threat-protection-in-microsoft-365-part-3-conditional-access-is-a)
-- Part 4 — `[PART 4 BLOG URL — confirm with Derek]`
-- Part 5 — `[PART 5 BLOG URL — not yet published]`
+- Part 4 — [How to prove Defender XDR is actually working](https://www.cloudharborconsulting.cloud/post/the-security-bridge-identity-threat-protection-in-microsoft-365-part-4-how-to-prove-defender-x)
+- Part 5 — [The Identity Threat Protection Scorecard](https://www.cloudharborconsulting.cloud/post/the-security-bridge-identity-threat-protection-in-microsoft-365-part-5-the-identity-threat-pro)
 
 ---
 
