@@ -1,0 +1,63 @@
+// =============================================================================
+// risky-signin-hunting.kql
+// -----------------------------------------------------------------------------
+// What it does:
+//   Hunts for risky sign-in patterns that succeeded. Specifically surfaces the
+//   case that matters most: a sign-in flagged at medium or high risk by Entra ID
+//   Protection that was nonetheless allowed through, which indicates either no
+//   risk-based Conditional Access policy or one still in report-only mode.
+//
+// Tables queried:
+//   SigninLogs (Microsoft Entra ID sign-in logs)
+//
+// Required license / data connector:
+//   Microsoft Entra ID P2 — risk level fields are populated only with Identity
+//   Protection, which is P2-exclusive. Microsoft Entra ID data connector enabled
+//   in the Sentinel workspace with SignInLogs forwarded.
+//
+// Scorecard dimension:
+//   Prevention and Detection. Supports check P-04 (risk-based policy present) by
+//   testing whether a risk policy actually blocks, and supports the Detection
+//   dimension by showing whether risk signals are being generated at all. Zero
+//   rows can mean either a healthy tenant or an unlicensed one, so confirm that
+//   Identity Protection is provisioned before reading zero as good news.
+//
+// How to read the result:
+//   Any row is a risky sign-in that succeeded. Rows where CAStatus is notApplied
+//   or the policy was in report-only mode are the highest priority: the tenant
+//   detected the risk and allowed the session anyway.
+// =============================================================================
+
+let lookback = 30d;
+SigninLogs
+| where TimeGenerated > ago(lookback)
+| where ResultType == 0                                        // succeeded
+| where RiskLevelDuringSignIn in ("medium", "high")
+    or RiskLevelAggregated in ("medium", "high")
+| extend
+    CAStatus     = tostring(ConditionalAccessStatus),
+    RiskDetail   = tostring(RiskDetail),
+    RiskState    = tostring(RiskState),
+    Location     = strcat(tostring(LocationDetails.countryOrRegion), " / ", tostring(LocationDetails.city))
+| summarize
+    RiskySignIns    = count(),
+    HighRisk        = countif(RiskLevelDuringSignIn == "high"),
+    MediumRisk      = countif(RiskLevelDuringSignIn == "medium"),
+    CANotApplied    = countif(CAStatus == "notApplied"),
+    DistinctIPs     = dcount(IPAddress),
+    Locations       = make_set(Location, 10),
+    Apps            = make_set(AppDisplayName, 10),
+    LastRiskySignIn = max(TimeGenerated)
+    by UserPrincipalName, RiskState
+| sort by HighRisk desc, RiskySignIns desc
+| project
+    UserPrincipalName,
+    RiskState,
+    RiskySignIns,
+    HighRisk,
+    MediumRisk,
+    CANotApplied,
+    DistinctIPs,
+    Locations,
+    Apps,
+    LastRiskySignIn

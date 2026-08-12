@@ -1,0 +1,66 @@
+// =============================================================================
+// privileged-activity-review.kql
+// -----------------------------------------------------------------------------
+// What it does:
+//   Reviews directory role activity: who was assigned or removed from privileged
+//   roles, who activated an eligible role through PIM, and which activations
+//   happened outside normal working patterns. Complements EIG-AR002 (dormant
+//   admin role review) by showing activity rather than assignment state.
+//
+// Tables queried:
+//   AuditLogs (Microsoft Entra ID audit logs)
+//
+// Required license / data connector:
+//   Microsoft Entra ID P2 for PIM activation events. Microsoft Entra ID data
+//   connector enabled in the Sentinel workspace, with AuditLogs forwarded via
+//   Entra ID diagnostic settings.
+//
+// Scorecard dimension:
+//   Governance. Supports checks G-03 (PIM eligible assignments in use) and G-04
+//   (standing privilege minimised). An assignment count says what the tenant is
+//   configured to allow; this query shows what actually happened.
+//
+// How to read the result:
+//   Direct role assignments with no corresponding PIM activation are standing
+//   privilege being granted outside the JIT workflow. Investigate each one.
+// =============================================================================
+
+let lookback = 90d;
+AuditLogs
+| where TimeGenerated > ago(lookback)
+| where Category in ("RoleManagement", "UserManagement")
+| where OperationName has_any (
+    "Add member to role",
+    "Remove member from role",
+    "Add eligible member to role",
+    "Remove eligible member from role",
+    "Add member to role completed (PIM activation)",
+    "Add member to role requested (PIM activation)"
+    )
+| extend
+    Actor          = tostring(InitiatedBy.user.userPrincipalName),
+    ActorApp       = tostring(InitiatedBy.app.displayName),
+    TargetRole     = tostring(TargetResources[0].displayName),
+    TargetUser     = tostring(TargetResources[2].userPrincipalName),
+    IsPimEvent     = OperationName has "PIM"
+| extend Initiator = coalesce(Actor, ActorApp, "unknown")
+| summarize
+    EventCount     = count(),
+    PimActivations = countif(IsPimEvent),
+    DirectChanges  = countif(not(IsPimEvent)),
+    Operations     = make_set(OperationName, 10),
+    FirstSeen      = min(TimeGenerated),
+    LastSeen       = max(TimeGenerated)
+    by Initiator, TargetRole
+| extend DirectChangeRatio = iff(EventCount > 0, round(toreal(DirectChanges) / toreal(EventCount), 2), 0.0)
+| sort by DirectChanges desc, EventCount desc
+| project
+    Initiator,
+    TargetRole,
+    EventCount,
+    PimActivations,
+    DirectChanges,
+    DirectChangeRatio,
+    Operations,
+    FirstSeen,
+    LastSeen

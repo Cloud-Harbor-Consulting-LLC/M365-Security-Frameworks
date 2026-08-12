@@ -25,6 +25,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [itps-v0.1.0-preview] - 2026-08-12
+
+### Added
+
+- `Frameworks/Identity-Threat-Protection-Scorecard/README.md` — landing page for the Identity Threat Protection Scorecard (ITPS), the GitHub companion to The Security Bridge™ Series on identity threat protection in Microsoft 365. Documents the 4-dimension model (Prevention, Detection, Governance, Ownership) at 25% each, the Connected/Protected/Fortified/Resilient tier mapping, the 6 read-only Graph scopes, both manual and automated assessment paths, and repo cross-references to the Conditional Access Baseline and Entra ID Governance Toolkit. Carries the disclosure that the tier thresholds are a Cloud Harbor Consulting convention rather than a Microsoft-published spec.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Design/SCORING-METHODOLOGY.md` — the full rubric. 22 checks across the 4 dimensions, each with its observable signal, point value, and repo artifact cross-reference. Defines dimension score as earned points over available points from scored checks normalised to 0–100, with manual checks excluded from the denominator so a partial assessment yields an honest partial score. Includes the tier-threshold disclosure with the reasoning for the non-quartile bands (0–39, 40–64, 65–84, 85–100), the equal-weighting rationale argued from the 4 dimensions' failure modes, and an explicit statement that the Graph v1.0 secureScores payload exposes no per-category maximum, so the Secure Score check is scored on tenant-wide attainment with the Identity breakdown recorded as evidence only.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Design/IDENTITY-ATTACK-PATHS.md` — the threat model. 5 attack paths through Microsoft 365 that begin after authentication succeeds (credential compromise to standing privilege, application consent to persistent data access, workload identity as an unattended door, unmanaged device as a session foothold, and lateral movement through hybrid identity), which dimension intervenes on each, and how the paths chain in a realistic intrusion. Ties to blog Parts 1 and 2.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Design/PREVENTION-VS-DETECTION.md` — where Conditional Access's job ends and detection's begins, the 3 gaps Prevention structurally cannot close, and why detection is scored on deployment health rather than licensing. States plainly that the Defender Coverage and maturity page is portal-only with no Graph or REST endpoint, citing the Microsoft Learn primary source, and distinguishes that product gap from the Ownership dimension, which has no API because ownership is an organisational fact rather than tenant configuration. Ties to blog Part 3.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Scripts/Get-ITPScorecard.ps1` — read-only Microsoft Graph collector. Assesses 22 checks using 6 read-only scopes and returns a structured `ITPSResult` PSCustomObject with per-dimension scores, an overall score and maturity tier, an `IsPartialScore` flag, and the list of unscored dimensions. Checks that cannot be assessed are flagged `ManualReview = $true` with portal navigation rather than being scored zero. Ownership always returns a null score so an automated run cannot report a score the tenant has not earned.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Scripts/Format-ITPScorecardReport.ps1` — formatter. Accepts the `ITPSResult` object or its JSON export and generates 3 audience-scoped Markdown reports: technical detail, executive summary, and board 1-pager, named `<TenantName>-<date>-<shape>.md`. Normalises numeric values with `[int]` on read and uses comparison-based tier resolution rather than hashtable lookup, so an Int64 from `ConvertFrom-Json` behaves identically to an Int32 from a live collector run. Carries the partial-score label and the tier-threshold disclosure into all 3 outputs.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Scripts/README.md` — prerequisites, the 6 Graph scopes with least-privileged permission names and the endpoint each reads, interactive and service principal authentication, parameter reference for both scripts, the `ITPSResult` output object shape, manual review guidance, and the scoring logic. States the testing status of each script explicitly.
+- `Frameworks/Identity-Threat-Protection-Scorecard/KQL/identity-coverage-validation.kql` — hunts `SigninLogs` for successful sign-ins where no Conditional Access policy applied, validating Prevention coverage assumptions against actual telemetry.
+- `Frameworks/Identity-Threat-Protection-Scorecard/KQL/privileged-activity-review.kql` — reviews `AuditLogs` for directory role assignment changes and PIM activations, separating JIT activations from direct standing grants. Complements EIG-AR002.
+- `Frameworks/Identity-Threat-Protection-Scorecard/KQL/risky-signin-hunting.kql` — surfaces medium and high risk sign-ins that succeeded, the signal that a risk-based policy is absent or still in report-only mode.
+- `Frameworks/Identity-Threat-Protection-Scorecard/KQL/workload-identity-review.kql` — reviews `AADServicePrincipalSignInLogs` for service principal sign-in patterns, pairing with Governance check G-05 to separate active workload identities needing credential rotation from dormant ones needing decommission.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Examples/Small-Business-Scenario.md` — Northwind Bakery Group, 45 users on Business Premium with no security headcount. Scores 36 (Connected) with Detection unscored for lack of a Defender for Identity license. Illustrates a licensing-capped tenant and states plainly that its highest-value remediation steps will barely move the automated score.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Examples/Mid-Market-Scenario.md` — Silverline Logistics, 850 users on E3 with a P2 add-on. Scores 62 (Protected). Illustrates the most common mid-market pattern: a complete Conditional Access design left in report-only for 8 months because promoting it was nobody's job.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Examples/Enterprise-Scenario.md` — Meridian Financial Holdings, 14,000 users on E5. Scores 82 (Fortified) with Prevention 88 and Detection 100 against Governance 59. Illustrates strong centrally-owned controls alongside weak cross-organisational governance, and why an averaged score can understate the risk an attacker actually experiences.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Examples/Sample-Tenant-Scorecard.md` — all 3 output shapes for a single fictional tenant (Fabrikam Residential Services, overall 69 — Fortified), reproduced verbatim from `Format-ITPScorecardReport.ps1` rather than hand-written, so the documented output matches what the formatter actually emits.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Examples/Ownership-Matrix-Template.md` — blank ownership matrix covering Prevention, Detection, and Governance control areas with owner, backup owner, review cadence, last reviewed date, and escalation path. The instrument the Ownership dimension is scored against, with the point breakdown for checks O-01 through O-06 and the 2 failure modes it is designed to expose.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Business-Case/ROI-IDENTITY-SCORECARD.md` — the business case. Argues the mechanism by which measurement turns a security ask into a funded line item, reuses the IBM Cost of a Data Breach figures already verified in `ROI-ZT-READINESS.md` rather than introducing new statistics, states explicitly what the ROI model does and does not claim (it does not claim the assessment reduces breach probability or risk), and includes a compliance alignment table scoped to what the 4 dimensions actually support, noting that Ownership maps to no framework control.
+
+### Changed
+
+- Root `README.md` — added the Identity Threat Protection Scorecard row to the Frameworks table.
+
+---
+
 ## [ztra-v0.1.0-preview] - 2026-07-17
 
 ### Added
@@ -390,7 +418,9 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 ---
 
-[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/ztra-v0.1.0-preview...HEAD>
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/itps-v0.1.0-preview...HEAD>
+
+[itps-v0.1.0-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/ztra-v0.1.0-preview...itps-v0.1.0-preview>
 
 [ztra-v0.1.0-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/v1.4.0...ztra-v0.1.0-preview>
 
