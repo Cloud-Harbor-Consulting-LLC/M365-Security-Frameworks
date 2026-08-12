@@ -254,7 +254,7 @@ This baseline supports the access control requirements in major compliance frame
 |---|---|---|
 | SOC 2 | CC6.1 (Logical Access Controls) | CA-COV002, CA-COV008, CA-SIG001, CA-SIG008, and CA-SIG009 enforce authentication, authorization, and access restriction based on identity and context |
 | SOC 2 | CC6.6 (Boundary Protection) | CA-COV007 (BlockByLocation), CA-COV009 (ServiceAccounts trusted locations), and CA-COV010 (WorkloadIdentities trusted locations) gate access by geography and network boundary |
-| SOC 2 | CC6.7 (Privileged Access) | CA-AUT003 requires AdminAuth (FIDO2 only) on admin portals; CA-SIG005 hard-blocks admin sign-ins at medium and high risk |
+| SOC 2 | CC6.1 (Logical Access Controls — privileged access) | CA-AUT003 requires AdminAuth (FIDO2 only) on admin portals; CA-SIG005 hard-blocks admin sign-ins at medium and high risk |
 | ISO 27001 | A.5.16 (Identity management) | CA-AUT001 and CA-AUT002 enforce authentication strength at device and security info registration; CA-COV002 ensures no identity authenticates with a password alone |
 | ISO 27001 | A.5.17 (Authentication information) | The graduated strength model (StandardAuth, StrongAuth, AdminAuth) formalizes authentication quality by context and risk level |
 | HIPAA | §164.312(a)(2)(i) (Unique user identification) | CA-COV002 and CA-SIG002 enforce MFA for every identity accessing resources, supporting person-level identification assurance |

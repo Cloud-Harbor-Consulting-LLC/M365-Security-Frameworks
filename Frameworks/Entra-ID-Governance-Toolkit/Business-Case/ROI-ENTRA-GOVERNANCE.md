@@ -171,7 +171,7 @@ This toolkit supports the access-review and least-privilege requirements in majo
 | Framework | Control | How the toolkit supports it |
 |---|---|---|
 | SOC 2 | CC6.2 / CC6.3 (Access provisioning and removal) | EIG-AR001 and EIG-AR002 enforce recurring review and automatic removal of access that is no longer justified |
-| SOC 2 | CC6.7 (Privileged access) | EIG-AR002 reviews administrative role assignments monthly and removes dormant privileged access |
+| SOC 2 | CC6.3 (Privileged access review and removal) | EIG-AR002 reviews administrative role assignments monthly and removes dormant privileged access |
 | ISO 27001 | A.5.18 (Access rights — review and removal) | Both controls provide a recurring, evidenced review of access rights with automatic removal on a deny decision |
 | ISO 27001 | A.5.15 / A.8.2 (Access control and privileged access rights) | EIG-AR002 keeps privileged assignments matched to demonstrated use via the 30-day inactivity look-back |
 | HIPAA | §164.308(a)(4) (Information access management) | Recurring guest and admin reviews enforce that access to systems holding ePHI is periodically re-authorized |
