@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: corrected SOC 2 CC control mappings — CC6.7 (data transmission restriction) replaced with CC6.6 (logical access security against external threats); CC7.1 (configuration change monitoring) replaced with CC7.2 (anomaly detection indicative of malicious acts). Source: Azure + Dynamics 365 + Online Services SOC 2 Type II Report (2025-04-01 to 2026-03-31).
+- `Frameworks/Security-Reporting-Decision-Rubric/Examples/Audit-Attestation.md`: corrected same SOC 2 CC control mappings — CC6.7 replaced with CC6.6; CC7.1 description corrected to reflect configuration and vulnerability monitoring (not MTTD); CC7.2 expanded to include MTTD alongside coverage, as MTTD is the correct evidence metric for anomaly detection. Source: same primary source as above.
+
 ### Added
 
 - `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: Entra ID P2 business case — core doc covering P1-vs-P2 feature comparison, P2-exclusive controls used in this repo (Identity Protection risk policies, PIM, Access Reviews), per-user licensing cost, and operational cost estimates. Compliance mapping and CFO summary ship in a follow-on PR.

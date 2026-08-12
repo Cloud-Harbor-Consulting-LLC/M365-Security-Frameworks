@@ -100,11 +100,11 @@ Entra ID P2 controls directly satisfy requirements in 3 frameworks. The controls
 |---|---|---|
 | CC6.1 | Logical access controls restrict access to authorized users based on authorized user roles | PIM provides just-in-time role activation with approval workflows; eliminates standing admin privilege |
 | CC6.3 | Access is restricted to authorized users, internal and external, based on their role | EIG-AR001 (quarterly guest review) and EIG-AR002 (dormant admin role review) produce auditable recertification evidence; Access Reviews require P2 |
-| CC6.7 | Access is restricted based on the sensitivity of the information and business need | Identity Protection risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009) restrict access when credential risk is detected; risk policy enforcement requires P2 |
-| CC7.1 | Security events are detected and identified through the use of detection tools and procedures | Identity Protection risk detections (compromised credentials, anomalous sign-ins, Agent ID risk) are the P2-exclusive detection signal that feeds the CA risk policies |
+| CC6.6 | Logical access security measures protect against threats from sources outside the entity's system boundaries | Identity Protection risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009) block access when Entra ID detects active credential compromise or anomalous sign-in risk; risk-based access restriction against external threats requires P2 |
+| CC7.2 | System components are monitored for anomalies indicative of malicious acts; anomalies are analyzed to determine whether they represent security events | Identity Protection risk detections (compromised credentials, anomalous sign-ins, Agent ID risk) are the P2-exclusive detection signal that feeds the CA risk policies |
 | CC7.4 | Security incidents are contained, and the effects remediated | CA-SIG008 and CA-SIG009 block sign-in immediately on high risk, reducing the breach window without analyst intervention; enforcement requires P2 |
 
-Note: all CA risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009, CA-COV011) ship in report-only mode. CC7.4 credit is realized only after policies are promoted to enforcement.
+Note: all CA risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009, CA-COV011) ship in report-only mode. CC6.6 and CC7.4 credit is realized only after policies are promoted to enforcement.
 
 ### ISO 27001:2022
 
