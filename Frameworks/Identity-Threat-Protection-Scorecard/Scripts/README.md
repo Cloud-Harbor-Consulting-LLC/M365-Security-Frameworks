@@ -187,6 +187,27 @@ These tier bands are a Cloud Harbor Consulting scoring convention. Microsoft doe
 
 ---
 
+## Troubleshooting
+
+**Repeated authentication prompts, or the collector appears to hang.**
+The collector authenticates exactly once, via a single `Connect-MgGraph` call. If Windows Web Account Manager prompts more than once in a single run, the run is taking long enough to cross a token-refresh boundary, which means something is issuing far more Graph requests than it should.
+
+Measure the request count for a suspect endpoint before assuming a credential problem:
+
+```powershell
+$u = 'https://graph.microsoft.com/v1.0/<endpoint>'
+$n = 0; $sw = [Diagnostics.Stopwatch]::StartNew()
+do {
+  $r = Invoke-MgGraphRequest -Method GET -Uri $u -OutputType PSObject; $n++
+  $u = if ($r.PSObject.Properties.Name -contains '@odata.nextLink') { $r.'@odata.nextLink' } else { $null }
+} while ($u -and $n -lt 500)
+"pages: $n   elapsed: $($sw.Elapsed)"
+```
+
+In Microsoft Graph, **`$top` sets the page size, not a result limit.** A URI such as `secureScores?$top=1` returns one record per page plus a `nextLink`, so paging it to exhaustion issues one request per record. Where only the newest record is wanted, the collector passes `-FirstPageOnly`.
+
+**A hidden sign-in window.** The Graph SDK warns that WAM sign-in may open behind other windows when run from an embedded terminal. If the first prompt never appears, check for a window behind the console before assuming the script is stuck.
+
 ## Testing status
 
 The formatter has been exercised end-to-end against synthetic `ITPSResult` data on both parameter sets, including a JSON round-trip.
