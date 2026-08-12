@@ -1,0 +1,64 @@
+// =============================================================================
+// workload-identity-review.kql
+// -----------------------------------------------------------------------------
+// What it does:
+//   Reviews service principal sign-in activity: which workload identities are
+//   authenticating, from where, and how often. Workload identities authenticate
+//   without MFA and without a user, so their sign-in pattern is the only
+//   behavioural signal available. A service principal signing in from a new
+//   country or at a new volume is worth investigating.
+//
+// Tables queried:
+//   AADServicePrincipalSignInLogs (service principal sign-ins)
+//
+// Required license / data connector:
+//   Microsoft Entra ID P1 or P2 with Workload Identities Premium for full risk
+//   detail. Microsoft Entra ID data connector enabled in the Sentinel workspace,
+//   with AADServicePrincipalSignInLogs forwarded via Entra ID diagnostic settings.
+//   This log category must be enabled explicitly; it is not on by default.
+//
+// Scorecard dimension:
+//   Governance. Supports check G-05 (workload identity credential hygiene) by
+//   showing which service principals are actively used. Pair the result with the
+//   collector's G-05 signal: a service principal with a non-expiring secret AND
+//   active sign-ins from varied locations is the highest-priority remediation.
+//   One with a stale secret and no sign-ins in 90 days is a decommission candidate.
+//
+// How to read the result:
+//   High DistinctIPs or DistinctCountries for a single service principal is the
+//   pattern worth attention. Most legitimate workload identities authenticate
+//   from a small, stable set of addresses.
+// =============================================================================
+
+let lookback = 30d;
+AADServicePrincipalSignInLogs
+| where TimeGenerated > ago(lookback)
+| extend
+    Country   = tostring(LocationDetails.countryOrRegion),
+    Succeeded = ResultType == 0
+| summarize
+    TotalSignIns      = count(),
+    SuccessfulSignIns = countif(Succeeded),
+    FailedSignIns     = countif(not(Succeeded)),
+    DistinctIPs       = dcount(IPAddress),
+    DistinctCountries = dcount(Country),
+    Countries         = make_set(Country, 10),
+    Resources         = make_set(ResourceDisplayName, 10),
+    FirstSeen         = min(TimeGenerated),
+    LastSeen          = max(TimeGenerated)
+    by ServicePrincipalName, ServicePrincipalId
+| extend FailureRate = iff(TotalSignIns > 0, round((toreal(FailedSignIns) / toreal(TotalSignIns)) * 100, 1), 0.0)
+| sort by DistinctCountries desc, TotalSignIns desc
+| project
+    ServicePrincipalName,
+    ServicePrincipalId,
+    TotalSignIns,
+    SuccessfulSignIns,
+    FailedSignIns,
+    FailureRate,
+    DistinctIPs,
+    DistinctCountries,
+    Countries,
+    Resources,
+    FirstSeen,
+    LastSeen

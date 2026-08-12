@@ -1,0 +1,53 @@
+// =============================================================================
+// identity-coverage-validation.kql
+// -----------------------------------------------------------------------------
+// What it does:
+//   Cross-checks identity coverage assumptions against actual sign-in telemetry.
+//   Surfaces accounts that are signing in successfully but are not covered by any
+//   Conditional Access policy, which is the gap between "we have CA" and "CA
+//   applies to this sign-in".
+//
+// Tables queried:
+//   SigninLogs (Microsoft Entra ID sign-in logs)
+//
+// Required license / data connector:
+//   Microsoft Entra ID P1 or P2 for sign-in log retention, plus the Microsoft
+//   Entra ID data connector enabled in the Microsoft Sentinel workspace. Diagnostic
+//   settings on Entra ID must forward SignInLogs to the workspace.
+//
+// Scorecard dimension:
+//   Prevention. Validates checks P-02 (MFA enforced for all users) and P-05
+//   (privileged roles targeted) against observed behaviour rather than against
+//   policy configuration alone. A policy that exists but never evaluates is not
+//   prevention.
+//
+// How to read the result:
+//   Rows with UncoveredSignIns greater than zero are accounts reaching resources
+//   without a Conditional Access policy applying. Investigate whether the account
+//   is excluded from the coverage set, or whether the sign-in path bypasses CA.
+// =============================================================================
+
+let lookback = 30d;
+SigninLogs
+| where TimeGenerated > ago(lookback)
+| where ResultType == 0                     // successful sign-ins only
+| extend CAApplied = tostring(ConditionalAccessStatus)
+| summarize
+    TotalSignIns      = count(),
+    UncoveredSignIns  = countif(CAApplied == "notApplied"),
+    FailedCA          = countif(CAApplied == "failure"),
+    DistinctApps      = dcount(AppDisplayName),
+    LastSignIn        = max(TimeGenerated)
+    by UserPrincipalName, UserType
+| extend UncoveredPercent = round((toreal(UncoveredSignIns) / toreal(TotalSignIns)) * 100, 1)
+| where UncoveredSignIns > 0
+| sort by UncoveredSignIns desc
+| project
+    UserPrincipalName,
+    UserType,
+    TotalSignIns,
+    UncoveredSignIns,
+    UncoveredPercent,
+    FailedCA,
+    DistinctApps,
+    LastSignIn
