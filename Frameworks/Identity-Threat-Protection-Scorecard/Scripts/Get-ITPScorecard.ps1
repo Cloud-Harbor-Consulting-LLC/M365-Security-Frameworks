@@ -87,16 +87,31 @@ function Write-Status {
 function Invoke-ITPSGraphRequest {
     # Pages through a Graph collection endpoint. Returns an array for collection
     # responses and the raw object for single-entity responses.
+    #
+    # -FirstPageOnly stops after the first response. Use it when only the newest
+    # record is wanted. In Microsoft Graph, $top sets the PAGE SIZE rather than a
+    # result limit, so a URI such as 'security/secureScores?$top=1' returns one
+    # record per page and a nextLink for the rest. Paging that to exhaustion issues
+    # one HTTP request per day of retained history, which is slow enough to look
+    # like a hang and long enough to cross a token-refresh boundary.
+    #
+    # -MaxPages is a safety ceiling against a nextLink that never terminates. It is
+    # deliberately generous; hitting it is reported rather than passed over, because
+    # a truncated collection would silently understate a score.
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Uri,
-        [string]$ApiVersion = 'v1.0'
+        [string]$ApiVersion = 'v1.0',
+        [switch]$FirstPageOnly,
+        [int]$MaxPages = 200
     )
     $base = "https://graph.microsoft.com/$ApiVersion"
     $fullUri = if ($Uri -match '^https?://') { $Uri } else { "$base/$($Uri.TrimStart('/'))" }
     $results = [System.Collections.Generic.List[object]]::new()
+    $page = 0
     do {
         $response = Invoke-MgGraphRequest -Method GET -Uri $fullUri -OutputType PSObject
+        $page++
         $hasValue = ($null -ne $response) -and
                     ($response.PSObject.Properties.Name -contains 'value')
         if ($hasValue) {
@@ -105,11 +120,16 @@ function Invoke-ITPSGraphRequest {
         else {
             return $response
         }
+        if ($FirstPageOnly) { break }
         $fullUri = if ($response.PSObject.Properties.Name -contains '@odata.nextLink') {
             $response.'@odata.nextLink'
         }
         else {
             $null
+        }
+        if ($fullUri -and $page -ge $MaxPages) {
+            Write-Status "Paging ceiling of $MaxPages pages reached for $Uri. Results are truncated." -Level Warn
+            break
         }
     } while ($fullUri)
     return $results.ToArray()
@@ -193,13 +213,14 @@ function Invoke-ITPSCollection {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Uri,
-        [string]$ApiVersion = 'v1.0'
+        [string]$ApiVersion = 'v1.0',
+        [switch]$FirstPageOnly
     )
     $items = @()
     $ok = $true
     $err = ''
     try {
-        $items = @(Invoke-ITPSGraphRequest -Uri $Uri -ApiVersion $ApiVersion)
+        $items = @(Invoke-ITPSGraphRequest -Uri $Uri -ApiVersion $ApiVersion -FirstPageOnly:$FirstPageOnly)
     }
     catch {
         $ok = $false
@@ -242,7 +263,10 @@ Write-Status 'Assessing Prevention...'
 $preventionChecks = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 # P-01 Secure Score attainment (0-50)
-$secureScoreCall = Invoke-ITPSCollection -Uri 'security/secureScores?$top=1'
+# Only the newest Secure Score record is needed. $top=1 sets the page size, so
+# without -FirstPageOnly this walks the entire retained history one record per
+# request. See the note on Invoke-ITPSGraphRequest.
+$secureScoreCall = Invoke-ITPSCollection -Uri 'security/secureScores?$top=1' -FirstPageOnly
 $secureScore = if ($secureScoreCall.Ok -and $secureScoreCall.Items.Count -gt 0) {
     $secureScoreCall.Items[0]
 }
