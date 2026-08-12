@@ -90,4 +90,64 @@ PIM requires Entra ID P2 or Entra ID Governance. Licenses are needed for users w
 
 ---
 
-*Sections 6 (Compliance mapping), 7 (CFO-ready summary), and 8 (Cross-references) ship in PR B (2026-08-12).*
+## Compliance mapping
+
+Entra ID P2 controls directly satisfy requirements in 3 frameworks. The controls listed here are in scope because they are implemented by artifacts in this repo or are the stated licensing prerequisite for those artifacts.
+
+### SOC 2 Trust Services Criteria
+
+| CC control | Description | What P2 provides |
+|---|---|---|
+| CC6.1 | Logical access controls restrict access to authorized users based on authorized user roles | PIM provides just-in-time role activation with approval workflows; eliminates standing admin privilege |
+| CC6.3 | Access is restricted to authorized users, internal and external, based on their role | EIG-AR001 (quarterly guest review) and EIG-AR002 (dormant admin role review) produce auditable recertification evidence; Access Reviews require P2 |
+| CC6.7 | Access is restricted based on the sensitivity of the information and business need | Identity Protection risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009) restrict access when credential risk is detected; risk policy enforcement requires P2 |
+| CC7.1 | Security events are detected and identified through the use of detection tools and procedures | Identity Protection risk detections (compromised credentials, anomalous sign-ins, Agent ID risk) are the P2-exclusive detection signal that feeds the CA risk policies |
+| CC7.4 | Security incidents are contained, and the effects remediated | CA-SIG008 and CA-SIG009 block sign-in immediately on high risk, reducing the breach window without analyst intervention; enforcement requires P2 |
+
+Note: all CA risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009, CA-COV011) ship in report-only mode. CC7.4 credit is realized only after policies are promoted to enforcement.
+
+### ISO 27001:2022
+
+Control numbers follow the 2022 revision. For reference, the 2013 equivalents are noted in parentheses.
+
+| Control | Description | What P2 provides |
+|---|---|---|
+| A.5.15 (was A.9.1.1, A.9.1.2) | Access control | Conditional Access risk policies restrict access at the authentication level based on identity risk; risk-based conditions require P2 |
+| A.5.18 (was A.9.2.2, A.9.2.5, A.9.2.6) | Access rights — management of privileged access rights | EIG-AR001 and EIG-AR002 review and remove excess access rights on a defined cadence; PIM enforces time-bound privileged role assignments |
+| A.5.25 (was A.16.1.4) | Assessment and decision on information security events | Identity Protection risk detections are the identity-layer events requiring assessment; the CA risk policies automate the response decision for medium and high events |
+| A.5.26 (was A.16.1.5) | Response to information security incidents | CA-SIG008 and CA-SIG009 block high-risk sign-ins immediately; enforcing policies constitute automated incident response for credential-compromise events |
+| A.8.15 (was A.12.4.1, A.12.4.2, A.12.4.3) | Logging | Entra ID sign-in and audit logs, including Identity Protection risk event logs, are the evidence source for all identity controls; P2 exposes the full risk detail drawer and risk history |
+| A.8.16 (no 2013 equivalent — introduced in the 2022 revision) | Monitoring activities | Identity Protection continuous monitoring is the P2 capability that detects compromised credentials, anomalous sign-ins, and Agent ID risk events |
+
+### NIST SP 800-53 Rev 5
+
+| Control | Description | What P2 provides |
+|---|---|---|
+| AC-2 | Account management | Access Reviews (EIG-AR001, EIG-AR002) automate the periodic account review and disable process required by AC-2(3) |
+| AC-6 | Least privilege | PIM enforces time-bound, just-in-time role activation for the 39 admin roles in the CA Baseline Admins persona; standing privilege is eliminated for covered roles |
+| AU-2 | Event logging | Identity Protection risk events, PIM activation events, and Access Review decisions are logged in Entra ID audit logs and retained per the tenant's log retention policy |
+| IA-4 | Identifier management | Access Reviews (EIG-AR001) enforce guest identity lifecycle by recertifying and removing access for guests who no longer need it |
+| RA-3 | Risk assessment | Identity Protection risk detections constitute automated risk identification for credential and sign-in events; P2 enables policy-driven risk response |
+
+---
+
+## CFO-ready summary
+
+**The investment.** Entra ID P2 costs $10.00 per user per month (standalone, annual commitment). For organizations on Microsoft 365 E5 ($60.00 per user per month), P2 is already included. For organizations on Microsoft 365 E3 ($39.00), P2 can be added for $10.00 per user per month.
+
+**What P2 buys.** 3 capabilities that reduce breach probability and audit preparation time: Identity Protection risk policies (stops compromised credentials from authorizing new sessions), Privileged Identity Management (removes standing admin access from 39 privileged roles), and Access Reviews (automates quarterly guest and admin role recertification).
+
+**The savings.** The primary savings are analyst time recovered through Access Review automation (10 to 28 hours per year per 100 users across both EIG scripts) and analyst time recovered through risk-based CA enforcement once policies are promoted to On (30 to 90 minutes per avoided manual remediation event). The primary risk reduction is the removal of standing admin privilege and the automatic containment of compromised credentials.
+
+**The licensing path.** Entra ID P2 is the right starting point for organizations that need Identity Protection, PIM, and Access Reviews now. Microsoft will not add new identity governance capabilities to the P2 SKU. Organizations planning beyond 2 years should evaluate Entra ID Governance as the next step — it adds Lifecycle Workflows, ML-assisted access certifications, PIM for Groups reviews, and continued governance investment. Budget for the upgrade in a 3-year plan.
+
+**Guest billing note.** Identity Governance features for B2B guests use monthly active user (MAU) billing via Azure, separate from per-user P2 licensing. Any organization running EIG-AR001 (quarterly guest review) must budget for guest MAU charges in addition to the P2 per-user cost.
+
+---
+
+## Cross-references
+
+This business case is one of 3 in this repo that together cover the full investment case for the CA Baseline and Entra ID Governance Toolkit.
+
+- `Frameworks/Conditional-Access-Baseline/Business-Case/ROI-CONDITIONAL-ACCESS.md` — business case for the CA Baseline. Covers the risk policies (CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009, CA-COV011) that are the enforcement layer on top of P2 Identity Protection detections. CFOs evaluating P2 should read both documents: the P2 doc covers the license, this doc covers the policy configuration.
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-GOVERNANCE.md` — business case for the EIG Toolkit. Covers the Access Reviews automation (EIG-AR001, EIG-AR002) in depth, including per-script operational savings, reviewer chain design, and audit evidence retention. The EIG doc covers the operational layer; this doc covers the P2 license that makes it possible.

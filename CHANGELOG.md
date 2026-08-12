@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: added compliance mapping (SOC 2 CC6.1/CC6.3/CC6.7/CC7.1/CC7.4, ISO 27001:2022 A.5.15/A.5.18/A.5.25/A.5.26/A.8.15/A.8.16, NIST SP 800-53 Rev 5 AC-2/AC-6/AU-2/IA-4/RA-3), CFO-ready summary (P2 cost, savings, 2-year vs 3-year licensing path, guest MAU billing note), and cross-references to ROI-CONDITIONAL-ACCESS.md and ROI-ENTRA-GOVERNANCE.md.
 - `Frameworks/Security-Reporting-Decision-Rubric/REPORTING-DECISION-RUBRIC.md`: severity floor section now distinguishes alert severity from incident severity in Defender XDR; kill-list expanded with 3 entries (Copilot activity summary, Agent ID sign-in count, Secure Score weekly change); SOC lead weekly metrics updated — Security Copilot auto-triage measurement definition clarified, Agent ID risk detection metric added.
 
 ---
