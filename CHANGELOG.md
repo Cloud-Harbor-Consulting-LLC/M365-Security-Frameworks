@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `Frameworks/Security-Reporting-Decision-Rubric/Business-Case/ROI-REPORTING-RUBRIC.md`: executive business case for the Reporting Decision Rubric. Covers the cost of undifferentiated reporting (4 failure modes), the value of kill-list discipline and audience-scoped cadence, adoption cost and timeline, compliance alignment (SOC 2, ISO 27001:2022, NIST SP 800-53), and cross-references to the CA Baseline and EIG Toolkit business cases.
 - `Frameworks/Identity-Threat-Protection-Scorecard/Scripts/Get-ITPScorecard.ps1`: added an optional `-TenantName` parameter, carried through into the `ITPSResult` object. `-TenantId` remains the tenant GUID used to authenticate; `TenantName` is presentation only. `Format-ITPScorecardReport.ps1` now resolves the report label in precedence order — its own `-TenantName` override, then the name carried in the result, then the GUID — so the friendly name only has to be typed once at collection time and the JSON export is self-describing. Result files produced before the collector carried the field still format correctly and fall back to the GUID.
 
 ### Fixed
