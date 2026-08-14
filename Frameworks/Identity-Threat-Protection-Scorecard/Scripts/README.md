@@ -173,6 +173,9 @@ Two Governance checks add a fourth outcome: **the call succeeded, records came b
 |---|---|---|
 | G-02 Guest access reviewed | Review definitions exist, but none exposes a scope filter the collector can read | Guest coverage cannot be determined either way. Scoring zero would understate a tenant that does review guests; scoring full marks is the defect this replaces. A tenant with **no** review definitions at all still scores zero, because that is a genuine absence rather than an unknown |
 | G-04 Standing privilege minimised | Both PIM endpoints answer but return no role assignments at all | Every tenant holds at least one privileged assignment, so an empty set is an unreadable signal rather than zero standing privilege. Scoring it would award full points for missing data |
+| D-01 to D-04 Detection health | No open health issues **and** no evidence that Defender for Identity sensors are deployed | A tenant with healthy sensors and a tenant with no sensors both return an empty collection. Full marks would certify a detection capability that may not exist |
+
+**How sensor deployment is evidenced.** The collector reads the `AATP_Sensor` Secure Score control from the `controlScores` payload it already retrieves for P-01 — no extra request, no extra scope. Its `implementationStatus` names the domain controller count and how many carry a sensor; `scoreInPercentage` reaches 100 at full coverage. The similarly-named `AATP_DefenderForIdentityIsNotInstalled` is **not** used: on a tenant with sensors on all 3 domain controllers it scored 0 with an empty status, so treating it as an installed flag misreports a fully deployed tenant. When health issues are returned, sensors demonstrably exist and the evidence check is skipped.
 
 G-02 records the review names it evaluated, the scope queries it found, and the pattern it matched on, so a disputed result can be checked against the tenant rather than taken on trust.
 

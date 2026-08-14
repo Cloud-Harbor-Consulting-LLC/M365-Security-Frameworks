@@ -121,12 +121,20 @@ Maximum: 100.
 | D-01 No open high-severity health issues | 25 | Full points when `$filter=Status eq 'open' and severity eq 'high'` returns zero results |
 | D-02 No open medium-severity health issues | 15 | Full points when the equivalent medium-severity filter returns zero results |
 | D-03 Sensor health issues resolved | 10 | Full points when no open issue has `healthIssueType` = `sensor` |
-| D-04 Health signal reachable at all | 10 | Full points when the endpoint returns successfully, which establishes that Defender for Identity is licensed and provisioned |
+| D-04 Health signal reachable at all | 10 | Full points when the endpoint returns successfully **and** sensor deployment is evidenced |
 | D-05 Coverage and maturity composite | **Manual** | Read the composite score and tier from the Defender portal and record them alongside the ITPS score |
 
 Maximum from automated checks: 60. D-05 is excluded from the denominator unless scored by hand.
 
 **What the health signal actually means.** `healthIssues` reports Defender for Identity *deployment and sensor health*, not threat detections. A tenant with open sensor health issues has detection gaps it may not know about, which is precisely the failure this dimension is designed to surface: detection that is assumed to be working rather than validated. Do not read D-01 through D-04 as a count of threats detected.
+
+**An empty result is not proof of health.** A tenant with no open health issues and a tenant with no sensors at all return the same empty collection. Scoring both at 100 certified a detection capability that might not exist — and D-04, which was described as establishing that Defender for Identity is "licensed and provisioned", in fact established only that the endpoint answered.
+
+When the collection is empty, the collector therefore requires positive evidence that sensors are deployed before scoring D-01 through D-04. That evidence is the **`AATP_Sensor`** Secure Score control, read from the `controlScores` payload already retrieved for P-01, so no additional request or scope is needed. Its `implementationStatus` names the domain controller count and how many carry a sensor, and its `scoreInPercentage` reaches 100 at full coverage. Where the collection is empty and that evidence is absent or unreadable, D-01 through D-04 are reported as `ManualReview` and excluded from the denominator rather than scored.
+
+The related control **`AATP_DefenderForIdentityIsNotInstalled` is deliberately not used.** On a tenant with sensors installed on all 3 of its domain controllers it scored 0 with an empty `implementationStatus`, so reading it as an installed flag reports a fully deployed tenant as having no deployment.
+
+When health issues *are* returned, sensors demonstrably exist and the evidence check is skipped.
 
 **Manual navigation for D-05.** Microsoft Defender portal → **Identities** → **Coverage and maturity**. Requires a Defender for Cloud Apps or Defender for Identity license and at least the Security Reader role. The page is in Preview and is being rolled out gradually, so it may not be present in every tenant yet. See `PREVENTION-VS-DETECTION.md` for why this is not automatable.
 

@@ -316,6 +316,11 @@ else {
     $null
 }
 
+# Initialised before the block below so the Detection dimension can always read it.
+# When the Secure Score call fails, deployment is simply unknown — which is a
+# distinct outcome from known-and-absent, and is handled as such at D-01..D-04.
+$mdiEvidence = @{ Known = $false; Deployed = $false; SensorScorePercent = 0; ImplementationStatus = '' }
+
 if ($null -ne $secureScore) {
     $current = [double](Get-ITPSProp $secureScore 'currentScore' 0)
     $max = [double](Get-ITPSProp $secureScore 'maxScore' 0)
@@ -327,6 +332,35 @@ if ($null -ne $secureScore) {
     $identityPoints = ($identityControls | ForEach-Object { [double](Get-ITPSProp $_ 'score' 0) } |
         Measure-Object -Sum).Sum
     if ($null -eq $identityPoints) { $identityPoints = 0 }
+
+    # Defender for Identity deployment evidence, read from the Secure Score payload
+    # already in hand rather than from a second endpoint. The Detection dimension
+    # needs it: an empty health-issues collection means "deployed and healthy" OR
+    # "no sensors at all", and those must not score the same.
+    #
+    # AATP_Sensor is the control that carries it. Its implementationStatus names the
+    # domain controller count and how many carry a sensor, and its scoreInPercentage
+    # reaches 100 at full coverage.
+    #
+    # AATP_DefenderForIdentityIsNotInstalled is deliberately NOT used. On a tenant
+    # with sensors installed on all 3 of its domain controllers, that control scored
+    # 0 with an empty implementationStatus — so reading it as an installed flag would
+    # report a fully deployed tenant as having no deployment.
+    $sensorControl = @($identityControls | Where-Object {
+            (Get-ITPSProp $_ 'controlName') -eq 'AATP_Sensor'
+        })[0]
+    $mdiEvidence = if ($null -ne $sensorControl) {
+        @{
+            Known                = $true
+            Deployed             = ([double](Get-ITPSProp $sensorControl 'scoreInPercentage' 0) -gt 0) -or
+            ([double](Get-ITPSProp $sensorControl 'score' 0) -gt 0)
+            SensorScorePercent   = [double](Get-ITPSProp $sensorControl 'scoreInPercentage' 0)
+            ImplementationStatus = [string](Get-ITPSProp $sensorControl 'implementationStatus' '')
+        }
+    }
+    else {
+        @{ Known = $false; Deployed = $false; SensorScorePercent = 0; ImplementationStatus = '' }
+    }
 
     $preventionChecks.Add((New-ITPSCheck -Id 'P-01' -Name 'Secure Score attainment' `
                 -Points ([Math]::Round($attainmentPct * 0.5, 2)) -MaxPoints 50 `
@@ -426,15 +460,32 @@ Write-Status 'Assessing Detection...'
 $detectionChecks = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 $healthCall = Invoke-ITPSCollection -Uri "security/identities/healthIssues?`$filter=Status eq 'open'"
+
+# An empty health-issues collection has two very different meanings: sensors are
+# deployed and reporting nothing wrong, or there are no sensors to report anything
+# at all. Scoring both at full marks certified a detection capability that may not
+# exist — the inverse of the empty-collection defect corrected previously, where
+# empty was wrongly treated as failure.
+#
+# The deployment evidence comes from the AATP_Sensor Secure Score control gathered
+# above. It is only consulted when the collection is empty; if health issues came
+# back, sensors demonstrably exist.
+$healthEmpty = $healthCall.Ok -and $healthCall.Items.Count -eq 0
+$detectionUnprovable = $healthEmpty -and -not $mdiEvidence.Deployed
+
 if (-not $healthCall.Ok) {
     Write-Status "Defender for Identity health issues unavailable — flagging D-01..D-04 for manual review. $($healthCall.Error)" -Level Warn
 }
-elseif ($healthCall.Items.Count -eq 0) {
-    Write-Status 'No open Defender for Identity health issues — D-01..D-04 earn full points.' -Level OK
+elseif ($detectionUnprovable) {
+    Write-Status ('No open Defender for Identity health issues, and no sensor deployment evidence — flagging D-01..D-04 for manual review ' +
+        'rather than awarding full points for an absent deployment.') -Level Warn
+}
+elseif ($healthEmpty) {
+    Write-Status "No open Defender for Identity health issues, sensors confirmed deployed — D-01..D-04 earn full points. $($mdiEvidence.ImplementationStatus)" -Level OK
 }
 $healthIssues = $healthCall.Items
 
-if ($healthCall.Ok) {
+if ($healthCall.Ok -and -not $detectionUnprovable) {
     $openHigh = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'high' }).Count
     $openMedium = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'medium' }).Count
     $openSensor = @($healthIssues | Where-Object { (Get-ITPSProp $_ 'healthIssueType') -match '(?i)sensor' }).Count
@@ -450,16 +501,41 @@ if ($healthCall.Ok) {
                 -Signal @{ OpenSensorIssueCount = $openSensor }))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-04' -Name 'Health signal reachable' `
                 -Points 10 -MaxPoints 10 `
-                -Signal @{ TotalOpenIssues = $healthIssues.Count; Reachable = $true }))
+                -Signal @{
+                TotalOpenIssues      = $healthIssues.Count
+                Reachable            = $true
+                SensorDeployment     = $mdiEvidence.ImplementationStatus
+                SensorScorePercent   = $mdiEvidence.SensorScorePercent
+            }))
 }
 else {
+    # Two routes here, and they are not the same finding. Either the call failed, or
+    # it succeeded with nothing and no sensor deployment could be evidenced.
+    $detectionNote = if (-not $healthCall.Ok) {
+        "Defender for Identity health issue call failed: $($healthCall.Error) This commonly means Defender for Identity is not licensed or not provisioned, but confirm against the error above rather than assuming. Review in Microsoft Defender portal > Settings > Identities > Health issues."
+    }
+    elseif ($mdiEvidence.Known) {
+        ('The health issue endpoint answered with no open issues, but the AATP_Sensor Secure Score control reports no sensor coverage ' +
+        "($($mdiEvidence.SensorScorePercent)%). With no sensors deployed there is nothing to raise a health issue, so an empty result is not " +
+        'evidence of a healthy deployment and is not scored as one. Confirm sensor coverage in Microsoft Defender portal > Settings > ' +
+        'Identities > Sensors before treating Detection as covered.')
+    }
+    else {
+        ('The health issue endpoint answered with no open issues, and sensor deployment could not be confirmed because the AATP_Sensor ' +
+        'Secure Score control was unavailable. An empty result cannot be distinguished from an absent deployment, so it is not scored. ' +
+        'Confirm sensor coverage in Microsoft Defender portal > Settings > Identities > Sensors.')
+    }
     foreach ($c in @(
             @{ Id = 'D-01'; Name = 'No open high-severity health issues' },
             @{ Id = 'D-02'; Name = 'No open medium-severity health issues' },
             @{ Id = 'D-03'; Name = 'Sensor health issues resolved' },
             @{ Id = 'D-04'; Name = 'Health signal reachable' })) {
         $detectionChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote "Defender for Identity health issue call failed: $($healthCall.Error) This commonly means Defender for Identity is not licensed or not provisioned, but confirm against the error above rather than assuming. Review in Microsoft Defender portal > Settings > Identities > Health issues."))
+                    -ManualReviewNote $detectionNote `
+                    -Signal @{
+                    SensorDeploymentKnown = $mdiEvidence.Known
+                    SensorScorePercent    = $mdiEvidence.SensorScorePercent
+                }))
     }
 }
 
