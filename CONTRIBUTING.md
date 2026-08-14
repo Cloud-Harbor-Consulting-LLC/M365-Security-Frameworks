@@ -31,6 +31,7 @@ Thank you for considering a contribution. This repo is maintained as a practical
 - **PowerShell** — follow [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) defaults; include `-WhatIf` or `-ReportOnly` support on any deployment script
 - **JSON policy templates** — format with 2-space indentation; strip tenant-specific IDs before committing
 - **Business-case docs** — write for a non-technical executive audience; assume the reader is a CFO, CIO, or board member
+- **Compliance control rows** — when authoring a compliance table (SOC 2 Trust Services Criteria, ISO 27001:2022, NIST SP 800-53), copy control labels and criterion descriptions from an existing verified document in the repo rather than writing them from memory. Verified rows exist in `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`, `Frameworks/Security-Reporting-Decision-Rubric/Examples/Audit-Attestation.md`, and `Frameworks/Security-Reporting-Decision-Rubric/Business-Case/ROI-REPORTING-RUBRIC.md`. Control numbering and criterion text are non-obvious: CC7.1 covers configuration change monitoring, not event detection; A.8.16 has no ISO 27001:2013 equivalent. Treat the repo's verified documents as the canonical source, not memory or search summaries.
 
 ## Reporting security issues
 
