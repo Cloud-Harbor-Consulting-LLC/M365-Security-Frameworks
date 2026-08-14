@@ -39,7 +39,10 @@ Standing access that no one reviews is how guest sprawl and privilege creep take
 
 ## Business case
 
-For the executive ROI, risk-reduction, and compliance framing, see [Business-Case/ROI-ENTRA-GOVERNANCE.md](Business-Case/ROI-ENTRA-GOVERNANCE.md).
+2 executive business case documents are available in `Business-Case/`:
+
+- [ROI-ENTRA-GOVERNANCE.md](Business-Case/ROI-ENTRA-GOVERNANCE.md) — ROI and risk-reduction case for the Entra ID Governance Toolkit specifically: Access Review automation savings, reviewer chain design, audit evidence retention, and compliance alignment for the EIG scripts.
+- [ROI-ENTRA-ID-P2.md](Business-Case/ROI-ENTRA-ID-P2.md) — Business case for the Entra ID P2 license that powers this toolkit. Covers P1 vs P2 feature comparison, P2-exclusive controls used in this repo, per-user licensing cost, operational savings, compliance mapping (SOC 2, ISO 27001:2022, NIST SP 800-53 Rev 5), and a CFO-ready summary with licensing path guidance (P2 now, Entra ID Governance for 3-year plans).
 
 ## Deployment workflow
 
