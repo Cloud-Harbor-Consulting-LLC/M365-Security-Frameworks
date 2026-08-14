@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `CONTRIBUTING.md`: added Style guide convention for compliance control rows — copy control labels and criterion descriptions from existing verified documents in the repo (ROI-ENTRA-ID-P2.md, Audit-Attestation.md, ROI-REPORTING-RUBRIC.md) rather than writing from memory; notes two concrete examples of non-obvious numbering (CC7.1, A.8.16).
 - `Frameworks/Entra-ID-Governance-Toolkit/README.md`: Business case section expanded to surface both `Business-Case/` documents (ROI-ENTRA-GOVERNANCE.md and ROI-ENTRA-ID-P2.md) with one-line descriptions of each.
+- `Frameworks/Identity-Threat-Protection-Scorecard/Scripts/README.md`: corrected the testing status, which still stated that the collector had not been run against a live Microsoft 365 tenant. It has, and that run is what surfaced the 3 defects corrected in the entries below. The section now records what the live run proved, names the 3 defects it exposed, and keeps an explicit caveat that validation so far is a single tenant — controls absent from it exercised the absent-control path but not the populated-control path.
 
 ### Fixed
 

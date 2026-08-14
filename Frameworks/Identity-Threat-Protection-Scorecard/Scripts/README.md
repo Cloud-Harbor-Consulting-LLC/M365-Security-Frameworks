@@ -210,6 +210,14 @@ In Microsoft Graph, **`$top` sets the page size, not a result limit.** A URI suc
 
 ## Testing status
 
-The formatter has been exercised end-to-end against synthetic `ITPSResult` data on both parameter sets, including a JSON round-trip.
+The formatter has been exercised end-to-end against synthetic `ITPSResult` data on both parameter sets, including a JSON round-trip, and against live collector output.
 
-**The collector has not been run against a live Microsoft 365 tenant.** It is written to the same standard as the Zero Trust Readiness Assessment collector and passes static analysis, but Graph response shapes are only fully proven by execution. Run it against a lab tenant before relying on it in a client engagement, and expect the same kind of shake-out the ZTRA collector required on first live run.
+**The collector has been run against a live Microsoft 365 tenant.** That first live run produced a complete assessment across all 4 dimensions, and surfaced 3 defects that static analysis could not reach:
+
+- a successful Graph call returning **zero records** was treated as a failed call and excluded from the dimension denominator, rather than scored as a genuinely absent control
+- a dimension with no gaps crashed report generation in the formatter
+- the Secure Score request paged the tenant's entire retained Secure Score history to obtain a single record
+
+All 3 are fixed. The CHANGELOG carries the root cause and the verification method for each.
+
+**Validation so far is a single tenant.** Controls that were absent from that tenant exercised the absent-control path but not the populated-control path, and checks that returned `ManualReview` were not scored at all. Run it against a lab tenant that resembles your target environment before relying on it in a client engagement.
