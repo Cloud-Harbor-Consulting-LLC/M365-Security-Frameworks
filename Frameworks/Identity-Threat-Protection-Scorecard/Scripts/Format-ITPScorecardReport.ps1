@@ -101,8 +101,12 @@ function Get-TierDescription {
     [CmdletBinding()]
     param([string]$Tier)
     switch ($Tier) {
-        'Resilient' { 'Full coverage across identity types, with named ownership and a working feedback loop when a control degrades.' }
-        'Fortified' { 'Broad coverage across human and non-human identities, with detection validated rather than assumed.' }
+        # These describe what the tier band means, not what this tenant has covered.
+        # They previously read as findings — "Broad coverage across human and non-human
+        # identities" was printed on a board report whose only non-human identity check
+        # had scored zero. The dimension table carries the tenant's actual position.
+        'Resilient' { 'The highest band: near-complete coverage of the measured controls, with named ownership and a feedback loop when a control degrades. See the dimension scores for where this tenant stands.' }
+        'Fortified' { 'Most measured controls are in place and detection is validated rather than assumed. Remaining gaps are named in the dimension scores below.' }
         'Protected' { 'Key identities and key controls are covered. Real gaps remain, usually in non-human identities or in who owns the controls.' }
         'Connected' { 'Some identity telemetry exists and some controls are configured, but protection is partial and inconsistently applied.' }
         default { 'Score not established. Complete the manual checks to produce a tier.' }
@@ -110,17 +114,22 @@ function Get-TierDescription {
 }
 
 function Get-DimensionGap {
-    # Returns the lowest-scoring checks in a dimension: zero-point scored checks first,
-    # then manual checks that were never assessed.
+    # Returns the lowest-scoring checks in a dimension: scored checks that fell short
+    # of their maximum first, then manual checks that were never assessed.
+    #
+    # -ScoredOnly omits the manual checks. A check with no API and no score is not a
+    # gap in the tenant's controls — it is an unmeasured area — and presenting the two
+    # in one list told a reader that a dimension scoring 100/100 still had a gap.
     [OutputType([object[]])]
     [CmdletBinding()]
-    param([object]$Dimension, [int]$Count = 3)
+    param([object]$Dimension, [int]$Count = 3, [switch]$ScoredOnly)
     $checks = @(Get-ITPSValue -InputObject $Dimension -Name 'Checks' -Default @())
     $missed = @($checks | Where-Object {
             -not (Get-ITPSValue -InputObject $_ -Name 'ManualReview' -Default $false) -and
             [double](Get-ITPSValue -InputObject $_ -Name 'Points' -Default 0) -lt
             [double](Get-ITPSValue -InputObject $_ -Name 'MaxPoints' -Default 0)
         } | Sort-Object { [double](Get-ITPSValue -InputObject $_ -Name 'Points' -Default 0) })
+    if ($ScoredOnly) { return @($missed | Select-Object -First $Count) }
     $manual = @($checks | Where-Object { Get-ITPSValue -InputObject $_ -Name 'ManualReview' -Default $false })
     return @($missed + $manual | Select-Object -First $Count)
 }
@@ -244,19 +253,30 @@ $e.Add('---')
 $e.Add('')
 $e.Add('## Dimension scores')
 $e.Add('')
-$e.Add('| Dimension | Score | Tier equivalent | Top gaps |')
-$e.Add('|---|---|---|---|')
+$e.Add('| Dimension | Score | Tier equivalent | Scored gaps | Not assessed |')
+$e.Add('|---|---|---|---|---|')
 foreach ($d in $dimensions) {
     $ds = Get-ITPSValue -InputObject $d -Name 'Score'
     # Wrapped in @() because a function returning an empty collection unrolls to
-    # nothing, leaving $gaps as $null and making $gaps.Count throw under strict mode.
+    # nothing, leaving the result as $null and making .Count throw under strict mode.
     # A dimension with every check at full points and no manual checks hits this.
-    $gaps = @(Get-DimensionGap -Dimension $d -Count 3)
+    #
+    # Scored gaps and manual checks are reported in separate columns. They were
+    # previously merged under a single "Top gaps" heading, which listed unassessed
+    # checks as gaps — so Detection at 100/100 appeared to have a gap in D-05, a
+    # check that has no API and was never scored at all.
+    $checks = @(Get-ITPSValue -InputObject $d -Name 'Checks' -Default @())
+    $gaps = @(Get-DimensionGap -Dimension $d -Count 3 -ScoredOnly)
+    $manual = @($checks | Where-Object { Get-ITPSValue -InputObject $_ -Name 'ManualReview' -Default $false })
     $gapStr = if ($gaps.Count -gt 0) {
         ($gaps | ForEach-Object { Get-ITPSValue -InputObject $_ -Name 'Id' }) -join ', '
     }
     else { 'None' }
-    $e.Add("| **$(Get-ITPSValue -InputObject $d -Name 'Name')** | $(Get-ScoreLabel $ds) | $(Get-TierForScore -Score $ds) | $gapStr |")
+    $manualStr = if ($manual.Count -gt 0) {
+        ($manual | Select-Object -First 3 | ForEach-Object { Get-ITPSValue -InputObject $_ -Name 'Id' }) -join ', '
+    }
+    else { '—' }
+    $e.Add("| **$(Get-ITPSValue -InputObject $d -Name 'Name')** | $(Get-ScoreLabel $ds) | $(Get-TierForScore -Score $ds) | $gapStr | $manualStr |")
 }
 $e.Add('')
 $e.Add('---')

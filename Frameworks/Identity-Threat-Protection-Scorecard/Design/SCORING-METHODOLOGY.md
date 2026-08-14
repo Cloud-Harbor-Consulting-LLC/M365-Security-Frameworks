@@ -121,12 +121,20 @@ Maximum: 100.
 | D-01 No open high-severity health issues | 25 | Full points when `$filter=Status eq 'open' and severity eq 'high'` returns zero results |
 | D-02 No open medium-severity health issues | 15 | Full points when the equivalent medium-severity filter returns zero results |
 | D-03 Sensor health issues resolved | 10 | Full points when no open issue has `healthIssueType` = `sensor` |
-| D-04 Health signal reachable at all | 10 | Full points when the endpoint returns successfully, which establishes that Defender for Identity is licensed and provisioned |
+| D-04 Health signal reachable at all | 10 | Full points when the endpoint returns successfully **and** sensor deployment is evidenced |
 | D-05 Coverage and maturity composite | **Manual** | Read the composite score and tier from the Defender portal and record them alongside the ITPS score |
 
 Maximum from automated checks: 60. D-05 is excluded from the denominator unless scored by hand.
 
 **What the health signal actually means.** `healthIssues` reports Defender for Identity *deployment and sensor health*, not threat detections. A tenant with open sensor health issues has detection gaps it may not know about, which is precisely the failure this dimension is designed to surface: detection that is assumed to be working rather than validated. Do not read D-01 through D-04 as a count of threats detected.
+
+**An empty result is not proof of health.** A tenant with no open health issues and a tenant with no sensors at all return the same empty collection. Scoring both at 100 certified a detection capability that might not exist — and D-04, which was described as establishing that Defender for Identity is "licensed and provisioned", in fact established only that the endpoint answered.
+
+When the collection is empty, the collector therefore requires positive evidence that sensors are deployed before scoring D-01 through D-04. That evidence is the **`AATP_Sensor`** Secure Score control, read from the `controlScores` payload already retrieved for P-01, so no additional request or scope is needed. Its `implementationStatus` names the domain controller count and how many carry a sensor, and its `scoreInPercentage` reaches 100 at full coverage. Where the collection is empty and that evidence is absent or unreadable, D-01 through D-04 are reported as `ManualReview` and excluded from the denominator rather than scored.
+
+The related control **`AATP_DefenderForIdentityIsNotInstalled` is deliberately not used.** On a tenant with sensors installed on all 3 of its domain controllers it scored 0 with an empty `implementationStatus`, so reading it as an installed flag reports a fully deployed tenant as having no deployment.
+
+When health issues *are* returned, sensors demonstrably exist and the evidence check is skipped.
 
 **Manual navigation for D-05.** Microsoft Defender portal → **Identities** → **Coverage and maturity**. Requires a Defender for Cloud Apps or Defender for Identity license and at least the Security Reader role. The page is in Preview and is being rolled out gradually, so it may not be present in every tenant yet. See `PREVENTION-VS-DETECTION.md` for why this is not automatable.
 
@@ -144,23 +152,30 @@ Maximum from automated checks: 60. D-05 is excluded from the denominator unless 
 |---|---|---|
 | Access review definitions | `GET /identityGovernance/accessReviews/definitions` | `AccessReview.Read.All` |
 | Privileged role assignments, eligible vs permanent | `GET /roleManagement/directory/roleEligibilityScheduleInstances` and `GET /roleManagement/directory/roleAssignmentScheduleInstances` | `RoleManagement.Read.Directory` |
-| Application credential hygiene | `GET /applications` | `Application.Read.All` |
+| Application credential lifetime | `GET /applications` | `Application.Read.All` |
 
 ### Scoring
 
 | Check | Points | How it is assessed |
 |---|---|---|
-| G-01 Access reviews configured | 20 | At least one access review definition exists |
-| G-02 Guest access reviewed | 15 | At least one review definition scopes guests |
-| G-03 PIM eligible assignments in use | 20 | `roleEligibilityScheduleInstances` returns at least one result |
-| G-04 Standing privilege minimised | 25 | Full points when zero permanent active assignments exist, scaled down as the permanent share rises |
-| G-05 Workload identity credential hygiene | 20 | Full points when no application registration holds a client secret with no expiry or an expiry beyond 12 months |
+| G-01 Access reviews configured | 20 | Graduated on the number of review definitions: none scores 0, a single review scores 10, two or more score 20 |
+| G-02 Guest access reviewed | 15 | At least one review definition carries a scope filter matching `userType eq 'Guest'` |
+| G-04 Standing privilege minimised | 45 | Full points when zero permanent active assignments exist, scaled linearly down as the permanent share rises |
+| G-05 Workload identity credential lifetime | 20 | Scaled linearly on the share of application registrations holding a client secret with no expiry or an expiry beyond 12 months |
 
 Maximum: 100.
 
-Permanent standing assignments are counted from `roleAssignmentScheduleInstances` where `assignmentType` is `Assigned` and `endDateTime` is null. An `Activated` assignment is a just-in-time activation of an eligible role and is not standing privilege.
+**G-01 is graduated rather than binary.** A single access review definition previously earned the full 20 points, which made a tenant that had configured one review indistinguishable from one running a complete programme. Full points sit at two reviews because that is the baseline this repo recommends: the Entra ID Governance Toolkit ships exactly two, `EIG-AR001` and `EIG-AR002`.
 
-**Repo cross-reference.** `EIG-AR001` (quarterly guest access review) satisfies G-01 and G-02 when deployed. `EIG-AR002` (dormant admin role review) contributes to G-03 and G-04.
+**G-02 reads the scope filter, never the review's display name.** Display names are free text supplied by the operator and are not evidence of what is being reviewed. Matching on them meant a review named to indicate it excluded guests — for example `...-NonGuest-...` — scored as a guest review on a substring match, and any tenant could have earned the points by naming a review "guest". The scope shape varies: an `accessReviewQueryScope` carries `query` directly, while a `principalResourceMembershipsScope` carries none and nests `principalScopes[]` and `resourceScopes[]`, each with its own. All are read. Where definitions exist but none exposes a readable scope filter, G-02 is reported as `ManualReview` rather than scored, because guest coverage cannot be determined either way.
+
+**G-03 has been withdrawn and its points folded into G-04.** It scored a binary 20 whenever `roleEligibilityScheduleInstances` returned at least one result, which read the same underlying data as G-04 and could contradict it outright: a tenant with 1 eligible and 9 permanent assignments scored 20/20 for PIM adoption alongside 2.5/25 for standing privilege. Both measure the eligible-versus-permanent balance, so the dimension now carries one check on that axis, weighted 45.
+
+**G-05 is scaled rather than binary,** matching G-04's treatment of standing privilege. The previous binary awarded 0 of 20 for a single offending registration, so a tenant with 2 of 10 affected scored identically to one with 10 of 10. The check measures credential *lifetime*: secrets that never expire or run beyond the threshold. Already-expired secrets are deliberately not counted, because an expired credential cannot authenticate.
+
+Permanent standing assignments are counted from `roleAssignmentScheduleInstances` where `assignmentType` is `Assigned` and `endDateTime` is null. An `Activated` assignment is a just-in-time activation of an eligible role and is not standing privilege. Where both PIM endpoints answer but return no assignments at all, G-04 is reported as `ManualReview`: every tenant holds at least one privileged assignment, so an empty set is an unreadable signal rather than an absence of standing privilege.
+
+**Repo cross-reference.** `EIG-AR001` (quarterly guest access review) satisfies G-01 and G-02 when deployed. `EIG-AR002` (dormant admin role review) contributes to G-01 and G-04.
 
 ---
 
