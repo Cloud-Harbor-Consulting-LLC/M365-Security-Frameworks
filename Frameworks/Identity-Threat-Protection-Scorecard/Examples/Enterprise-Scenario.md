@@ -10,7 +10,7 @@
 |---|---|---|
 | Prevention | 88 | Resilient |
 | Detection | 100 | Resilient |
-| Governance | 59 | Protected |
+| Governance | 58 | Protected |
 | Ownership | Not scored | — |
 
 Overall is the mean of the 3 scored dimensions. Ownership was not assessed, so the figure is an upper bound.
@@ -44,19 +44,18 @@ Every discrete Conditional Access check passes. The 12-point gap is entirely in 
 
 Detection is genuinely excellent. Full sensor coverage, no open health issues, and a SOC that acts on what the sensors produce.
 
-### Governance — 59
+### Governance — 58
 
 | Check | Result | Note |
 |---|---|---|
 | G-01 Access reviews configured | 20 / 20 | 22 review definitions |
-| G-02 Guest access reviewed | 15 / 15 | Quarterly, automated |
-| G-03 PIM eligible assignments | 20 / 20 | 69 eligible assignments |
-| G-04 Standing privilege minimised | 3.75 / 25 | 391 permanent of 460 total, an 85% standing ratio |
-| G-05 Workload identity credential hygiene | 0 / 20 | 63 of 312 app registrations hold secrets over 12 months |
+| G-02 Guest access reviewed | 15 / 15 | Quarterly, automated, scoped to `userType eq 'Guest'` |
+| G-04 Standing privilege minimised | 6.75 / 45 | 391 permanent of 460 total, an 85% standing ratio |
+| G-05 Workload identity credential lifetime | 15.96 / 20 | 63 of 312 app registrations hold secrets over 12 months |
 
 This is the finding. Meridian has PIM deployed with 69 eligible assignments, and **391 permanent standing assignments alongside them.** PIM was rolled out to the identity team's own roles and to a pilot group, and the migration stopped there. The subsidiaries were never onboarded.
 
-Note the shape of the G-03 and G-04 pair: G-03 awards full points merely for PIM being in use, and Meridian earns them. G-04 is the check that measures whether PIM is actually displacing standing privilege, and Meridian earns 15% of it. A scorecard with only G-03 would report this tenant as governed.
+Meridian is the tenant that retired a check. Earlier revisions of this rubric carried a separate G-03, "PIM eligible assignments in use", which awarded a binary 20 points merely for PIM being switched on somewhere. Meridian earned those 20 in full while earning 15% of G-04, the check that measures whether PIM is actually displacing standing privilege. One scorecard, two opposite verdicts, drawn from the same 460 assignments. G-03 has since been folded into G-04, which now carries 45 points on that single axis — so a tenant that has bought PIM and not finished deploying it can no longer bank points for the purchase.
 
 Sixty-three application registrations hold secrets older than a year, several belonging to subsidiaries acquired in the last 3 years whose original owners have left.
 
@@ -78,9 +77,9 @@ This is the argument for equal dimension weighting stated as a finding: a weight
 
 ### Recommended sequence
 
-1. **Complete the PIM migration to the 6 subsidiaries.** Reducing permanent assignments from 391 to under 50 moves G-04 from 3.75 to roughly 22, and Governance from 59 to 77.
+1. **Complete the PIM migration to the 6 subsidiaries.** Reducing permanent assignments from 391 to under 50 moves G-04 from 6.75 to roughly 26, and Governance from 59 to 77.
 2. **Run an app registration amnesty.** Use `KQL/workload-identity-review.kql` to separate the 63 stale-credential registrations into active (rotate) and dormant (delete). Expect most to be dormant.
 3. **Build the ownership matrix first, not last.** Meridian's Governance gap exists because no one owns cross-subsidiary identity hygiene. Assigning that ownership is a prerequisite for steps 1 and 2, not a follow-up to them.
 4. **Use the compliance angle.** SOC 2 CC6.1 and CC6.3 both speak to restricting privileged access. 391 permanent assignments is an audit finding waiting to be written. That is usually the argument that unlocks subsidiary cooperation when a security argument has not.
 
-Completing steps 1 and 2 moves Governance to roughly 97 and the overall score to roughly 95 — Resilient — with no additional licensing. That figure still assumes Ownership scores well, which is precisely what step 3 exists to establish. Do not report Meridian as Resilient until it does.
+Completing steps 1 and 2 moves Governance to roughly 81 and the overall score to roughly 90 — Resilient — with no additional licensing. That figure still assumes Ownership scores well, which is precisely what step 3 exists to establish. Do not report Meridian as Resilient until it does.

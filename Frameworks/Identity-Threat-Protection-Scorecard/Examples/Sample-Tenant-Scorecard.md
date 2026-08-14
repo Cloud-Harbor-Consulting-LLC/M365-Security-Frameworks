@@ -12,9 +12,9 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 |---|---|---|
 | Prevention | 66 | CA baseline enforced; no admin-targeted policy and no phishing-resistant strength |
 | Detection | 75 | Full sensor coverage, 2 open medium-severity health issues |
-| Governance | 66 | Access reviews and PIM in use; 25 permanent assignments and 12 stale app secrets |
+| Governance | 70 | 3 access reviews including a guest-scoped one; 25 permanent of 46 assignments; 12 of 40 registrations hold long-lived secrets |
 | Ownership | Not scored | Manual dimension, not assessed in this run |
-| **Overall** | **69 — Fortified** | Mean of the 3 scored dimensions; partial score |
+| **Overall** | **70 — Fortified** | Mean of the 3 scored dimensions; partial score |
 
 ---
 ---
@@ -23,11 +23,11 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 # ITPS Technical Report
 
-**Tenant:** Fabrikam  
-**Assessment date:** 2026-08-13  
+**Tenant:** Fabrikam Residential Services  
+**Assessment date:** 2026-08-12  
 **Collector version:** v0.1.0-preview  
-**Overall score:** 69 / 100 — Fortified  
-**Manual review checks:** 7 of 22  
+**Overall score:** 70 / 100 — Fortified  
+**Manual review checks:** 7 of 21  
 
 > **Partial score.** Unscored dimensions: Ownership. Treat the overall score as an upper bound; completing the manual checks can only lower it.
 
@@ -39,7 +39,7 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 |---|---|---|---|---|
 | Prevention | 25% | 66 / 100 | 6 | 0 |
 | Detection | 25% | 75 / 100 | 4 | 1 |
-| Governance | 25% | 66 / 100 | 5 | 0 |
+| Governance | 25% | 70 / 100 | 4 | 0 |
 | Ownership | 25% | Not scored | 0 | 6 |
 
 ---
@@ -77,15 +77,14 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 ## Governance
 
-**Dimension score:** 66 / 100
+**Dimension score:** 70 / 100
 
 | Check | Points | Max | Repo X-Ref | Manual |
 |---|---|---|---|---|
 | **G-01** Access reviews configured | 20 | 20 | EIG-AR001, EIG-AR002 | No |
 | **G-02** Guest access reviewed | 15 | 15 | EIG-AR001 | No |
-| **G-03** PIM eligible assignments in use | 20 | 20 | EIG-AR002 | No |
-| **G-04** Standing privilege minimised | 11.36 | 25 | EIG-AR002 | No |
-| **G-05** Workload identity credential hygiene | 0 | 20 | — | No |
+| **G-04** Standing privilege minimised | 20.54 | 45 | EIG-AR002 | No |
+| **G-05** Workload identity credential lifetime | 14 | 20 | — | No |
 
 ---
 
@@ -127,11 +126,11 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 # ITPS Executive Summary
 
-**Tenant:** Fabrikam  
-**Assessment date:** 2026-08-13  
-**Overall score:** 69 / 100 — Fortified  
+**Tenant:** Fabrikam Residential Services  
+**Assessment date:** 2026-08-12  
+**Overall score:** 70 / 100 — Fortified  
 
-> Broad coverage across human and non-human identities, with detection validated rather than assumed.
+> Most measured controls are in place and detection is validated rather than assumed. Remaining gaps are named in the dimension scores below.
 
 **This is a partial score.** The following dimensions were not scored: Ownership. They require manual assessment. Treat the overall score as an upper bound.
 
@@ -139,12 +138,12 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 ## Dimension scores
 
-| Dimension | Score | Tier equivalent | Top gaps |
-|---|---|---|---|
-| **Prevention** | 66 / 100 | Fortified | P-05, P-06, P-01 |
-| **Detection** | 75 / 100 | Fortified | D-02, D-05 |
-| **Governance** | 66 / 100 | Fortified | G-05, G-04 |
-| **Ownership** | Not scored | Not scored | O-01, O-02, O-03 |
+| Dimension | Score | Tier equivalent | Scored gaps | Not assessed |
+|---|---|---|---|---|
+| **Prevention** | 66 / 100 | Fortified | P-05, P-06, P-01 | — |
+| **Detection** | 75 / 100 | Fortified | D-02 | D-05 |
+| **Governance** | 70 / 100 | Fortified | G-05, G-04 | — |
+| **Ownership** | Not scored | Not scored | None | O-01, O-02, O-03 |
 
 ---
 
@@ -161,10 +160,10 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 - Close **D-02** (No open medium-severity health issues). Currently 0 of 15 points.
 - Assess **D-05** (Coverage and maturity composite score) manually. No API exists for this signal. Read the composite score and tier from Microsoft Defender portal > Identities > Coverage and maturity. Requires a Defender for Cloud Apps or Defender for Identity license and at least Security Reader. The page is in Preview and rolling out gradually.
 
-### Governance — 66 / 100
+### Governance — 70 / 100
 
-- Close **G-05** (Workload identity credential hygiene). Currently 0 of 20 points.
-- Close **G-04** (Standing privilege minimised). Currently 11.36 of 25 points.
+- Close **G-05** (Workload identity credential lifetime). Currently 14 of 20 points.
+- Close **G-04** (Standing privilege minimised). Currently 20.54 of 45 points.
 
 ### Ownership — Not scored
 
@@ -176,7 +175,7 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 ## Manual review items
 
-7 of 22 checks require manual assessment. Each check's manual review note in the technical report gives the exact portal navigation. The Ownership dimension is manual in full, because ownership is an organisational fact rather than a tenant configuration.
+7 of 21 checks require manual assessment. Each check's manual review note in the technical report gives the exact portal navigation. The Ownership dimension is manual in full, because ownership is an organisational fact rather than a tenant configuration.
 
 *Tier bands are a Cloud Harbor Consulting scoring convention. Microsoft does not publish numeric thresholds for its Connected, Protected, Fortified, and Resilient tiers, and an ITPS tier will not necessarily match the tier shown on the Defender Coverage and maturity page.*
 
@@ -189,17 +188,17 @@ This file is distinct from the 3 scenario documents in this folder. Those are di
 
 # Identity Threat Protection — Board Summary
 
-**Organization:** Fabrikam  
-**Assessment date:** 2026-08-13  
+**Organization:** Fabrikam Residential Services  
+**Assessment date:** 2026-08-12  
 **Assessment framework:** Identity Threat Protection Scorecard (ITPS)  
 
 ---
 
 ## Overall identity protection maturity
 
-**69 / 100 — Fortified**
+**70 / 100 — Fortified**
 
-Broad coverage across human and non-human identities, with detection validated rather than assumed.
+Most measured controls are in place and detection is validated rather than assumed. Remaining gaps are named in the dimension scores below.
 
 The organization was assessed across 4 dimensions of identity threat protection, weighted equally. Scores reflect current Microsoft 365 and Entra ID configuration.
 
@@ -207,7 +206,7 @@ The organization was assessed across 4 dimensions of identity threat protection,
 |---|---|
 | Prevention | 66 / 100 |
 | Detection | 75 / 100 |
-| Governance | 66 / 100 |
+| Governance | 70 / 100 |
 | Ownership | Not scored |
 
 **Note:** this is a partial assessment. Ownership could not be scored automatically and requires manual review. The overall figure is an upper bound.
@@ -218,7 +217,7 @@ The organization was assessed across 4 dimensions of identity threat protection,
 
 - **Prevention** scored 66 / 100. Controls in this dimension are broadly in place and operating.
 - **Detection** scored 75 / 100. Controls in this dimension are broadly in place and operating.
-- **Governance** scored 66 / 100. Controls in this dimension are broadly in place and operating.
+- **Governance** scored 70 / 100. Controls in this dimension are broadly in place and operating.
 
 ---
 

@@ -4,13 +4,13 @@
 
 **Profile:** 850 users, Microsoft 365 E3 with an Entra ID P2 add-on for 120 users, Defender for Identity licensed and deployed to 2 of 5 domain controllers. Security is a 2-person team inside a 9-person IT department. A Conditional Access baseline was deployed 8 months ago by a consultant.
 
-**Overall score: 62 / 100 — Protected**
+**Overall score: 64 / 100 — Protected**
 
 | Dimension | Score | Tier equivalent |
 |---|---|---|
 | Prevention | 54 | Protected |
 | Detection | 58 | Protected |
-| Governance | 73 | Fortified |
+| Governance | 79 | Fortified |
 | Ownership | Not scored | — |
 
 Overall is the mean of the 3 scored dimensions. Ownership was not assessed, so the figure is an upper bound.
@@ -50,17 +50,18 @@ Defender for Identity covers 2 of 5 domain controllers. The 3 uncovered controll
 
 There are no alerts from those 3 controllers. That is not evidence of safety; it is the absence of a sensor.
 
-### Governance — 73
+### Governance — 79
 
 | Check | Result | Note |
 |---|---|---|
 | G-01 Access reviews configured | 20 / 20 | 3 review definitions |
-| G-02 Guest access reviewed | 15 / 15 | Quarterly guest review active |
-| G-03 PIM eligible assignments | 20 / 20 | 34 eligible assignments |
-| G-04 Standing privilege minimised | 17.71 / 25 | 14 permanent of 48 total, a 29% standing ratio |
-| G-05 Workload identity credential hygiene | 0 / 20 | 9 of 22 app registrations hold secrets over 12 months |
+| G-02 Guest access reviewed | 15 / 15 | Quarterly guest review scoped to `userType eq 'Guest'` |
+| G-04 Standing privilege minimised | 31.87 / 45 | 14 permanent of 48 total, a 29% standing ratio |
+| G-05 Workload identity credential lifetime | 11.82 / 20 | 9 of 22 app registrations hold secrets over 12 months |
 
 Governance is Silverline's strongest dimension, driven by a P2 add-on that was purchased specifically for PIM. The gap is non-human identities: 9 application registrations hold long-lived secrets, several created for integrations that ended.
+
+G-05 is scaled rather than binary, so the 13 registrations with sound credential lifetimes earn their share of the points. Under a pass/fail treatment this row read 0 of 20, which put Silverline level with a tenant where every registration held a long-lived secret.
 
 ### Ownership — not scored
 
@@ -80,7 +81,7 @@ This is why Ownership is a scored dimension rather than a footnote. Silverline's
 
 1. **Review 8 months of report-only data and promote the 4 risk policies.** The impact analysis is already sitting in the tenant. This alone moves Prevention from 54 to 84.
 2. **Deploy Defender for Identity sensors to the remaining 3 domain controllers**, starting with the manufacturing VPN authenticator. Clearing the sensor and medium-severity findings moves Detection from 58 to 100.
-3. **Rotate or retire the 9 long-lived app secrets.** Cross-reference `KQL/workload-identity-review.kql` first: registrations with no sign-ins in 90 days should be deleted, not rotated. Moves Governance from 73 to 93.
+3. **Rotate or retire the 9 long-lived app secrets.** Cross-reference `KQL/workload-identity-review.kql` first: registrations with no sign-ins in 90 days should be deleted, not rotated. Moves Governance from 79 to 87.
 4. **Build the ownership matrix.** Silverline's gap is not knowledge, it is that the knowledge is not written down and not assigned.
 
-Steps 1 through 3 require no purchase and would move the overall score to roughly 92 using licenses Silverline already owns. That figure remains an upper bound until Ownership is scored, which is exactly the dimension that caused the delay in the first place.
+Steps 1 through 3 require no purchase and would move the overall score to roughly 90 using licenses Silverline already owns. That figure remains an upper bound until Ownership is scored, which is exactly the dimension that caused the delay in the first place.

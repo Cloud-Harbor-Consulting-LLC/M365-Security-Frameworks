@@ -116,7 +116,7 @@ Checks in the scoring methodology cross-reference deployed artifacts from this r
 | P-04 Risk-based policy present | `Frameworks/Conditional-Access-Baseline/Policies/CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009` |
 | P-05 Privileged roles targeted | `Frameworks/Conditional-Access-Baseline/Policies/CA-AUT001-003-*` |
 | G-01, G-02 Access reviews | `Frameworks/Entra-ID-Governance-Toolkit/` (EIG-AR001) |
-| G-03, G-04 PIM and standing privilege | `Frameworks/Entra-ID-Governance-Toolkit/` (EIG-AR002) |
+| G-04 Standing privilege minimised | `Frameworks/Entra-ID-Governance-Toolkit/` (EIG-AR002) |
 
 Note that the Conditional Access Baseline ships its risk policies in report-only mode. The Prevention checks require enforced state, so deploying the baseline is necessary but not sufficient to earn those points.
 

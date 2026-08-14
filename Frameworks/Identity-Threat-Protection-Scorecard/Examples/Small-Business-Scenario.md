@@ -42,13 +42,14 @@ Every check in this dimension therefore fell back to manual review, and the coll
 
 | Check | Result | Note |
 |---|---|---|
-| G-01 Access reviews configured | 0 / 20 | Access Reviews requires P2 |
+| G-01 Access reviews configured | 0 / 20 | No review definitions exist; Access Reviews requires P2 |
 | G-02 Guest access reviewed | 0 / 15 | 11 guest accounts, none reviewed |
-| G-03 PIM eligible assignments | 0 / 20 | PIM requires P2 |
-| G-04 Standing privilege minimised | 0 / 25 | 4 permanent Global Administrators |
-| G-05 Workload identity credential hygiene | 20 / 20 | 2 app registrations, both with 6-month secrets |
+| G-04 Standing privilege minimised | 0 / 45 | 4 permanent Global Administrators, no eligible assignments |
+| G-05 Workload identity credential lifetime | 20 / 20 | 2 app registrations, both with 6-month secrets |
 
 G-05 passes almost by accident: the tenant has very few app registrations, and the MSP happened to set short expiries.
+
+G-02 scores a genuine zero rather than falling to manual review. The tenant has no access review definitions at all, so guest coverage is definitively absent — not merely unreadable.
 
 ### Ownership — not scored
 
@@ -58,7 +59,7 @@ No ownership matrix exists. When asked who would notice if MFA enforcement were 
 
 ## The diagnostic
 
-Northwind's real problem is not that its score is 34. It is that **3 of its 4 dimensions are constrained by a licensing decision nobody revisited since the tenant was created.**
+Northwind's real problem is not that its score is 36. It is that **3 of its 4 dimensions are constrained by a licensing decision nobody revisited since the tenant was created.**
 
 Prevention scores respectably because Security Defaults is genuinely effective for a tenant this size. But Security Defaults is all-or-nothing: it cannot be scoped, cannot be tuned, and cannot express "require phishing-resistant MFA for the 4 admins." The tenant has hit the ceiling of what P1 plus Security Defaults can do, and the remaining Prevention points all require P2.
 
@@ -75,7 +76,7 @@ The 4 permanent Global Administrators are the highest-severity finding on this s
 
 Steps 1 through 3 cost nothing and materially reduce Northwind's risk. They will barely move the automated score.
 
-Reducing Global Administrators does not improve G-04, because G-04 reads PIM assignment data that a P1 tenant does not produce. Reviewing guests by hand does not improve G-02, because G-02 looks for a configured review definition. Naming owners does not improve Ownership until the matrix is scored by hand.
+Reducing Global Administrators does not improve G-04. The check scores the share of privileged assignments that are permanent, and without P2 there are no eligible assignments to shift that share — going from 4 permanent to 2 leaves the ratio at 100% either way. Reviewing guests by hand does not improve G-02, because G-02 looks for a configured review definition and its scope filter. Naming owners does not improve Ownership until the matrix is scored by hand.
 
 That is worth stating plainly rather than hiding: **for an under-licensed tenant, a meaningful share of risk reduction happens outside what the automated checks can observe.** The scorecard measures configuration, and configuration is only part of Northwind's security. Use the number to start the licensing conversation, not to grade the work.
 
