@@ -1,6 +1,6 @@
 # Identity Threat Protection Scorecard
 
-> **Status:** 🟡 Preview — `itps-v0.1.0-preview`
+> **Status:** 🟡 Preview — `itps-v0.1.1-preview`
 
 Measures an M365 tenant's identity threat protection across 4 dimensions — Prevention, Detection, Governance, and Ownership — each scored 0 to 100 and weighted equally. The 4 dimension scores average into an overall score, which maps to a maturity tier: Connected, Protected, Fortified, or Resilient.
 

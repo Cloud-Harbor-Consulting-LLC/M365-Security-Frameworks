@@ -26,7 +26,7 @@
 .EXAMPLE
     .\Format-ITPScorecardReport.ps1 -InputPath '.\ITPSResult-20260813-090000.json' -OutputPath '.\Reports'
 .NOTES
-    Version:  v0.1.0-preview
+    Version:  v0.1.1-preview
     Author:   Cloud Harbor Consulting LLC
     Requires: PowerShell 7+
 #>

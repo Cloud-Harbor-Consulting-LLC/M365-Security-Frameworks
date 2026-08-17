@@ -40,7 +40,7 @@
 .EXAMPLE
     .\Get-ITPScorecard.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath 'C:\Reports'
 .NOTES
-    Version:  v0.1.0-preview
+    Version:  v0.1.1-preview
     Author:   Cloud Harbor Consulting LLC
     Requires: PowerShell 7+, Microsoft.Graph.Authentication module
     Scopes:   SecurityEvents.Read.All, SecurityIdentitiesHealth.Read.All,
@@ -64,7 +64,7 @@ $ErrorActionPreference = 'Stop'
 # without threading the switch through each helper.
 $script:ITPSIncludeEvidence = [bool]$IncludeEvidence
 
-$COLLECTOR_VERSION = 'v0.1.0-preview'
+$COLLECTOR_VERSION = 'v0.1.1-preview'
 $REQUIRED_SCOPES = @(
     'SecurityEvents.Read.All',
     'SecurityIdentitiesHealth.Read.All',
