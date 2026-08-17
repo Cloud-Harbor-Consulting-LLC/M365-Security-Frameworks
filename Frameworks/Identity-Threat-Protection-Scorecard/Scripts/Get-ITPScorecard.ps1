@@ -406,6 +406,52 @@ function Get-ITPSTier {
     return 'Connected'
 }
 
+function Test-ITPSPhishingResistant {
+    # Classifies a Conditional Access authentication strength as phishing-resistant.
+    # Returns 'yes', 'no', or 'unknown'.
+    #
+    # P-06 previously tested only that *an* authentication strength was set, so a
+    # policy requiring the built-in "Multifactor authentication" strength — which
+    # permits SMS and Authenticator push — counted identically to one requiring
+    # phishing-resistant methods. The check is named for phishing resistance and
+    # should measure it.
+    #
+    # allowedCombinations is the authoritative signal: every permitted combination
+    # must consist solely of phishing-resistant methods, because a strength is only
+    # as strong as its weakest allowed path. Where Graph does not return it, fall
+    # back to the documented built-in policy ids. Where neither resolves, report
+    # 'unknown' rather than guessing — a wrong 'no' would understate a tenant that
+    # has done the work.
+    [OutputType([string])]
+    [CmdletBinding()]
+    param([object]$Strength)
+    if ($null -eq $Strength) { return 'no' }
+
+    $resistantModes = @('fido2', 'windowsHelloForBusiness', 'x509CertificateMultiFactor')
+    $combos = @(Get-ITPSProp $Strength 'allowedCombinations')
+    if ($combos.Count -gt 0) {
+        foreach ($combo in $combos) {
+            $parts = @(([string]$combo -split ',') | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+            if ($parts.Count -eq 0) { return 'unknown' }
+            foreach ($part in $parts) {
+                if ($resistantModes -notcontains $part) { return 'no' }
+            }
+        }
+        return 'yes'
+    }
+
+    # Built-in authentication strength policy ids. 000...004 is Phishing-resistant
+    # MFA; 000...002 (Multifactor authentication) and 000...003 (Passwordless MFA)
+    # are not, since Microsoft classifies only FIDO2, Windows Hello for Business,
+    # and certificate-based MFA as phishing-resistant.
+    switch ([string](Get-ITPSProp $Strength 'id' '')) {
+        '00000000-0000-0000-0000-000000000004' { return 'yes' }
+        '00000000-0000-0000-0000-000000000002' { return 'no' }
+        '00000000-0000-0000-0000-000000000003' { return 'no' }
+    }
+    return 'unknown'
+}
+
 function Select-CAPolicyMatch {
     # Returns the enabled policies matching the filter, rather than a bare boolean.
     # Callers derive the pass/fail from the count, and -IncludeEvidence reports the
@@ -552,11 +598,30 @@ if ($caCall.Ok) {
         Disabled   = $caDisabled.Count
     }
 
+    # P-02 asks whether MFA is enforced for all users, so the policy must apply to
+    # all users AND all applications AND unconditionally.
+    #
+    # The previous filter tested only "requires MFA" and "includes All users",
+    # which matched three kinds of policy that do not enforce blanket MFA:
+    #   - user-action policies (register security info, register or join device),
+    #     which set conditions.applications.includeUserActions and leave
+    #     includeApplications empty
+    #   - risk-conditional policies, which require MFA only above a risk threshold
+    #   - both of the above while still including All users
+    # On the Cloud Harbor demo tenant that matched 4 policies where only one,
+    # CA-COV002-AllUsers-RequireMFA, actually enforces MFA for all users. The score
+    # was right there by luck; a tenant holding only a register-device policy would
+    # have scored full marks with no blanket MFA at all.
     $mfaEnforcedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
-        ((Get-ITPSProp $p 'grantControls.builtInControls') -contains 'mfa' -or
-         $null -ne (Get-ITPSProp $p 'grantControls.authenticationStrength')) -and
-        ((Get-ITPSProp $p 'conditions.users.includeUsers') -contains 'All')
+        $requiresMfa = ((Get-ITPSProp $p 'grantControls.builtInControls') -contains 'mfa' -or
+            $null -ne (Get-ITPSProp $p 'grantControls.authenticationStrength'))
+        $allUsers = (Get-ITPSProp $p 'conditions.users.includeUsers') -contains 'All'
+        $allApps = (Get-ITPSProp $p 'conditions.applications.includeApplications') -contains 'All'
+        $noUserActionScope = @(Get-ITPSProp $p 'conditions.applications.includeUserActions').Count -eq 0
+        $unconditional = @(Get-ITPSProp $p 'conditions.signInRiskLevels').Count -eq 0 -and
+            @(Get-ITPSProp $p 'conditions.userRiskLevels').Count -eq 0
+        $requiresMfa -and $allUsers -and $allApps -and $noUserActionScope -and $unconditional
     })
     $legacyBlockedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
@@ -573,10 +638,20 @@ if ($caCall.Ok) {
         param($p)
         ((Get-ITPSProp $p 'conditions.users.includeRoles') | Measure-Object).Count -gt 0
     })
-    $authStrengthUsedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
+    $authStrengthPolicies = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         $null -ne (Get-ITPSProp $p 'grantControls.authenticationStrength')
     })
+    $authStrengthClassified = @($authStrengthPolicies | ForEach-Object {
+            $strength = Get-ITPSProp $_ 'grantControls.authenticationStrength'
+            [PSCustomObject]@{
+                PolicyName   = [string](Get-ITPSProp $_ 'displayName' '(unnamed)')
+                StrengthName = [string](Get-ITPSProp $strength 'displayName' '(unnamed strength)')
+                Verdict      = Test-ITPSPhishingResistant -Strength $strength
+            }
+        })
+    $phishingResistant = @($authStrengthClassified | Where-Object { $_.Verdict -eq 'yes' })
+    $strengthUnknown = @($authStrengthClassified | Where-Object { $_.Verdict -eq 'unknown' })
 
     $preventionChecks.Add((New-ITPSCheck -Id 'P-02' -Name 'MFA enforced for all users' `
                 -Points ($(if ($mfaEnforcedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
@@ -598,21 +673,43 @@ if ($caCall.Ok) {
                 -RepoXRef 'CA-AUT001-003' `
                 -Signal (New-ITPSSignal -Base @{ Targeted = ($privRolesTargetedMatches.Count -gt 0) } `
                     -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $privRolesTargetedMatches) })))
-    $preventionChecks.Add((New-ITPSCheck -Id 'P-06' -Name 'Phishing-resistant strength in use' `
-                -Points ($(if ($authStrengthUsedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
-                -Signal (New-ITPSSignal -Base @{
-                    InUse       = ($authStrengthUsedMatches.Count -gt 0)
-                    PolicyCount = $caPolicies.Count
-                    # Recorded on every run, not just evidence runs. P-02 to P-06 all
-                    # require state 'enabled', so a tenant whose policies are mostly
-                    # report-only scores near zero on Prevention with no indication
-                    # why. These counts make that visible without naming a policy.
-                    PolicyStateCounts = $caStateCounts
-                } -Evidence @{
-                    MatchedPolicies   = @(Get-ITPSNameList $authStrengthUsedMatches)
-                    ReportOnlyPolicies = @(Get-ITPSNameList $caReportOnly)
-                    DisabledPolicies   = @(Get-ITPSNameList $caDisabled)
-                })))
+    # Three outcomes. A strength we positively classify as phishing-resistant
+    # scores; one we classify as not phishing-resistant scores zero; a strength we
+    # cannot classify at all is reported for manual review rather than being scored
+    # as absent, because a wrong zero would understate a tenant that has done the
+    # work. Only the last case needs a human.
+    $p06Base = @{
+        InUse                  = ($phishingResistant.Count -gt 0)
+        PolicyCount            = $caPolicies.Count
+        AuthStrengthPolicyCount = $authStrengthPolicies.Count
+        PhishingResistantCount = $phishingResistant.Count
+        UnclassifiedCount      = $strengthUnknown.Count
+        # Recorded on every run, not just evidence runs. P-02 to P-06 all require
+        # state 'enabled', so a tenant whose policies are mostly report-only scores
+        # near zero on Prevention with no indication why. These counts make that
+        # visible without naming a policy.
+        PolicyStateCounts      = $caStateCounts
+    }
+    $p06Evidence = @{
+        PhishingResistantPolicies = @($phishingResistant | ForEach-Object { "$($_.PolicyName) [$($_.StrengthName)]" })
+        UnclassifiedStrengths     = @($strengthUnknown | ForEach-Object { "$($_.PolicyName) [$($_.StrengthName)]" })
+        AllAuthStrengths          = @($authStrengthClassified | ForEach-Object { "$($_.PolicyName) [$($_.StrengthName)] -> $($_.Verdict)" })
+        ReportOnlyPolicies        = @(Get-ITPSNameList $caReportOnly)
+        DisabledPolicies          = @(Get-ITPSNameList $caDisabled)
+    }
+
+    if ($phishingResistant.Count -eq 0 -and $strengthUnknown.Count -gt 0) {
+        $preventionChecks.Add((New-ITPSCheck -Id 'P-06' -Name 'Phishing-resistant strength in use' -ManualReview $true `
+                    -ManualReviewNote ("$($strengthUnknown.Count) Conditional Access policy(s) require an authentication strength this collector could not classify: " +
+                        'Graph returned no allowedCombinations and the strength is not one of the built-in policies. Confirm whether it permits only ' +
+                        'phishing-resistant methods in Entra admin center > Protection > Authentication methods > Authentication strengths.') `
+                    -Signal (New-ITPSSignal -Base $p06Base -Evidence $p06Evidence)))
+    }
+    else {
+        $preventionChecks.Add((New-ITPSCheck -Id 'P-06' -Name 'Phishing-resistant strength in use' `
+                    -Points ($(if ($phishingResistant.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
+                    -Signal (New-ITPSSignal -Base $p06Base -Evidence $p06Evidence)))
+    }
 }
 else {
     foreach ($c in @(
