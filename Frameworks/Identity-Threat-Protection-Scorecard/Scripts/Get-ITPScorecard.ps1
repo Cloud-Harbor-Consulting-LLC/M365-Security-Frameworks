@@ -541,6 +541,17 @@ elseif ($caCall.Items.Count -eq 0) {
 $caPolicies = $caCall.Items
 
 if ($caCall.Ok) {
+    # State breakdown. Every Prevention CA check requires state 'enabled', so a
+    # policy sitting in report-only earns nothing — which is correct, but is
+    # invisible in a result that reports only the matches.
+    $caReportOnly = @($caPolicies | Where-Object { (Get-ITPSProp $_ 'state') -eq 'enabledForReportingButNotEnforced' })
+    $caDisabled = @($caPolicies | Where-Object { (Get-ITPSProp $_ 'state') -eq 'disabled' })
+    $caStateCounts = @{
+        Enabled    = @($caPolicies | Where-Object { (Get-ITPSProp $_ 'state') -eq 'enabled' }).Count
+        ReportOnly = $caReportOnly.Count
+        Disabled   = $caDisabled.Count
+    }
+
     $mfaEnforcedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'grantControls.builtInControls') -contains 'mfa' -or
@@ -571,26 +582,37 @@ if ($caCall.Ok) {
                 -Points ($(if ($mfaEnforcedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -RepoXRef 'CA-COV001-009' `
                 -Signal (New-ITPSSignal -Base @{ Enforced = ($mfaEnforcedMatches.Count -gt 0) } `
-                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $mfaEnforcedMatches) })))
+                    -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $mfaEnforcedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-03' -Name 'Legacy authentication blocked' `
                 -Points ($(if ($legacyBlockedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -RepoXRef 'CA-SIG001' `
                 -Signal (New-ITPSSignal -Base @{ Blocked = ($legacyBlockedMatches.Count -gt 0) } `
-                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $legacyBlockedMatches) })))
+                    -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $legacyBlockedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-04' -Name 'Risk-based policy present' `
                 -Points ($(if ($riskPolicyPresentMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -RepoXRef 'CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009' `
                 -Signal (New-ITPSSignal -Base @{ Present = ($riskPolicyPresentMatches.Count -gt 0) } `
-                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $riskPolicyPresentMatches) })))
+                    -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $riskPolicyPresentMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-05' -Name 'Privileged roles targeted' `
                 -Points ($(if ($privRolesTargetedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -RepoXRef 'CA-AUT001-003' `
                 -Signal (New-ITPSSignal -Base @{ Targeted = ($privRolesTargetedMatches.Count -gt 0) } `
-                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $privRolesTargetedMatches) })))
+                    -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $privRolesTargetedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-06' -Name 'Phishing-resistant strength in use' `
                 -Points ($(if ($authStrengthUsedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
-                -Signal (New-ITPSSignal -Base @{ InUse = ($authStrengthUsedMatches.Count -gt 0); PolicyCount = $caPolicies.Count } `
-                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $authStrengthUsedMatches) })))
+                -Signal (New-ITPSSignal -Base @{
+                    InUse       = ($authStrengthUsedMatches.Count -gt 0)
+                    PolicyCount = $caPolicies.Count
+                    # Recorded on every run, not just evidence runs. P-02 to P-06 all
+                    # require state 'enabled', so a tenant whose policies are mostly
+                    # report-only scores near zero on Prevention with no indication
+                    # why. These counts make that visible without naming a policy.
+                    PolicyStateCounts = $caStateCounts
+                } -Evidence @{
+                    MatchedPolicies   = @(Get-ITPSNameList $authStrengthUsedMatches)
+                    ReportOnlyPolicies = @(Get-ITPSNameList $caReportOnly)
+                    DisabledPolicies   = @(Get-ITPSNameList $caDisabled)
+                })))
 }
 else {
     foreach ($c in @(
@@ -647,15 +669,15 @@ if ($healthCall.Ok -and -not $detectionUnprovable) {
     $detectionChecks.Add((New-ITPSCheck -Id 'D-01' -Name 'No open high-severity health issues' `
                 -Points ($(if ($openHigh -eq 0) { 25 } else { 0 })) -MaxPoints 25 `
                 -Signal (New-ITPSSignal -Base @{ OpenHighCount = $openHigh } `
-                    -Evidence @{ OpenHighIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'high' }) 'healthIssueType') })))
+                    -Evidence @{ OpenHighIssues = @(Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'high' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-02' -Name 'No open medium-severity health issues' `
                 -Points ($(if ($openMedium -eq 0) { 15 } else { 0 })) -MaxPoints 15 `
                 -Signal (New-ITPSSignal -Base @{ OpenMediumCount = $openMedium } `
-                    -Evidence @{ OpenMediumIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'medium' }) 'healthIssueType') })))
+                    -Evidence @{ OpenMediumIssues = @(Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'medium' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-03' -Name 'Sensor health issues resolved' `
                 -Points ($(if ($openSensor -eq 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -Signal (New-ITPSSignal -Base @{ OpenSensorIssueCount = $openSensor } `
-                    -Evidence @{ OpenSensorIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'healthIssueType') -match '(?i)sensor' }) 'healthIssueType') })))
+                    -Evidence @{ OpenSensorIssues = @(Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'healthIssueType') -match '(?i)sensor' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-04' -Name 'Health signal reachable' `
                 -Points 10 -MaxPoints 10 `
                 -Signal @{
@@ -926,7 +948,7 @@ if ($appCall.Ok) {
                 LongLivedThresholdDays    = $longLivedSecretThresholdDays
                 ScoringNote               = 'Linear on the share of registrations holding a secret that never expires or runs beyond the threshold. Already-expired secrets are not counted, because an expired credential cannot authenticate.'
             } -Evidence @{
-                LongLivedSecretApps = (Get-ITPSNameList $longLivedApps)
+                LongLivedSecretApps = @(Get-ITPSNameList $longLivedApps)
             })))
 }
 else {

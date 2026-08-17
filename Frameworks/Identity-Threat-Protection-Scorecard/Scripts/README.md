@@ -100,10 +100,13 @@ Two levels of detail, and the difference matters when a JSON export leaves your 
 |---|---|
 | P-01 | `IdentityControlNames` — every Identity-category Secure Score control (typically 60+ entries) |
 | P-02 to P-06 | `MatchedPolicies` — display names of the Conditional Access policies that satisfied the check |
+| P-06 | `ReportOnlyPolicies`, `DisabledPolicies` — the policies excluded by the enabled-state filter |
 | D-01 to D-03 | `OpenHighIssues`, `OpenMediumIssues`, `OpenSensorIssues` — the health issue types currently open |
 | G-01, G-02 | `ScopeQueries` — the scope filters on each access review definition |
 | G-04 | `PermanentRoleIds` — role definition IDs carrying standing privilege, with counts |
 | G-05 | `LongLivedSecretApps` — registrations holding a secret past the threshold |
+
+**`PolicyStateCounts` is present on every run, not just evidence runs.** P-02 through P-06 all require a policy in state `enabled`, so a report-only policy earns nothing. That is deliberate — a policy in report-only is not enforcing anything — but without the counts a tenant with a complete, unpromoted Conditional Access design scores near zero on Prevention with no visible explanation. The breakdown appears in P-06's signal as `Enabled`, `ReportOnly`, and `Disabled`. Under `-IncludeEvidence` the excluded policies are also named, so the exclusion can be confirmed rather than assumed.
 
 A Conditional Access policy inventory tells a reader which controls exist and which identities they target, and the list of registrations holding long-lived secrets is a target list. Use `-IncludeEvidence` for your own diagnosis, or when a client has asked for the underlying evidence and you intend to share it with them deliberately.
 
