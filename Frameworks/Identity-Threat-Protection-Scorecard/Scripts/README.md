@@ -65,6 +65,10 @@ $result = .\Get-ITPScorecard.ps1 -TenantId '<tenant-id>'
 # Collect and export JSON for archiving
 .\Get-ITPScorecard.ps1 -TenantId '<tenant-id>' -ExportJson -OutputPath '.\Results'
 
+# Collect with the tenant objects behind each score, for diagnosis or an evidence
+# request. The resulting file names policies, reviews, roles, and registrations.
+.\Get-ITPScorecard.ps1 -TenantId '<tenant-id>' -ExportJson -OutputPath '.\Results' -IncludeEvidence
+
 # Format all 3 reports from the object
 .\Format-ITPScorecardReport.ps1 -Result $result -OutputPath '.\Reports' -TenantName 'Fabrikam'
 
@@ -82,6 +86,30 @@ $result = .\Get-ITPScorecard.ps1 -TenantId '<tenant-id>'
 | `TenantName` | String | No | empty | Friendly organisation name, carried into `ITPSResult` so the formatter inherits it |
 | `OutputPath` | String | No | `.` | Directory for JSON export |
 | `ExportJson` | Switch | No | Off | Export the result to a timestamped JSON file |
+| `IncludeEvidence` | Switch | No | Off | Add the tenant objects behind each score to the check signals. **Produces a tenant-sensitive file — see below** |
+
+### What is in the result, and who it is safe to share with
+
+Two levels of detail, and the difference matters when a JSON export leaves your control.
+
+**Default — safe to hand to a client.** Every check signal carries counts, ratios, and booleans: `Enforced = true`, `PermanentCount = 9`, `StandingRatio = 0.9`, `AppsWithLongLivedSecrets = 2`. The file states what the score was and why it was reached, and names no tenant object.
+
+**`-IncludeEvidence` — treat as tenant-sensitive.** Each signal additionally names the objects that drove the score:
+
+| Check | Evidence added |
+|---|---|
+| P-01 | `IdentityControlNames` — every Identity-category Secure Score control (typically 60+ entries) |
+| P-02 to P-06 | `MatchedPolicies` — display names of the Conditional Access policies that satisfied the check |
+| D-01 to D-03 | `OpenHighIssues`, `OpenMediumIssues`, `OpenSensorIssues` — the health issue types currently open |
+| G-01, G-02 | `ScopeQueries` — the scope filters on each access review definition |
+| G-04 | `PermanentRoleIds` — role definition IDs carrying standing privilege, with counts |
+| G-05 | `LongLivedSecretApps` — registrations holding a secret past the threshold |
+
+A Conditional Access policy inventory tells a reader which controls exist and which identities they target, and the list of registrations holding long-lived secrets is a target list. Use `-IncludeEvidence` for your own diagnosis, or when a client has asked for the underlying evidence and you intend to share it with them deliberately.
+
+The result object records which mode produced it as `EvidenceIncluded`, so a file can always be classified without inspecting every signal.
+
+Note that `IdentityControlNames` moved behind this switch. It was previously always present and, at 60+ entries, dominated the exported file.
 
 **Format-ITPScorecardReport.ps1**
 
@@ -128,6 +156,7 @@ ITPSResult
 ├── ManualReviewCount   (int)
 ├── TotalCheckCount     (int)
 ├── GraphScopesUsed     (string[])
+├── EvidenceIncluded    (bool — true when -IncludeEvidence was used; the file then names tenant objects)
 ├── TierBandSource      (string — the tier-threshold disclosure)
 └── Dimensions[]
     ├── Name            (string: Prevention | Detection | Governance | Ownership)
