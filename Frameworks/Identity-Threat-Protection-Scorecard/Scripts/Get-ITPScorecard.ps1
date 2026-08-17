@@ -24,6 +24,17 @@
     Directory path for JSON export when -ExportJson is specified. Default: current directory.
 .PARAMETER ExportJson
     When present, exports the result object to a timestamped JSON file in OutputPath.
+.PARAMETER IncludeEvidence
+    When present, enriches each check's Signal with the specific tenant objects that
+    drove its score — matched Conditional Access policy names, access review scope
+    queries, the roles carrying standing privilege, and the application registrations
+    holding long-lived secrets.
+
+    Off by default, and deliberately so. The default result object is safe to hand to
+    a client: it carries counts, ratios, and booleans. An evidence run additionally
+    names tenant objects, and a Conditional Access policy inventory tells a reader
+    which controls exist and which identities they target. Treat an evidence export
+    as tenant-sensitive and share it accordingly.
 .EXAMPLE
     .\Get-ITPScorecard.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
 .EXAMPLE
@@ -43,10 +54,15 @@ param(
     [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$TenantId,
     [string]$TenantName = '',
     [string]$OutputPath = '.',
-    [switch]$ExportJson
+    [switch]$ExportJson,
+    [switch]$IncludeEvidence
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# Read by New-ITPSSignal. Held at script scope so every check can consult it
+# without threading the switch through each helper.
+$script:ITPSIncludeEvidence = [bool]$IncludeEvidence
 
 $COLLECTOR_VERSION = 'v0.1.0-preview'
 $REQUIRED_SCOPES = @(
@@ -82,6 +98,30 @@ function Write-Status {
         'Skip' { '  [-]' }
     }
     Write-Host "$prefix $Message"
+}
+
+function New-ITPSSignal {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'Builds an in-memory hashtable and changes no system state.')]
+    # Builds a check's Signal, merging optional evidence when the run was started
+    # with -IncludeEvidence.
+    #
+    # The split is the point. The base signal answers "what was the score", using
+    # counts and ratios that are safe to hand to a client. The evidence answers
+    # "which objects produced it", and names tenant configuration. Every check
+    # should be reconstructible from base plus evidence — that is the standard this
+    # helper exists to enforce, after a G-02 defect where the signal recorded only
+    # `GuestReviewPresent = $true` and gave no way to tell why it was wrong.
+    [OutputType([hashtable])]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][hashtable]$Base,
+        [hashtable]$Evidence
+    )
+    if ($script:ITPSIncludeEvidence -and $null -ne $Evidence) {
+        foreach ($key in $Evidence.Keys) { $Base[$key] = $Evidence[$key] }
+    }
+    return $Base
 }
 
 function Get-ITPSErrorSummary {
@@ -366,16 +406,29 @@ function Get-ITPSTier {
     return 'Connected'
 }
 
-function Test-CAPolicyMatch {
-    [OutputType([bool])]
+function Select-CAPolicyMatch {
+    # Returns the enabled policies matching the filter, rather than a bare boolean.
+    # Callers derive the pass/fail from the count, and -IncludeEvidence reports the
+    # matched display names without re-running the filter.
+    #
+    # Callers must wrap the result in @(): a function returning an empty collection
+    # unrolls to nothing, leaving $null and making .Count throw under strict mode.
+    [OutputType([object[]])]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Policies,
         [Parameter(Mandatory)][scriptblock]$Filter,
         [string]$State = 'enabled'
     )
-    $matching = @($Policies | Where-Object { (Get-ITPSProp $_ 'state') -eq $State -and (& $Filter $_) })
-    return ($matching.Count -gt 0)
+    return @($Policies | Where-Object { (Get-ITPSProp $_ 'state') -eq $State -and (& $Filter $_) })
+}
+
+function Get-ITPSNameList {
+    # Display names of a set of tenant objects, for evidence signals.
+    [OutputType([string[]])]
+    [CmdletBinding()]
+    param([AllowEmptyCollection()][object[]]$Items, [string]$Property = 'displayName')
+    return @($Items | ForEach-Object { [string](Get-ITPSProp $_ $Property '(unnamed)') })
 }
 
 # ── Connect ───────────────────────────────────────────────────────────────────
@@ -455,15 +508,16 @@ if ($null -ne $secureScore) {
 
     $preventionChecks.Add((New-ITPSCheck -Id 'P-01' -Name 'Secure Score attainment' `
                 -Points ([Math]::Round($attainmentPct * 0.5, 2)) -MaxPoints 50 `
-                -Signal @{
+                -Signal (New-ITPSSignal -Base @{
                 TenantCurrentScore    = $current
                 TenantMaxScore        = $max
                 AttainmentPercent     = [Math]::Round($attainmentPct, 1)
                 IdentityControlCount  = $identityControls.Count
                 IdentityPointsEarned  = $identityPoints
-                IdentityControlNames  = @($identityControls | ForEach-Object { Get-ITPSProp $_ 'controlName' })
                 NormalisationNote     = 'Graph v1.0 secureScores exposes no per-category maximum. Scored on tenant-wide attainment; Identity breakdown is evidence only.'
-            }))
+            } -Evidence @{
+                IdentityControlNames = @($identityControls | ForEach-Object { Get-ITPSProp $_ 'controlName' })
+            })))
 }
 else {
     $p01Note = if (-not $secureScoreCall.Ok) {
@@ -487,48 +541,56 @@ elseif ($caCall.Items.Count -eq 0) {
 $caPolicies = $caCall.Items
 
 if ($caCall.Ok) {
-    $mfaEnforced = Test-CAPolicyMatch -Policies $caPolicies -Filter {
+    $mfaEnforcedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'grantControls.builtInControls') -contains 'mfa' -or
          $null -ne (Get-ITPSProp $p 'grantControls.authenticationStrength')) -and
         ((Get-ITPSProp $p 'conditions.users.includeUsers') -contains 'All')
-    }
-    $legacyBlocked = Test-CAPolicyMatch -Policies $caPolicies -Filter {
+    })
+    $legacyBlockedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'conditions.clientAppTypes') -contains 'exchangeActiveSync' -or
          (Get-ITPSProp $p 'conditions.clientAppTypes') -contains 'other') -and
         (Get-ITPSProp $p 'grantControls.builtInControls') -contains 'block'
-    }
-    $riskPolicyPresent = Test-CAPolicyMatch -Policies $caPolicies -Filter {
+    })
+    $riskPolicyPresentMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'conditions.signInRiskLevels') | Measure-Object).Count -gt 0 -or
         ((Get-ITPSProp $p 'conditions.userRiskLevels') | Measure-Object).Count -gt 0
-    }
-    $privRolesTargeted = Test-CAPolicyMatch -Policies $caPolicies -Filter {
+    })
+    $privRolesTargetedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         ((Get-ITPSProp $p 'conditions.users.includeRoles') | Measure-Object).Count -gt 0
-    }
-    $authStrengthUsed = Test-CAPolicyMatch -Policies $caPolicies -Filter {
+    })
+    $authStrengthUsedMatches = @(Select-CAPolicyMatch -Policies $caPolicies -Filter {
         param($p)
         $null -ne (Get-ITPSProp $p 'grantControls.authenticationStrength')
-    }
+    })
 
     $preventionChecks.Add((New-ITPSCheck -Id 'P-02' -Name 'MFA enforced for all users' `
-                -Points ($(if ($mfaEnforced) { 10 } else { 0 })) -MaxPoints 10 `
-                -RepoXRef 'CA-COV001-009' -Signal @{ Enforced = $mfaEnforced }))
+                -Points ($(if ($mfaEnforcedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
+                -RepoXRef 'CA-COV001-009' `
+                -Signal (New-ITPSSignal -Base @{ Enforced = ($mfaEnforcedMatches.Count -gt 0) } `
+                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $mfaEnforcedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-03' -Name 'Legacy authentication blocked' `
-                -Points ($(if ($legacyBlocked) { 10 } else { 0 })) -MaxPoints 10 `
-                -RepoXRef 'CA-SIG001' -Signal @{ Blocked = $legacyBlocked }))
+                -Points ($(if ($legacyBlockedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
+                -RepoXRef 'CA-SIG001' `
+                -Signal (New-ITPSSignal -Base @{ Blocked = ($legacyBlockedMatches.Count -gt 0) } `
+                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $legacyBlockedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-04' -Name 'Risk-based policy present' `
-                -Points ($(if ($riskPolicyPresent) { 10 } else { 0 })) -MaxPoints 10 `
+                -Points ($(if ($riskPolicyPresentMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
                 -RepoXRef 'CA-SIG003, CA-SIG004, CA-SIG008, CA-SIG009' `
-                -Signal @{ Present = $riskPolicyPresent }))
+                -Signal (New-ITPSSignal -Base @{ Present = ($riskPolicyPresentMatches.Count -gt 0) } `
+                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $riskPolicyPresentMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-05' -Name 'Privileged roles targeted' `
-                -Points ($(if ($privRolesTargeted) { 10 } else { 0 })) -MaxPoints 10 `
-                -RepoXRef 'CA-AUT001-003' -Signal @{ Targeted = $privRolesTargeted }))
+                -Points ($(if ($privRolesTargetedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
+                -RepoXRef 'CA-AUT001-003' `
+                -Signal (New-ITPSSignal -Base @{ Targeted = ($privRolesTargetedMatches.Count -gt 0) } `
+                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $privRolesTargetedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-06' -Name 'Phishing-resistant strength in use' `
-                -Points ($(if ($authStrengthUsed) { 10 } else { 0 })) -MaxPoints 10 `
-                -Signal @{ InUse = $authStrengthUsed; PolicyCount = $caPolicies.Count }))
+                -Points ($(if ($authStrengthUsedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
+                -Signal (New-ITPSSignal -Base @{ InUse = ($authStrengthUsedMatches.Count -gt 0); PolicyCount = $caPolicies.Count } `
+                    -Evidence @{ MatchedPolicies = (Get-ITPSNameList $authStrengthUsedMatches) })))
 }
 else {
     foreach ($c in @(
@@ -584,13 +646,16 @@ if ($healthCall.Ok -and -not $detectionUnprovable) {
 
     $detectionChecks.Add((New-ITPSCheck -Id 'D-01' -Name 'No open high-severity health issues' `
                 -Points ($(if ($openHigh -eq 0) { 25 } else { 0 })) -MaxPoints 25 `
-                -Signal @{ OpenHighCount = $openHigh }))
+                -Signal (New-ITPSSignal -Base @{ OpenHighCount = $openHigh } `
+                    -Evidence @{ OpenHighIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'high' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-02' -Name 'No open medium-severity health issues' `
                 -Points ($(if ($openMedium -eq 0) { 15 } else { 0 })) -MaxPoints 15 `
-                -Signal @{ OpenMediumCount = $openMedium }))
+                -Signal (New-ITPSSignal -Base @{ OpenMediumCount = $openMedium } `
+                    -Evidence @{ OpenMediumIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'severity') -eq 'medium' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-03' -Name 'Sensor health issues resolved' `
                 -Points ($(if ($openSensor -eq 0) { 10 } else { 0 })) -MaxPoints 10 `
-                -Signal @{ OpenSensorIssueCount = $openSensor }))
+                -Signal (New-ITPSSignal -Base @{ OpenSensorIssueCount = $openSensor } `
+                    -Evidence @{ OpenSensorIssues = (Get-ITPSNameList @($healthIssues | Where-Object { (Get-ITPSProp $_ 'healthIssueType') -match '(?i)sensor' }) 'healthIssueType') })))
     $detectionChecks.Add((New-ITPSCheck -Id 'D-04' -Name 'Health signal reachable' `
                 -Points 10 -MaxPoints 10 `
                 -Signal @{
@@ -688,20 +753,24 @@ if ($reviewCall.Ok) {
 
     $governanceChecks.Add((New-ITPSCheck -Id 'G-01' -Name 'Access reviews configured' `
                 -Points $g01Points -MaxPoints 20 `
-                -RepoXRef 'EIG-AR001, EIG-AR002' -Signal @{
+                -RepoXRef 'EIG-AR001, EIG-AR002' -Signal (New-ITPSSignal -Base @{
                 ReviewDefinitionCount = $reviewCount
                 ReviewNames           = @($reviewScopes | ForEach-Object { $_.Name })
                 ScoringNote           = 'Graduated: 0 reviews = 0, 1 = 10, 2 or more = 20 (the EIG Toolkit baseline of guest plus dormant-admin reviews).'
-            }))
+            } -Evidence @{
+                ScopeQueries = @($reviewScopes | ForEach-Object { $_.Queries })
+            })))
 
     if ($guestReviews.Count -gt 0) {
         $governanceChecks.Add((New-ITPSCheck -Id 'G-02' -Name 'Guest access reviewed' `
-                    -Points 15 -MaxPoints 15 -RepoXRef 'EIG-AR001' -Signal @{
+                    -Points 15 -MaxPoints 15 -RepoXRef 'EIG-AR001' -Signal (New-ITPSSignal -Base @{
                     GuestReviewPresent = $true
                     MatchedReviewNames = @($guestReviews | ForEach-Object { $_.Name })
                     MatchedOnPattern   = $guestFilterPattern
                     ScopeQueriesFound  = $scopeQueryCount
-                }))
+                } -Evidence @{
+                    ScopeQueries = @($reviewScopes | ForEach-Object { $_.Queries })
+                })))
     }
     elseif ($reviewCount -eq 0 -or $scopeQueryCount -gt 0) {
         # Two distinct routes to a genuine zero: the tenant has no review definitions
@@ -711,12 +780,14 @@ if ($reviewCall.Ok) {
         # denominator. Only a readable-definition-with-unreadable-scope falls through
         # to manual review below.
         $governanceChecks.Add((New-ITPSCheck -Id 'G-02' -Name 'Guest access reviewed' `
-                    -Points 0 -MaxPoints 15 -RepoXRef 'EIG-AR001' -Signal @{
+                    -Points 0 -MaxPoints 15 -RepoXRef 'EIG-AR001' -Signal (New-ITPSSignal -Base @{
                     GuestReviewPresent = $false
                     ReviewNames        = @($reviewScopes | ForEach-Object { $_.Name })
                     MatchedOnPattern   = $guestFilterPattern
                     ScopeQueriesFound  = $scopeQueryCount
-                }))
+                } -Evidence @{
+                    ScopeQueries = @($reviewScopes | ForEach-Object { $_.Queries })
+                })))
     }
     else {
         # Definitions exist but expose no readable scope filter, so guest coverage
@@ -750,10 +821,11 @@ $pimOk = $eligibleCall.Ok -and $activeCall.Ok
 $pimError = @($eligibleCall.Error, $activeCall.Error | Where-Object { $_ }) -join ' '
 $pimData = $null
 if ($pimOk) {
-    $permanent = @($activeCall.Items | Where-Object {
+    $permanentAssignments = @($activeCall.Items | Where-Object {
             (Get-ITPSProp $_ 'assignmentType') -eq 'Assigned' -and
             $null -eq (Get-ITPSProp $_ 'endDateTime')
-        }).Count
+        })
+    $permanent = $permanentAssignments.Count
     $pimData = @{ Eligible = $eligibleCall.Items.Count; Permanent = $permanent }
     if ($eligibleCall.Items.Count -eq 0 -and $permanent -eq 0) {
         Write-Status 'No PIM role assignments found on either endpoint — flagging G-04 for manual review rather than scoring an empty set.' -Level Warn
@@ -792,12 +864,16 @@ if ($pimOk) {
         $governanceChecks.Add((New-ITPSCheck -Id 'G-04' -Name 'Standing privilege minimised' `
                     -Points $g04Points -MaxPoints 45 `
                     -RepoXRef 'EIG-AR002' `
-                    -Signal @{
+                    -Signal (New-ITPSSignal -Base @{
                     PermanentCount = $pimData.Permanent
                     EligibleCount  = $pimData.Eligible
                     StandingRatio  = [Math]::Round($standingRatio, 3)
                     ScoringNote    = 'Linear on the share of privileged assignments that are permanent. Absorbs the former G-03, which scored the same data as a binary presence test.'
-                }))
+                } -Evidence @{
+                    PermanentRoleIds = @($permanentAssignments |
+                        Group-Object { Get-ITPSProp $_ 'roleDefinitionId' } |
+                        ForEach-Object { "$($_.Name) x$($_.Count)" })
+                })))
     }
 }
 else {
@@ -824,13 +900,14 @@ if ($appCall.Ok) {
     # credential cannot authenticate, so it is not the risk being measured. The check
     # was previously named "credential hygiene" with an AppsWithStaleSecrets signal,
     # which described neither what is matched nor why it matters.
-    $longLivedSecretApps = @($appRegs | Where-Object {
+    $longLivedApps = @($appRegs | Where-Object {
             $creds = @(Get-ITPSProp $_ 'passwordCredentials')
             @($creds | Where-Object {
                     $end = Get-ITPSProp $_ 'endDateTime'
                     $null -eq $end -or ([datetime]$end - [datetime]::UtcNow).TotalDays -gt $longLivedSecretThresholdDays
                 }).Count -gt 0
-        }).Count
+        })
+    $longLivedSecretApps = $longLivedApps.Count
 
     # Linear on the share of registrations carrying a long-lived secret, matching
     # G-04's treatment of standing privilege. The previous binary scored 0 of 20 for
@@ -843,12 +920,14 @@ if ($appCall.Ok) {
 
     $governanceChecks.Add((New-ITPSCheck -Id 'G-05' -Name 'Workload identity credential lifetime' `
                 -Points $g05Points -MaxPoints 20 `
-                -Signal @{
+                -Signal (New-ITPSSignal -Base @{
                 AppRegistrationCount      = $appRegs.Count
                 AppsWithLongLivedSecrets  = $longLivedSecretApps
                 LongLivedThresholdDays    = $longLivedSecretThresholdDays
                 ScoringNote               = 'Linear on the share of registrations holding a secret that never expires or runs beyond the threshold. Already-expired secrets are not counted, because an expired credential cannot authenticate.'
-            }))
+            } -Evidence @{
+                LongLivedSecretApps = (Get-ITPSNameList $longLivedApps)
+            })))
 }
 else {
     $governanceChecks.Add((New-ITPSCheck -Id 'G-05' -Name 'Workload identity credential lifetime' `
@@ -918,6 +997,10 @@ $result = [PSCustomObject]@{
     ManualReviewCount = $manualReviewCount
     TotalCheckCount   = $allChecks.Count
     GraphScopesUsed   = $REQUIRED_SCOPES
+    # Recorded so a reader of the JSON can tell whether check signals name tenant
+    # objects. A file with this set to true is tenant-sensitive; see the
+    # -IncludeEvidence notes in Scripts/README.md before sharing one.
+    EvidenceIncluded  = [bool]$IncludeEvidence
     TierBandSource    = 'Cloud Harbor Consulting scoring convention. Microsoft does not publish numeric thresholds for its Connected/Protected/Fortified/Resilient tiers.'
     Dimensions        = $dimensions
 }
