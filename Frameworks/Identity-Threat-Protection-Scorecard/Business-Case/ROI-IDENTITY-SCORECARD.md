@@ -1,7 +1,7 @@
 # Business Case: Identity Threat Protection Scorecard
 
 **Framework:** Identity Threat Protection Scorecard (ITPS)
-**Version:** v0.1.0-preview
+**Version:** v0.1.1-preview
 **Author:** Cloud Harbor Consulting LLC
 
 ---
@@ -124,4 +124,4 @@ Step 4 is deliberately placed before step 5. The Ownership dimension exists beca
 ---
 
 *Maintained by Cloud Harbor Consulting LLC — [cloudharborconsulting.cloud](https://cloudharborconsulting.cloud)*
-*ITPS v0.1.0-preview*
+*ITPS v0.1.1-preview*

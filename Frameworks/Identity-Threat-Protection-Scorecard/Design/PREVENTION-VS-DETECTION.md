@@ -77,4 +77,4 @@ Two rules follow, and both are enforced by the collector rather than left to the
 
 ---
 
-*Identity Threat Protection Scorecard v0.1.0-preview — Cloud Harbor Consulting LLC*
+*Identity Threat Protection Scorecard v0.1.1-preview — Cloud Harbor Consulting LLC*

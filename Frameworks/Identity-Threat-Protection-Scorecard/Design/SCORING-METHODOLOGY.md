@@ -1,7 +1,7 @@
 # ITPS Scoring Methodology
 
 **Framework:** Identity Threat Protection Scorecard (ITPS)
-**Version:** v0.1.0-preview
+**Version:** v0.1.1-preview
 **Dimensions:** 4 — Prevention, Detection, Governance, Ownership
 **Weighting:** Equal, 25% each
 **Maturity tiers:** Connected, Protected, Fortified, Resilient
@@ -220,4 +220,4 @@ Map the overall score to a tier using the threshold bands above, and remember th
 
 ---
 
-*Identity Threat Protection Scorecard v0.1.0-preview — Cloud Harbor Consulting LLC*
+*Identity Threat Protection Scorecard v0.1.1-preview — Cloud Harbor Consulting LLC*

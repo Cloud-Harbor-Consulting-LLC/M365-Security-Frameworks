@@ -107,4 +107,4 @@ Three consequences follow from the paths above, and each shaped a specific decis
 
 ---
 
-*Identity Threat Protection Scorecard v0.1.0-preview — Cloud Harbor Consulting LLC*
+*Identity Threat Protection Scorecard v0.1.1-preview — Cloud Harbor Consulting LLC*
