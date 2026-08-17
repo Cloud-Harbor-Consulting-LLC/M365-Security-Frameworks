@@ -84,6 +84,90 @@ function Write-Status {
     Write-Host "$prefix $Message"
 }
 
+function Get-ITPSErrorSummary {
+    # Condenses a Graph error for display in a report.
+    #
+    # A failed call previously put the raw exception text straight into
+    # ManualReviewNote, and the SDK concatenates one full JSON body per retry. A
+    # single throttled endpoint therefore printed four error bodies, complete with
+    # request IDs, into the technical report and the executive summary. The full
+    # text is retained in the check's Signal; this is what a reader sees.
+    [OutputType([string])]
+    [CmdletBinding()]
+    param([string]$Message, [int]$MaxLength = 200)
+    if ([string]::IsNullOrWhiteSpace($Message)) { return 'no error detail returned' }
+    $flat = ($Message -replace '\s+', ' ').Trim()
+    if ($flat.Length -le $MaxLength) { return $flat }
+    return $flat.Substring(0, $MaxLength).TrimEnd() + '... (full error in the check Signal)'
+}
+
+function Get-ITPSRetryDelay {
+    # Seconds to wait before retrying a throttled request. Graph normally sends
+    # Retry-After on a 429; where it does not, fall back to exponential backoff.
+    # Capped so a pathological Retry-After cannot stall an assessment indefinitely.
+    [OutputType([int])]
+    [CmdletBinding()]
+    param([object]$Headers, [int]$Attempt, [int]$CapSeconds = 60)
+    $retryAfter = 0
+    if ($null -ne $Headers) {
+        # The header collection type varies by SDK version, and indexing a missing
+        # key throws on a Dictionary. Probe defensively rather than assume a shape.
+        $raw = $null
+        try {
+            if ($Headers.ContainsKey('Retry-After')) { $raw = @($Headers['Retry-After'])[0] }
+        }
+        catch { $raw = $null }
+        if ($null -ne $raw) { [void][int]::TryParse([string]$raw, [ref]$retryAfter) }
+    }
+    if ($retryAfter -le 0) { $retryAfter = [int][Math]::Pow(2, [Math]::Min($Attempt, 6)) }
+    return [Math]::Max(1, [Math]::Min($retryAfter, $CapSeconds))
+}
+
+function Invoke-ITPSGraphSend {
+    # Issues one Graph GET and returns the parsed body, retrying transient failures.
+    #
+    # -SkipHttpErrorCheck is used so the status code is read directly rather than
+    # parsed out of an exception string. That also means non-2xx responses no longer
+    # throw on their own and must be raised here explicitly.
+    [OutputType([object])]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Uri,
+        [string]$Label = '',
+        [int]$MaxRetry = 5
+    )
+    $transient = @(429, 500, 502, 503, 504)
+    $attempt = 0
+    while ($true) {
+        $statusCode = 0
+        $headers = $null
+        $body = Invoke-MgGraphRequest -Method GET -Uri $Uri -OutputType PSObject `
+            -SkipHttpErrorCheck -StatusCodeVariable statusCode -ResponseHeadersVariable headers
+
+        if ($statusCode -lt 400) { return $body }
+
+        $detail = ''
+        if ($null -ne $body) {
+            $err = Get-ITPSProp $body 'error'
+            if ($null -ne $err) { $detail = [string](Get-ITPSProp $err 'message' '') }
+        }
+
+        if (($transient -contains $statusCode) -and $attempt -lt $MaxRetry) {
+            $attempt++
+            $wait = Get-ITPSRetryDelay -Headers $headers -Attempt $attempt
+            # Announced rather than silent: a run that pauses without explanation is
+            # indistinguishable from the hang reported against the Secure Score pager.
+            Write-Status ("Graph returned $statusCode for $Label. Waiting ${wait}s, then retry $attempt of $MaxRetry.") -Level Warn
+            Start-Sleep -Seconds $wait
+            continue
+        }
+
+        $suffix = if ($attempt -gt 0) { " after $attempt retries" } else { '' }
+        $reason = if ($detail) { " $detail" } else { '' }
+        throw "Graph returned HTTP $statusCode for $Label$suffix.$reason"
+    }
+}
+
 function Invoke-ITPSGraphRequest {
     # Pages through a Graph collection endpoint. Returns an array for collection
     # responses and the raw object for single-entity responses.
@@ -98,19 +182,26 @@ function Invoke-ITPSGraphRequest {
     # -MaxPages is a safety ceiling against a nextLink that never terminates. It is
     # deliberately generous; hitting it is reported rather than passed over, because
     # a truncated collection would silently understate a score.
+    # -MaxRetry bounds the wait on a throttled endpoint. Microsoft Graph throttles
+    # per service, not per tenant, so one endpoint can return 429 while every other
+    # call in the same run succeeds. The SDK's own retry gave up after 3 attempts
+    # inside ~29 seconds, which was shorter than the throttle window, and a
+    # transient throttle then degraded two checks to ManualReview for the whole
+    # assessment. Retry-After is honoured when Graph sends it.
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Uri,
         [string]$ApiVersion = 'v1.0',
         [switch]$FirstPageOnly,
-        [int]$MaxPages = 200
+        [int]$MaxPages = 200,
+        [int]$MaxRetry = 5
     )
     $base = "https://graph.microsoft.com/$ApiVersion"
     $fullUri = if ($Uri -match '^https?://') { $Uri } else { "$base/$($Uri.TrimStart('/'))" }
     $results = [System.Collections.Generic.List[object]]::new()
     $page = 0
     do {
-        $response = Invoke-MgGraphRequest -Method GET -Uri $fullUri -OutputType PSObject
+        $response = Invoke-ITPSGraphSend -Uri $fullUri -Label $Uri -MaxRetry $MaxRetry
         $page++
         $hasValue = ($null -ne $response) -and
                     ($response.PSObject.Properties.Name -contains 'value')
@@ -376,13 +467,13 @@ if ($null -ne $secureScore) {
 }
 else {
     $p01Note = if (-not $secureScoreCall.Ok) {
-        "Secure Score call failed: $($secureScoreCall.Error) Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category."
+        "Secure Score call failed: $(Get-ITPSErrorSummary $secureScoreCall.Error) Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category."
     }
     else {
         'Secure Score returned no records for this tenant. Review in Microsoft Defender portal > Exposure management > Secure score, and filter to the Identity category.'
     }
     $preventionChecks.Add((New-ITPSCheck -Id 'P-01' -Name 'Secure Score attainment' `
-                -ManualReview $true -ManualReviewNote $p01Note))
+                -ManualReview $true -ManualReviewNote $p01Note -Signal @{ GraphError = $secureScoreCall.Error }))
 }
 
 # CA policy checks P-02 through P-06
@@ -447,7 +538,8 @@ else {
             @{ Id = 'P-05'; Name = 'Privileged roles targeted' },
             @{ Id = 'P-06'; Name = 'Phishing-resistant strength in use' })) {
         $preventionChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote "Conditional Access policy call failed: $($caCall.Error) Review in Entra admin center > Protection > Conditional Access > Policies."))
+                    -ManualReviewNote "Conditional Access policy call failed: $(Get-ITPSErrorSummary $caCall.Error) Review in Entra admin center > Protection > Conditional Access > Policies." `
+                    -Signal @{ GraphError = $caCall.Error }))
     }
 }
 
@@ -512,7 +604,7 @@ else {
     # Two routes here, and they are not the same finding. Either the call failed, or
     # it succeeded with nothing and no sensor deployment could be evidenced.
     $detectionNote = if (-not $healthCall.Ok) {
-        "Defender for Identity health issue call failed: $($healthCall.Error) This commonly means Defender for Identity is not licensed or not provisioned, but confirm against the error above rather than assuming. Review in Microsoft Defender portal > Settings > Identities > Health issues."
+        "Defender for Identity health issue call failed: $(Get-ITPSErrorSummary $healthCall.Error) This commonly means Defender for Identity is not licensed or not provisioned, but confirm against the error above rather than assuming. Review in Microsoft Defender portal > Settings > Identities > Health issues."
     }
     elseif ($mdiEvidence.Known) {
         ('The health issue endpoint answered with no open issues, but the AATP_Sensor Secure Score control reports no sensor coverage ' +
@@ -535,6 +627,7 @@ else {
                     -Signal @{
                     SensorDeploymentKnown = $mdiEvidence.Known
                     SensorScorePercent    = $mdiEvidence.SensorScorePercent
+                    GraphError            = $healthCall.Error
                 }))
     }
 }
@@ -645,7 +738,8 @@ else {
             @{ Id = 'G-01'; Name = 'Access reviews configured' },
             @{ Id = 'G-02'; Name = 'Guest access reviewed' })) {
         $governanceChecks.Add((New-ITPSCheck -Id $c.Id -Name $c.Name -ManualReview $true `
-                    -ManualReviewNote "Access review definition call failed: $($reviewCall.Error) Access Reviews require Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Access reviews."))
+                    -ManualReviewNote "Access review definition call failed: $(Get-ITPSErrorSummary $reviewCall.Error) Access Reviews require Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Access reviews." `
+                    -Signal @{ GraphError = $reviewCall.Error }))
     }
 }
 
@@ -709,7 +803,8 @@ if ($pimOk) {
 else {
     $governanceChecks.Add((New-ITPSCheck -Id 'G-04' -Name 'Standing privilege minimised' -ManualReview $true `
                 -RepoXRef 'EIG-AR002' `
-                -ManualReviewNote "PIM assignment call failed: $pimError PIM requires Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Privileged Identity Management > Microsoft Entra roles > Assignments."))
+                -ManualReviewNote "PIM assignment call failed: $(Get-ITPSErrorSummary $pimError) PIM requires Entra ID P2 or Entra ID Governance, but confirm against the error above rather than assuming a licensing cause. Review in Entra admin center > Identity Governance > Privileged Identity Management > Microsoft Entra roles > Assignments." `
+                -Signal @{ GraphError = $pimError }))
 }
 
 # G-05 workload identity credential lifetime
@@ -758,7 +853,8 @@ if ($appCall.Ok) {
 else {
     $governanceChecks.Add((New-ITPSCheck -Id 'G-05' -Name 'Workload identity credential lifetime' `
                 -ManualReview $true `
-                -ManualReviewNote "Application registration call failed: $($appCall.Error) Review in Entra admin center > Identity > Applications > App registrations > Certificates and secrets for each application."))
+                -ManualReviewNote "Application registration call failed: $(Get-ITPSErrorSummary $appCall.Error) Review in Entra admin center > Identity > Applications > App registrations > Certificates and secrets for each application." `
+                -Signal @{ GraphError = $appCall.Error }))
 }
 
 $governanceScore = Get-DimensionScore -Checks $governanceChecks.ToArray()

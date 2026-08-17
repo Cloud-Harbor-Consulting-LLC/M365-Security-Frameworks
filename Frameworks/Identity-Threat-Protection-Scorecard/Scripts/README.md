@@ -218,6 +218,19 @@ do {
 
 In Microsoft Graph, **`$top` sets the page size, not a result limit.** A URI such as `secureScores?$top=1` returns one record per page plus a `nextLink`, so paging it to exhaustion issues one request per record. Where only the newest record is wanted, the collector passes `-FirstPageOnly`.
 
+**A run that pauses with a throttling message.**
+Microsoft Graph throttles **per service, not per tenant**, so one endpoint can return `429 TooManyRequests` while every other call in the same run succeeds. The Identity Governance endpoints have tighter limits than most, and repeated assessments of the same tenant within an hour can reach them.
+
+The collector retries transient failures (429, 500, 502, 503, 504) up to `-MaxRetry` times, honouring the `Retry-After` header where Graph sends one and falling back to exponential backoff where it does not, capped at 60 seconds per wait. Each wait prints a line naming the status code, the endpoint, and the retry number, so a pause is never silent:
+
+```
+  [!] Graph returned 429 for identityGovernance/accessReviews/definitions. Waiting 12s, then retry 1 of 5.
+```
+
+If the retries are exhausted the affected checks fall to `ManualReview` and are excluded from the denominator, so a transient throttle produces an honest partial score rather than a wrong one. Re-running after a few minutes usually clears it.
+
+Non-transient failures — `403`, `404` — are not retried and fail immediately with the status code and the message Graph returned.
+
 **A hidden sign-in window.** The Graph SDK warns that WAM sign-in may open behind other windows when run from an embedded terminal. If the first prompt never appears, check for a window behind the console before assuming the script is stuck.
 
 ## Testing status
