@@ -99,8 +99,11 @@
 
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
+    # Policies/ sits alongside Scripts/, not inside it. Join-Path treats a bare
+    # separator as a path segment, so the previous default resolved to
+    # Scripts\Policies and every run threw "Policy path not found".
     [Parameter()]
-    [string]$PolicyPath = (Join-Path $PSScriptRoot '\' 'Policies'),
+    [string]$PolicyPath = (Join-Path $PSScriptRoot '..' 'Policies'),
 
     [Parameter()]
     [string]$EmergencyAccessGroupName = 'CA-Persona-EmergencyAccess',
@@ -134,6 +137,13 @@ param(
 
     [Parameter(Mandatory = $false)]
     [string]$TermsOfUseName = 'Terms of Use for Guest Users',
+
+    # CA-COV010 excludes a trusted-egress named location. IP ranges are
+    # tenant-specific, so no Supporting-Artifacts template ships for it; the name
+    # is a parameter because CA-COV010-WorkloadIdentities.md documents it as
+    # "Trusted IPs (or your convention)".
+    [Parameter(Mandatory = $false)]
+    [string]$TrustedIpsLocationName = 'Trusted IPs',
 
     [Parameter()]
     [switch]$Enforce,
@@ -311,6 +321,7 @@ try {
     }
 
     $script:TermsOfUseId = $null
+    $script:TrustedIpsLocationId = $null
     $results = [System.Collections.Generic.List[pscustomobject]]::new()
 
     foreach ($template in $templates) {
@@ -318,6 +329,15 @@ try {
         try {
             $rawJson = Get-Content -Path $template.FullName -Raw
             $expandedJson = Expand-Placeholders -JsonContent $rawJson -Substitutions $substitutions
+            # Resolved lazily, like the Terms of Use agreement below: only
+            # CA-COV010 uses this location, so resolving it up front would fail
+            # the entire deployment for tenants that do not run that policy.
+            if ($expandedJson -match 'REPLACE_WITH_TRUSTED_IPS_LOCATION_ID') {
+                if (-not $script:TrustedIpsLocationId) {
+                    $script:TrustedIpsLocationId = Resolve-NamedLocationId -DisplayName $TrustedIpsLocationName
+                }
+                $expandedJson = $expandedJson -replace 'REPLACE_WITH_TRUSTED_IPS_LOCATION_ID', $script:TrustedIpsLocationId
+            }
             if ($expandedJson -match 'REPLACE_WITH_TERMS_OF_USE_ID') {
                 if (-not $script:TermsOfUseId) {
                     $script:TermsOfUseId = Resolve-TermsOfUseId -Name $TermsOfUseName
