@@ -20,8 +20,9 @@
     Directory for output files. Default: current directory.
 
 .PARAMETER TenantName
-    Optional display name used in file naming and report headers.
-    Default: TenantId from the result object.
+    Optional display name used in file naming and report headers. Overrides the
+    TenantName carried in the result object by the collector. When neither is
+    supplied, reports fall back to the tenant GUID.
 
 .EXAMPLE
     $result = .\Get-ZTReadinessScore.ps1 -TenantId 'xxxx'
@@ -36,6 +37,12 @@
     Requires: PowerShell 7+
 #>
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
+    Justification = 'Interactive operator tool. Progress and output paths are intentionally written to the host.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseProcessBlockForPipelineCommand', '',
+    Justification = 'A single ZTRAResult object is formatted per invocation by design. Pipeline binding is a convenience for the common one-object case; batching multiple tenant results is not a supported scenario for this script.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+    Justification = 'Get-TopGaps and Get-NextStageActions return collections, which the plural names describe accurately.')]
 [CmdletBinding()]
 param(
     [Parameter(ParameterSetName='Object', Mandatory, ValueFromPipeline)]
@@ -69,11 +76,35 @@ $stageDesc   = @{
 }
 
 $dateStr     = ([datetime]::Parse($Result.AssessmentDate)).ToString('yyyy-MM-dd')
-$tenantLabel = if ($TenantName) { $TenantName } else { $Result.TenantId }
+# Display-name precedence:
+#   1. -TenantName passed to this script  (explicit override wins)
+#   2. TenantName carried in the ZTRAResult from the collector
+#   3. the tenant GUID
+# Step 2 is read defensively so result files produced before the collector
+# carried TenantName still format correctly.
+$resultTenantName = ''
+$tnProp = $Result.PSObject.Properties['TenantName']
+if ($null -ne $tnProp -and $null -ne $tnProp.Value) { $resultTenantName = [string]$tnProp.Value }
+$tenantLabel = if ($TenantName) { $TenantName }
+elseif (-not [string]::IsNullOrWhiteSpace($resultTenantName)) { $resultTenantName }
+else { $Result.TenantId }
 $filePrefix  = ($tenantLabel -replace '[^\w\-]', '-') + "-$dateStr"
 # ConvertFrom-Json emits numbers as Int64; the stage lookup tables are keyed by Int32,
 # so normalize here or every $stageLabels/$stageDesc lookup silently misses and renders empty.
 $overallStage = if ($null -ne $Result.OverallStage) { [int]$Result.OverallStage } else { $null }
+
+# A pillar with no scored control leaves the overall median entirely, which moves
+# the headline stage without anything having improved. The collector records that
+# in IsPartialAssessment / UnscoredPillars; read defensively so result files
+# produced before those fields existed still format.
+$unscoredPillars = @()
+$upProp = $Result.PSObject.Properties['UnscoredPillars']
+if ($null -ne $upProp -and $null -ne $upProp.Value) { $unscoredPillars = @($upProp.Value) }
+$isPartial = $unscoredPillars.Count -gt 0
+$partialNote = if ($isPartial) {
+    "**This is a partial assessment.** $($unscoredPillars -join ', ') could not be scored automatically and $($Result.ManualReviewCount) of 40 controls require manual review. The overall stage is the median of the pillars that *were* scored, so an unscored pillar does not lower it — treat the figure as an upper bound until the manual controls are completed."
+}
+else { '' }
 
 # ── Helper functions ──────────────────────────────────────────────────────────
 
@@ -95,7 +126,7 @@ function Get-TopGaps {
         ($null -ne $_.Stage -and ($null -eq $pillarStage -or $_.Stage -lt $pillarStage)) -or
         ($_.ManualReview -and $null -eq $_.Stage)
     } | Sort-Object { if ($null -ne $_.Stage) { $_.Stage } else { 0 } })
-    return $gaps | Select-Object -First $Count
+    return @($gaps | Select-Object -First $Count)
 }
 
 function Get-NextStageActions {
@@ -111,7 +142,11 @@ function Get-NextStageActions {
         Sort-Object Stage | Select-Object -First 3)
     $actions = @()
     foreach ($ctrl in $laggingControls) {
-        $actions += "Advance $($ctrl.Id) ($($ctrl.Name)) from Stage $($ctrl.Stage) to Stage $nextStage."
+        # Target the control's own next stage, not the pillar's. Using the pillar
+        # target told a reader to advance a Stage 2 control "to Stage 4" in one
+        # action, skipping a stage and misstating the work involved.
+        $ctrlTarget = [Math]::Min(([int]$ctrl.Stage + 1), 4)
+        $actions += "Advance $($ctrl.Id) ($($ctrl.Name)) from Stage $($ctrl.Stage) to Stage $ctrlTarget."
     }
     if ($actions.Count -eq 0) {
         $actions += "Review ManualReview controls in this pillar to verify Stage $nextStage coverage."
@@ -131,16 +166,31 @@ $t.Add("**Collector version:** $($Result.CollectorVersion)  ")
 $t.Add("**Overall stage:** $(Get-StageBadge $overallStage)  ")
 $t.Add("**Manual review controls:** $($Result.ManualReviewCount) of 40  ")
 $t.Add('')
+if ($isPartial) { $t.Add("> $partialNote"); $t.Add('') }
 $t.Add('---')
 $t.Add('')
 $t.Add('## Pillar summary')
 $t.Add('')
-$t.Add('| Pillar | Stage | Automated | Manual review |')
-$t.Add('|---|---|---|---|')
+# "Scored" is the count that actually determines the pillar stage — a control
+# carries a stage or it does not, and manual controls sometimes carry a partial
+# one. Without this column a pillar showing 0 automated controls still displayed a
+# stage, with nothing to say where it came from.
+$t.Add('| Pillar | Stage | Scored | Automated | Manual review |')
+$t.Add('|---|---|---|---|---|')
+$manualOnlyPillars = [System.Collections.Generic.List[string]]::new()
 foreach ($p in $Result.Pillars) {
     $auto   = @($p.Controls | Where-Object { -not $_.ManualReview }).Count
     $manual = @($p.Controls | Where-Object { $_.ManualReview }).Count
-    $t.Add("| $($p.Name) | $(Get-StageBadge $p.Stage) | $auto | $manual |")
+    $scored = @($p.Controls | Where-Object { $null -ne $_.Stage })
+    $scoredAuto = @($scored | Where-Object { -not $_.ManualReview }).Count
+    if ($scored.Count -gt 0 -and $scoredAuto -eq 0) {
+        $manualOnlyPillars.Add("$($p.Name) (from $(($scored | ForEach-Object { $_.Id }) -join ', '))")
+    }
+    $t.Add("| $($p.Name) | $(Get-StageBadge $p.Stage) | $($scored.Count) | $auto | $manual |")
+}
+$t.Add('')
+if ($manualOnlyPillars.Count -gt 0) {
+    $t.Add("> **Stage rests on a partial signal.** The stage for $($manualOnlyPillars -join '; ') comes entirely from control(s) flagged for manual review. Those controls carry a partial Graph signal — a count, not an assessment — so the pillar stage is indicative rather than measured until the manual review is completed.")
 }
 $t.Add('')
 $t.Add('---')
@@ -161,7 +211,13 @@ foreach ($p in $Result.Pillars) {
     }
     $t.Add('')
 
-    foreach ($ctrl in $p.Controls | Where-Object { $_.ManualReview -or $ctrl.Signal.Count -gt 0 }) {
+    # The filter previously read `$_.ManualReview -or $ctrl.Signal.Count -gt 0`,
+    # referencing the foreach variable, which is not assigned while Where-Object
+    # runs — it held whichever control the preceding table loop finished on, making
+    # the second clause a stale constant. The Signal clause is dropped rather than
+    # corrected: the loop body emits only for manual controls with a note, so
+    # filtering on ManualReview is both the correct intent and simpler.
+    foreach ($ctrl in $p.Controls | Where-Object { $_.ManualReview }) {
         if ($ctrl.ManualReview -and $ctrl.ManualReviewNote) {
             $t.Add("> **$($ctrl.Id) — Manual review required:** $($ctrl.ManualReviewNote)")
             $t.Add('')
@@ -188,6 +244,7 @@ $e.Add("**Tenant:** $tenantLabel  ")
 $e.Add("**Assessment date:** $dateStr  ")
 $e.Add("**Overall maturity stage:** $(Get-StageBadge $overallStage)  ")
 $e.Add('')
+if ($isPartial) { $e.Add($partialNote); $e.Add('') }
 if ($null -ne $overallStage) {
     $e.Add("> $($stageDesc[$overallStage])")
     $e.Add('')
@@ -199,7 +256,11 @@ $e.Add('')
 $e.Add('| Pillar | Stage | Top gaps |')
 $e.Add('|---|---|---|')
 foreach ($p in $Result.Pillars) {
-    $gaps    = Get-TopGaps -Pillar $p -Count 3
+    # Wrapped in @() because a function returning an empty collection unrolls to
+    # nothing, leaving $gaps as $null and making $gaps.Count throw under strict
+    # mode. A pillar whose controls are all at or above the target stage — or all
+    # manual — hits this and aborts report generation partway through.
+    $gaps    = @(Get-TopGaps -Pillar $p -Count 3)
     $gapStr  = if ($gaps.Count -gt 0) { ($gaps | ForEach-Object { $_.Id }) -join ', ' } else { 'None identified at this stage' }
     $e.Add("| **$($p.Name)** | $(Get-StageBadge $p.Stage) | $gapStr |")
 }
@@ -211,7 +272,7 @@ $e.Add('')
 foreach ($p in $Result.Pillars) {
     $e.Add("### $($p.Name) — $(Get-StageBadge $p.Stage)")
     $e.Add('')
-    foreach ($action in (Get-NextStageActions -Pillar $p)) {
+    foreach ($action in @(Get-NextStageActions -Pillar $p)) {
         $e.Add("- $action")
     }
     $e.Add('')
@@ -258,6 +319,7 @@ if ($null -ne $overallStage) { $b.Add($stageDesc[$overallStage]) }
 $b.Add('')
 $b.Add('The organization was assessed across Microsoft''s 6 Zero Trust pillars. Scores reflect current Microsoft 365 and Entra ID configuration state.')
 $b.Add('')
+if ($isPartial) { $b.Add($partialNote); $b.Add('') }
 
 $b.Add('| Pillar | Maturity stage |')
 $b.Add('|---|---|')

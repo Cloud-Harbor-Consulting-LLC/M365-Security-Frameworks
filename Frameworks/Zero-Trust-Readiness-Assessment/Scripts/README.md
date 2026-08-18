@@ -20,6 +20,18 @@ This folder contains two scripts for the Zero Trust Readiness Assessment Framewo
 | `Device.Read.All` | Endpoints (device registration and join type) |
 | `RoleManagement.Read.Directory` | Identities (directory role assignments; PIM role eligibility/assignment schedule instances) |
 | `Reports.Read.All` | Cross-pillar (authentication method registration) |
+| `Application.Read.All` | Infrastructure (`applications` — workload identity credential lifetime) |
+| `AccessReview.Read.All` | Identities (`identityGovernance/accessReviews/definitions` — ID-07) |
+| `EntitlementManagement.Read.All` | Applications (`identityGovernance/entitlementManagement/accessPackages` — AP-06) |
+| `DelegatedPermissionGrant.Read.All` | Applications (`oauth2PermissionGrants` — AP-02) |
+| `SensitivityLabels.Read.All` | Data (`security/dataSecurityAndGovernance/sensitivityLabels` — DA-01) |
+
+The last four were added after a live run. They were missing while the endpoints were still being called, and the gap was invisible on any workstation that had already consented to them for another tool: the Microsoft Graph PowerShell client carries previously consented scopes forward, so those calls succeeded on a machine that had run the ITPS collector and would have returned `403` on a fresh one.
+
+**Adding scopes means re-consenting.** The first run after this change prompts for the new permissions.
+
+**Sensitivity labels are global-service only.** `GET /security/dataSecurityAndGovernance/sensitivityLabels` is GA in Microsoft Graph v1.0 and returns the tenant's label taxonomy. It is *not* published for US Government L4, US Government L5 (DOD), or China operated by 21Vianet, so in those clouds the call fails and DA-01 falls to manual review with no stage. Note the namespace: the resource sits under `security/dataSecurityAndGovernance`, not `informationProtection` — `informationProtection/sensitivityLabels` and `security/informationProtection/sensitivityLabels` both return HTTP 400. `SensitivityLabel.Read` is the least-privileged delegated alternative, but `SensitivityLabels.Read.All` is what returns the full tenant taxonomy rather than the labels published to the calling user.
+
 ---
 ## Authentication
 **Interactive (recommended for initial assessment):**
@@ -109,6 +121,51 @@ lists all controls requiring manual assessment in v0.1.0-preview and why.
 | NW-06 | NSG flow logs + Sentinel connectors require Azure Management API | Azure portal > Network Watcher + Sentinel |
 *Controls marked * have a partial Graph signal — Stage may be computed for what is available; ManualReview = $true indicates the signal is incomplete.*
 ---
+## How the display name is resolved
+
+`TenantId` is the tenant GUID and is what the collector authenticates with. `TenantName` is presentation only. The formatter resolves the report label in this order:
+
+1. `-TenantName` passed to the formatter (explicit override)
+2. `TenantName` carried in the `ZTRAResult` from the collector
+3. the tenant GUID
+
+Supplying `-TenantName` on the **collector** is usually enough — the name travels with the result object, so the JSON export is self-describing and the formatter picks it up without repeating it:
+
+```powershell
+.\Get-ZTReadinessScore.ps1 -TenantId '<tenant-guid>' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath '.eports'
+.\Format-ZTReadinessReport.ps1 -InputPath '.eports\ZTRAResult-<timestamp>.json' -OutputPath '.eports'
+```
+
+The name also sets the output filenames, so reports read `Cloud-Harbor-Demo-2026-08-18-board.md` rather than a GUID. Result files produced before the collector carried `TenantName` still format correctly and fall back to the GUID.
+
+## Absent, unassessable, and unanswered
+
+The collector distinguishes three outcomes per Graph call, and they are scored differently.
+
+| Outcome | Meaning | Effect |
+|---|---|---|
+| Call succeeds, records returned | The control exists and can be evaluated | Scored on its merits |
+| Call succeeds, **zero records** | The signal is genuinely absent | Scored on that basis |
+| Call fails | The control **could not be assessed** | `ManualReview`, with the Graph error recorded |
+
+The middle row is the one that used to break the collector. `$x = try { fn } catch { @() }` yields `$null` when the result is empty, because PowerShell unrolls an empty collection to zero pipeline objects — so a tenant with **zero risky users**, the ideal state, produced the same `$null` as a failed call, and the next line's `.Count` threw under `Set-StrictMode -Version Latest`. All collection calls now route through `Invoke-ZTCollection`, which reports success-with-data, success-but-empty, and failure as distinct outcomes.
+
+The distinction also matters to scoring. ID-05 reaches Stage 4 only when the risky-user call **succeeded** and returned nothing. A failed call returns nothing too, and reading that as a clean tenant would award the top stage for an unanswered question.
+
+## Throttling and paging
+
+Microsoft Graph throttles **per service, not per tenant**, so one endpoint can return `429 TooManyRequests` while every other call in the same run succeeds. The Identity Governance endpoints have tighter limits than most, and repeated assessments of the same tenant within an hour can reach them.
+
+The collector retries transient failures (429, 500, 502, 503, 504) up to `-MaxRetry` times, honouring the `Retry-After` header where Graph sends one and falling back to exponential backoff where it does not, capped at 60 seconds per wait. Each wait prints a line naming the status code, the endpoint, and the retry number, so a pause is never silent:
+
+```
+  ! Graph returned 429 for identityGovernance/accessReviews/definitions. Waiting 12s, then retry 1 of 5.
+```
+
+Non-transient failures such as `403` are not retried and fail immediately with the status code and the message Graph returned.
+
+Paging is bounded by `-MaxPages` (default 200). Hitting the ceiling is reported rather than passed over, because a silently truncated collection would misstate a stage. The `devices` endpoint is the one most likely to page heavily on a large tenant.
+
 ## Scoring logic
 **Control stage:** 1–4, assigned by the collector from Graph evidence. Null when
 `ManualReview = $true` and no partial signal is available.
