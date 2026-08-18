@@ -62,6 +62,10 @@ This rubric is usable without the collector script. The collector script (`Scrip
 
 **M365 Signal:** CA policy set includes a legacy auth block policy and MFA grant-control policies covering all users. Check `conditions.clientAppTypes` for legacy auth block and `grantControls.builtInControls` for `mfa` or `authenticationStrength` on coverage policies.
 
+**What counts as coverage.** Stage 3 requires a policy that is enforced, includes **All users**, includes **All applications**, scopes no user action, and imposes no risk precondition. Each of those exclusions rules out a policy that requires MFA without covering the tenant: a policy scoped to one pilot group; a user-action policy covering *register security info* or *register or join device*, which sets `conditions.applications.includeUserActions` and leaves `includeApplications` empty; and a risk-conditional policy that requires MFA only above a threshold. A collector that accepts any of these reports blanket MFA on a tenant that does not have it.
+
+**What counts as phishing-resistant.** Stage 4 requires the authentication strength to actually be phishing-resistant, not merely present. The built-in *Multifactor authentication* strength permits SMS and Authenticator push and does not qualify. The collector reads `allowedCombinations` and requires every permitted combination to consist solely of `fido2`, `windowsHelloForBusiness`, or `x509CertificateMultiFactor`, because a strength is only as strong as its weakest allowed path. Where Graph omits `allowedCombinations`, the documented built-in policy ids are used as a fallback: `00000000-0000-0000-0000-000000000004` is phishing-resistant, `...0002` and `...0003` are not.
+
 ---
 
 ### ID-02: Admin MFA and privileged identity protection
