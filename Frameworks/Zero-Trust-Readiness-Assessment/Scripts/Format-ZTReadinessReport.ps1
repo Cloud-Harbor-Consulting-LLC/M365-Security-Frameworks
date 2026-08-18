@@ -32,7 +32,7 @@
     .\Format-ZTReadinessReport.ps1 -InputPath '.\ZTRAResult-20260717-123456.json' -OutputPath '.\Reports' -TenantName 'Contoso'
 
 .NOTES
-    Version:  v0.1.0-preview
+    Version:  v0.1.1-preview
     Author:   Cloud Harbor Consulting LLC
     Requires: PowerShell 7+
 #>
@@ -374,7 +374,7 @@ $b.Add('The executive summary and technical report identify the specific configu
 $b.Add('')
 $b.Add('---')
 $b.Add('')
-$b.Add('*Assessment: ZTRA v0.1.0-preview | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207 | Delivered by Cloud Harbor Consulting LLC*')
+$b.Add("*Assessment: ZTRA $($Result.CollectorVersion) | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207 | Delivered by Cloud Harbor Consulting LLC*")
 
 $boardFile = Join-Path $OutputPath "$filePrefix-board.md"
 $b | Set-Content -Path $boardFile -Encoding UTF8

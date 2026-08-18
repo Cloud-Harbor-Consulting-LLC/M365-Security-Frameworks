@@ -26,7 +26,7 @@
 .EXAMPLE
     .\Get-ZTReadinessScore.ps1 -TenantId 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath 'C:\Reports'
 .NOTES
-    Version:  v0.1.0-preview
+    Version:  v0.1.1-preview
     Author:   Cloud Harbor Consulting LLC
     Requires: PowerShell 7+, Microsoft.Graph.Authentication module
     Scopes:   Policy.Read.All, IdentityRiskyUser.Read.All, AuditLog.Read.All,
@@ -45,7 +45,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$COLLECTOR_VERSION = 'v0.1.0-preview'
+$COLLECTOR_VERSION = 'v0.1.1-preview'
 # Every endpoint the collector calls must be covered here. Four scopes were
 # missing, and the gap was invisible on any workstation that had already
 # consented to them for another tool: the Microsoft Graph PowerShell client
@@ -625,7 +625,7 @@ $epControls.Add((New-ZTControl -Id 'EP-01' -Name 'Device registration with cloud
 # EP-02: Device compliance policies — Intune scope required
 $epControls.Add((New-ZTControl -Id 'EP-02' -Name 'Device compliance policies' `
     -NistTenets @('T4','T5') -Stage $null -ManualReview $true `
-    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside v0.1.0-preview scope. Review in Intune admin center > Devices > Compliance policies.' `
+    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside the current scope of this collector. Review in Intune admin center > Devices > Compliance policies.' `
     -Signal @{}))
 # EP-03: CA enforcement of device compliance
 $compliantDeviceEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
@@ -645,19 +645,19 @@ $epControls.Add((New-ZTControl -Id 'EP-03' -Name 'CA enforcement of device compl
 # EP-04 through EP-07 — Intune-scoped, ManualReview
 $epControls.Add((New-ZTControl -Id 'EP-04' -Name 'App protection policies BYOD MAM' `
     -NistTenets @('T1','T4') -Stage $null -ManualReview $true `
-    -ManualReviewNote 'Requires DeviceManagementApps.Read.All, outside v0.1.0-preview scope. Review in Intune admin center > Apps > App protection policies.' `
+    -ManualReviewNote 'Requires DeviceManagementApps.Read.All, outside the current scope of this collector. Review in Intune admin center > Apps > App protection policies.' `
     -Signal @{}))
 $epControls.Add((New-ZTControl -Id 'EP-05' -Name 'Security baselines and configuration enforcement' `
     -NistTenets @('T5','T7') -Stage $null -ManualReview $true `
-    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside v0.1.0-preview scope. Review in Intune admin center > Endpoint security > Security baselines.' `
+    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside the current scope of this collector. Review in Intune admin center > Endpoint security > Security baselines.' `
     -Signal @{}))
 $epControls.Add((New-ZTControl -Id 'EP-06' -Name 'Device encryption' `
     -NistTenets @('T1','T2') -Stage $null -ManualReview $true `
-    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside v0.1.0-preview scope. Review in Intune admin center > Devices > Compliance policies — verify encryption requirement per platform.' `
+    -ManualReviewNote 'Requires DeviceManagementConfiguration.Read.All, outside the current scope of this collector. Review in Intune admin center > Devices > Compliance policies — verify encryption requirement per platform.' `
     -Signal @{}))
 $epControls.Add((New-ZTControl -Id 'EP-07' -Name 'Endpoint threat detection' `
     -NistTenets @('T5','T7') -Stage $null -ManualReview $true `
-    -ManualReviewNote 'Requires DeviceManagementManagedDevices.Read.All, outside v0.1.0-preview scope. Review in Defender portal > Settings > Endpoints > Onboarding and Intune admin center > Endpoint security > Microsoft Defender for Endpoint.' `
+    -ManualReviewNote 'Requires DeviceManagementManagedDevices.Read.All, outside the current scope of this collector. Review in Defender portal > Settings > Endpoints > Onboarding and Intune admin center > Endpoint security > Microsoft Defender for Endpoint.' `
     -Signal @{}))
 $pillar2Stage = Get-PillarStage -Controls $epControls.ToArray()
 Write-Status "Pillar 2 (Endpoints) stage: $pillar2Stage" -Level OK
@@ -727,7 +727,7 @@ Write-Status "Pillar 3 (Applications) stage: $pillar3Stage" -Level OK
 # ── Pillar 4 — Data ───────────────────────────────────────────────────────────
 Write-Status 'Assessing Pillar 4 — Data...'
 $daControls  = [System.Collections.Generic.List[PSCustomObject]]::new()
-$purviewNote = 'Microsoft Purview signals are not available via Microsoft Graph in v0.1.0-preview. Review in Purview compliance portal'
+$purviewNote = 'Microsoft Purview signals are not available via Microsoft Graph to this collector. Review in Purview compliance portal'
 # DA-01: Sensitivity labels — partial Graph signal available
 # Tenant sensitivity label taxonomy.
 #
@@ -797,11 +797,11 @@ Write-Status "Pillar 4 (Data) stage: $pillar4Stage" -Level OK
 # ── Pillar 5 — Infrastructure ─────────────────────────────────────────────────
 Write-Status 'Assessing Pillar 5 — Infrastructure...'
 $infraControls = [System.Collections.Generic.List[PSCustomObject]]::new()
-$azureNote     = 'Requires Azure Management API signals, outside v0.1.0-preview Graph-only scope.'
+$azureNote     = 'Requires Azure Management API signals, outside the Graph-only scope of this collector.'
 # IN-01: JIT privileged access for Azure resource roles — ARM-only, not available via Microsoft Graph.
 # PIM for Azure resource roles is managed through the Azure Resource Manager APIs
 # (Microsoft.Authorization/roleEligibilityScheduleInstances), not Microsoft Graph, so this control
-# is manual-review in the Graph-only v0.1.0-preview collector.
+# is manual-review in this Graph-only collector.
 $infraControls.Add((New-ZTControl -Id 'IN-01' -Name 'JIT privileged access for Azure resource roles' `
     -NistTenets @('T3','T4','T5') -RepoXRef 'EIG-AR002' -Stage $null -ManualReview $true `
     -ManualReviewNote "$azureNote PIM for Azure resource roles is managed via the Azure Resource Manager APIs, not Microsoft Graph. Review in Entra admin center > Identity Governance > Privileged Identity Management > Azure resources > Assignments." `
@@ -845,7 +845,7 @@ Write-Status "Pillar 5 (Infrastructure) stage: $pillar5Stage" -Level OK
 # ── Pillar 6 — Networks ───────────────────────────────────────────────────────
 Write-Status 'Assessing Pillar 6 — Networks...'
 $nwControls  = [System.Collections.Generic.List[PSCustomObject]]::new()
-$networkNote = 'Requires Azure Management API or GSA-specific Graph scopes, outside v0.1.0-preview scope.'
+$networkNote = 'Requires Azure Management API or GSA-specific Graph scopes, outside the current scope of this collector.'
 # NW-01, NW-02 — GSA scopes not in collector scope, ManualReview
 $nwControls.Add((New-ZTControl -Id 'NW-01' -Name 'Legacy VPN displacement private access' `
     -NistTenets @('T2','T3') -Stage $null -ManualReview $true `

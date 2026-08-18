@@ -89,7 +89,7 @@ ZTRAResult
 ## Manual review guidance
 Controls flagged `ManualReview = $true` require portal assessment. Each control's
 `ManualReviewNote` field contains exact navigation instructions. The table below
-lists all controls requiring manual assessment in v0.1.0-preview and why.
+lists all controls requiring manual assessment by this collector and why.
 | Control | Reason | Portal location |
 |---|---|---|
 | ID-08 | Requires `Application.Read.All` | Entra admin center > Enterprise applications |
@@ -132,8 +132,11 @@ lists all controls requiring manual assessment in v0.1.0-preview and why.
 Supplying `-TenantName` on the **collector** is usually enough — the name travels with the result object, so the JSON export is self-describing and the formatter picks it up without repeating it:
 
 ```powershell
-.\Get-ZTReadinessScore.ps1 -TenantId '<tenant-guid>' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath '.eports'
-.\Format-ZTReadinessReport.ps1 -InputPath '.eports\ZTRAResult-<timestamp>.json' -OutputPath '.eports'
+.\Get-ZTReadinessScore.ps1 -TenantId '<tenant-guid>' -TenantName 'Cloud Harbor Demo' -ExportJson -OutputPath '.
+eports'
+.\Format-ZTReadinessReport.ps1 -InputPath '.
+eports\ZTRAResult-<timestamp>.json' -OutputPath '.
+eports'
 ```
 
 The name also sets the output filenames, so reports read `Cloud-Harbor-Demo-2026-08-18-board.md` rather than a GUID. Result files produced before the collector carried `TenantName` still format correctly and fall back to the GUID.
