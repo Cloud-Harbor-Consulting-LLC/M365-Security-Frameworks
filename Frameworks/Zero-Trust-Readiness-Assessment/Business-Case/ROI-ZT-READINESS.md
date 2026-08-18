@@ -1,7 +1,7 @@
 # Business Case: Zero Trust Readiness Assessment
 
 **Framework:** Zero Trust Readiness Assessment (ZTRA)  
-**Version:** v0.1.0-preview  
+**Version:** v0.1.1-preview  
 **Author:** Cloud Harbor Consulting LLC  
 
 ---
@@ -284,4 +284,4 @@ the consultant adds client context, sector-specific risk framing, and remediatio
 ---
 
 *Maintained by Cloud Harbor Consulting LLC — [cloudharborconsulting.cloud](https://cloudharborconsulting.cloud)*  
-*ZTRA v0.1.0-preview | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207*
+*ZTRA v0.1.1-preview | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207*

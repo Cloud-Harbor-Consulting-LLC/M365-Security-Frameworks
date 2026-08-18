@@ -530,7 +530,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | PIM covers both Entra directory roles and Azure resource roles for key subscriptions. Activation requires justification and MFA. High-impact role activations require approval. Time-bound access enforced. |
 | 4 — Optimal | Zero permanent assignments for Azure resource roles except documented break-glass. All activations time-limited. Activation triggers automated alert. Azure resource role usage audited continuously. Emergency access process documented and tested. |
 
-**M365 Signal:** Eligible vs. permanent ratio for Azure resource roles is an Azure Resource Manager signal (`Microsoft.Authorization/roleEligibilityScheduleInstances` and `roleAssignmentScheduleInstances`), not available via Microsoft Graph — manual review in the Graph-only v0.1.0-preview collector.
+**M365 Signal:** Eligible vs. permanent ratio for Azure resource roles is an Azure Resource Manager signal (`Microsoft.Authorization/roleEligibilityScheduleInstances` and `roleAssignmentScheduleInstances`), not available via Microsoft Graph — manual review in the Graph-only Graph-only collector.
 
 ---
 
@@ -562,7 +562,7 @@ This rubric is usable without the collector script. The collector script (`Scrip
 | 3 — Advanced | Defender for Cloud plans enabled for key resource types (Servers, Storage, Containers, SQL). Alerts triaged by SOC. Secure Score tracked against a defined organizational baseline. Microsoft Sentinel deployed with key data connectors active. |
 | 4 — Optimal | Full Defender for Cloud coverage across all subscriptions and resource types. All workload alert types connected to Sentinel. SOAR playbooks automate response for high-confidence alerts. Secure Score improvement tracked as an organizational metric. |
 
-**M365 Signal:** Defender for Cloud enablement and Secure Score are Azure Management API signals. Sentinel workspace existence and connected data connector count via `GET /operationalInsights/workspaces` (requires `Log Analytics Reader` scope, outside Graph-only collector scope for v0.1.0-preview).
+**M365 Signal:** Defender for Cloud enablement and Secure Score are Azure Management API signals. Sentinel workspace existence and connected data connector count via `GET /operationalInsights/workspaces` (requires `Log Analytics Reader` scope, outside Graph-only collector scope for this collector).
 
 ---
 

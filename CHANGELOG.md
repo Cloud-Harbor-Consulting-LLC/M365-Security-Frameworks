@@ -18,9 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CONTRIBUTING.md`: added Style guide convention for compliance control rows — copy control labels and criterion descriptions from existing verified documents in the repo (ROI-ENTRA-ID-P2.md, Audit-Attestation.md, ROI-REPORTING-RUBRIC.md) rather than writing from memory; notes two concrete examples of non-obvious numbering (CC7.1, A.8.16).
 - `Frameworks/Entra-ID-Governance-Toolkit/README.md`: Business case section expanded to surface both `Business-Case/` documents (ROI-ENTRA-GOVERNANCE.md and ROI-ENTRA-ID-P2.md) with one-line descriptions of each.
 
+### Fixed
+
+- Verified with a new **104-assertion harness** — ZTRA had none — extracting the shipped functions via AST rather than reimplementing them, and driving the formatter end to end on three result shapes including a pillar with no gaps and an all-manual tenant. Every defect above was reproduced against the shipped code before it was changed, and the live-run findings were caught by running the corrected collector against a real tenant before this shipped. `Scripts/README.md` gains sections on the absent/unassessable/unanswered distinction and on throttling and paging; `SCORING-RUBRIC.md` records what now counts as coverage and as phishing-resistant for ID-01.
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: corrected SOC 2 CC control mappings — CC6.7 (data transmission restriction) replaced with CC6.6 (logical access security against external threats); CC7.1 (configuration change monitoring) replaced with CC7.2 (anomaly detection indicative of malicious acts). Source: Azure + Dynamics 365 + Online Services SOC 2 Type II Report (2025-04-01 to 2026-03-31).
+- `Frameworks/Conditional-Access-Baseline/Business-Case/ROI-CONDITIONAL-ACCESS.md`: corrected another instance of the same `CC6.7` mislabelling — the row glossed `CC6.7 (Privileged Access)` covered admin authentication strength (CA-AUT003) and admin risk blocking (CA-SIG005), which is logical access control rather than restriction of information transmission. Remapped to `CC6.1 (Logical Access Controls — privileged access)`, distinguished by gloss from the existing general CC6.1 row.
+- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-GOVERNANCE.md`: corrected the same mislabelling — the row glossed `CC6.7 (Privileged access)` covered monthly review and removal of dormant administrative role assignments (EIG-AR002), which is authorization and removal of access by role. Remapped to `CC6.3 (Privileged access review and removal)`, distinguished by gloss from the existing `CC6.2 / CC6.3` provisioning row. With these 2 files, `CC6.7` no longer appears anywhere in the repo, so all business-case documents now define the criterion consistently.
+
+---
+
+## [ztra-v0.1.1-preview] - 2026-08-18
+
 ### Added
 
 - `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`: added an optional `-TenantName` parameter, carried through into the `ZTRAResult` object. `-TenantId` remains the tenant GUID used to authenticate; `TenantName` is presentation only. `Format-ZTReadinessReport.ps1` now resolves the report label in precedence order — its own `-TenantName` override, then the name carried in the result, then the GUID — so the friendly name only has to be typed once at collection time and the JSON export is self-describing. It also sets the output filenames, so reports read `Cloud-Harbor-Demo-2026-08-18-board.md` rather than a GUID. Result files produced before the collector carried the field still format correctly and fall back to the GUID. This matches the behaviour already shipped for the ITPS collector.
+
+### Changed
+
+- ZTRA version strings advanced to `v0.1.1-preview` across the collector, the formatter, the framework README, the business case, and the root README. The collector stamps `CollectorVersion` into every result and every generated report, so a report now states the version that produced it. The board 1-pager previously hardcoded the version while the technical and executive reports read it from the result, so that document would have claimed `v0.1.0-preview` no matter which collector ran; it now reads the same field as the others. Manual-review notes that named a specific version — "outside v0.1.0-preview scope" — are reworded to describe the collector's boundary instead, so they no longer go stale at every release.
 
 ### Fixed
 
@@ -44,11 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1`: recommended actions targeted the pillar's next stage rather than the control's, so a Stage 2 control in a Stage 3 pillar was described as advancing "from Stage 2 to Stage 4" — a two-stage jump presented as one action. Each control now targets its own next stage.
 - `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Get-ZTReadinessScore.ps1`: DA-01's manual-review note contradicted the signal beside it, stating that "Microsoft Purview signals are not available via Microsoft Graph" on a control that had just reported a sensitivity label count read from Graph. The note now says what is and is not readable: the taxonomy comes from Graph, while publication policy, auto-labeling, and actual label coverage do not — which is why the control stays `ManualReview`.
 - `Frameworks/Zero-Trust-Readiness-Assessment/Scripts/Format-ZTReadinessReport.ps1`: a pillar stage derived entirely from `ManualReview` controls was presented as a measured position. On a live tenant both Data (Stage 2) and Infrastructure (Stage 1) rested on a single manual control each — a label count and an application-registration count — while the pillar summary showed `0` automated controls beside a stage, with nothing to explain where it came from. The summary gains a **Scored** column, counting the controls that actually determine the stage, and names any pillar whose stage rests only on a partial signal.
-- Verified with a new **104-assertion harness** — ZTRA had none — extracting the shipped functions via AST rather than reimplementing them, and driving the formatter end to end on three result shapes including a pillar with no gaps and an all-manual tenant. Every defect above was reproduced against the shipped code before it was changed, and the live-run findings were caught by running the corrected collector against a real tenant before this shipped. `Scripts/README.md` gains sections on the absent/unassessable/unanswered distinction and on throttling and paging; `SCORING-RUBRIC.md` records what now counts as coverage and as phishing-resistant for ID-01.
-
-- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: corrected SOC 2 CC control mappings — CC6.7 (data transmission restriction) replaced with CC6.6 (logical access security against external threats); CC7.1 (configuration change monitoring) replaced with CC7.2 (anomaly detection indicative of malicious acts). Source: Azure + Dynamics 365 + Online Services SOC 2 Type II Report (2025-04-01 to 2026-03-31).
-- `Frameworks/Conditional-Access-Baseline/Business-Case/ROI-CONDITIONAL-ACCESS.md`: corrected another instance of the same `CC6.7` mislabelling — the row glossed `CC6.7 (Privileged Access)` covered admin authentication strength (CA-AUT003) and admin risk blocking (CA-SIG005), which is logical access control rather than restriction of information transmission. Remapped to `CC6.1 (Logical Access Controls — privileged access)`, distinguished by gloss from the existing general CC6.1 row.
-- `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-GOVERNANCE.md`: corrected the same mislabelling — the row glossed `CC6.7 (Privileged access)` covered monthly review and removal of dormant administrative role assignments (EIG-AR002), which is authorization and removal of access by role. Remapped to `CC6.3 (Privileged access review and removal)`, distinguished by gloss from the existing `CC6.2 / CC6.3` provisioning row. With these 2 files, `CC6.7` no longer appears anywhere in the repo, so all business-case documents now define the criterion consistently.
 
 ---
 
@@ -506,7 +516,9 @@ This framework was shaped by the public work of Joey Verlinden, Daniel Chronlund
 
 ---
 
-[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/itps-v0.1.1-preview...HEAD>
+[Unreleased]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/ztra-v0.1.1-preview...HEAD>
+
+[ztra-v0.1.1-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/itps-v0.1.1-preview...ztra-v0.1.1-preview>
 
 [itps-v0.1.1-preview]: <https://github.com/Cloud-Harbor-Consulting-LLC/M365-Security-Frameworks/compare/srdr-v1.0.0...itps-v0.1.1-preview>
 
