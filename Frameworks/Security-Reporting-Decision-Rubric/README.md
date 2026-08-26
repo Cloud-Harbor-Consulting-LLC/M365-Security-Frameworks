@@ -32,6 +32,10 @@ Most security reports fail not because the data is wrong, but because the report
 - `Examples/SOC-Lead-Weekly.md` — SOC lead weekly report. MTTD/MTTR trend, Copilot investigation summary coverage, top 5 false-positive tuning candidates, exception backlog, and Agent ID risk detection metrics.
 - `Examples/Audit-Attestation.md` — audit attestation template. Maps Defender XDR severity-tier metrics and Entra ID Access Review outputs to SOC 2 CC controls and ISO 27001:2022 controls.
 
+### Board & Executive Policy Kit
+
+- `Board-Executive-Policy-Kit/` — a self-contained folder pairing the two templates used to prepare board and executive material. `Policy-Translation-Worksheet.md` converts a single technical control into a 3-line executive translation, with worked examples for CA-COV002 (Conditional Access) and ICB-WIN001 (Intune compliance); `Board-Posture-Summary.md` is a copy of the example template above, included so the kit can be taken on its own. Its README maps both templates to the 4-question decision flow and shows how they sequence: translate a new or changed control first, then roll the outcome into the next posture summary.
+
 ### Integration guide
 
 - `Design/SENTINEL-COPILOT-INTEGRATION.md` — how to build Sentinel workbooks for each audience, KQL query library (SOC lead / CISO / exec committee / board), and Security Copilot prompt patterns for auto-drafting executive narrative sections.
