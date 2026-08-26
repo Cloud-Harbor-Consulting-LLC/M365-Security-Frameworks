@@ -16,7 +16,7 @@
 | Network | [Traditional / Initial / Advanced / Optimal] | [stage] | [up / down / flat] |
 | **Overall** | **[stage]** | **[stage]** | **[direction]** |
 
-Stage definitions follow CISA ZTMM v2.0: Traditional (no Zero Trust controls), Initial (some controls, largely manual), Advanced (automated and consistent), Optimal (fully adaptive). Source: Cloud Harbor Consulting Zero Trust Readiness Assessment Framework.
+The 6 pillars follow Microsoft's Zero Trust framework. Stage definitions follow CISA ZTMM v2.0: Traditional (no Zero Trust controls), Initial (some controls, largely manual), Advanced (automated and consistent), Optimal (fully adaptive). Source: Cloud Harbor Consulting Zero Trust Readiness Assessment Framework.
 
 One sentence narrative. Name the pillar with the most significant change and what drove it.
 
