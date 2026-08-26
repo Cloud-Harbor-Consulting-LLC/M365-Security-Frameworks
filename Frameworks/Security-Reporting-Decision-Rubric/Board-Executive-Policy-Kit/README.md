@@ -27,7 +27,7 @@ The sequence matters. A posture summary assembled without the translation step t
 ## Files in this kit
 
 - `Policy-Translation-Worksheet.md` — per-control translation template, with worked examples for CA-COV002 (Conditional Access) and ICB-WIN001 (Intune compliance).
-- `Board-Posture-Summary.md` — 1-page board posture summary across 6 pillars, using CISA ZTMM v2.0 stage language.
+- `Board-Posture-Summary.md` — 1-page board posture summary across Microsoft's 6 Zero Trust pillars, using CISA ZTMM v2.0 stage language.
 
 `Board-Posture-Summary.md` is a copy, kept here so the kit can be taken as a self-contained folder. The canonical version is [`../Examples/Board-Posture-Summary.md`](../Examples/Board-Posture-Summary.md) — edit that one and re-copy, so the two do not drift.
 
