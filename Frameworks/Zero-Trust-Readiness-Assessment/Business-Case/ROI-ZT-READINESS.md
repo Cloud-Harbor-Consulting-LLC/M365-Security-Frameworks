@@ -209,7 +209,7 @@ A Zero Trust readiness assessment provides evidence for several compliance frame
 | HIPAA Security Rule | Identities, Data, Networks | 164.312 Technical Safeguards |
 | PCI-DSS v4.0 | Identities, Endpoints, Networks | Requirements 7 (Access Control), 8 (Identity Management), 10 (Logging) |
 | CMMC 2.0 Level 2 | All 6 pillars | AC, IA, SC, SI, AU practice families |
-| CISA ZTMM v2.0 | All 6 pillars | Primary alignment framework for ZTRA scoring |
+| CISA ZTMM v2.0 | All 6 pillars | Primary alignment framework for ZTRA scoring — supplies the 4 maturity stages; the 6-pillar structure is Microsoft's |
 
 The ZTRA scoring rubric maps each control row to NIST SP 800-207 tenets (T1–T7), which are the
 foundational principles behind most of the compliance frameworks above. An organization that has
