@@ -660,7 +660,7 @@ if ($caCall.Ok) {
                     -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $mfaEnforcedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-03' -Name 'Legacy authentication blocked' `
                 -Points ($(if ($legacyBlockedMatches.Count -gt 0) { 10 } else { 0 })) -MaxPoints 10 `
-                -RepoXRef 'CA-SIG001' `
+                -RepoXRef 'CA-COV001' `
                 -Signal (New-ITPSSignal -Base @{ Blocked = ($legacyBlockedMatches.Count -gt 0) } `
                     -Evidence @{ MatchedPolicies = @(Get-ITPSNameList $legacyBlockedMatches) })))
     $preventionChecks.Add((New-ITPSCheck -Id 'P-04' -Name 'Risk-based policy present' `

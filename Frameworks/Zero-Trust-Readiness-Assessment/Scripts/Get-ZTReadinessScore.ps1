@@ -460,7 +460,7 @@ $id01Stage = if ($phishResistantEnforced -and $legacyAuthBlocked) { 4 }
              elseif ($mfaCoverageEnforced -or $mfaReportOnly)      { 2 }
              else                                                   { 1 }
 $idControls.Add((New-ZTControl -Id 'ID-01' -Name 'MFA enrollment and coverage' `
-    -NistTenets @('T4','T6') -RepoXRef 'CA-COV001-009, CA-SIG001' -Stage $id01Stage `
+    -NistTenets @('T4','T6') -RepoXRef 'CA-COV002, CA-COV001' -Stage $id01Stage `
     -Signal @{
         LegacyAuthBlocked      = $legacyAuthBlocked
         MfaCoverageEnforced    = $mfaCoverageEnforced
@@ -522,7 +522,7 @@ $id03Stage = if ($legacyBlockEnforced)      { 3 }
              elseif ($legacyBlockReportOnly) { 2 }
              else                            { 1 }
 $idControls.Add((New-ZTControl -Id 'ID-03' -Name 'Block legacy authentication' `
-    -NistTenets @('T2','T6') -RepoXRef 'CA-SIG001' -Stage $id03Stage `
+    -NistTenets @('T2','T6') -RepoXRef 'CA-COV001' -Stage $id03Stage `
     -Signal @{ LegacyBlockEnforced = $legacyBlockEnforced; LegacyBlockReportOnly = $legacyBlockReportOnly }))
 # ID-04: Sign-in risk CA enforcement
 $signInRiskEnforced = Test-CAPolicyExists -Policies $caPolicies -Filter {
@@ -640,7 +640,7 @@ $ep03Stage = if ($compliantDeviceEnforced)      { 3 }
              elseif ($compliantDeviceReportOnly) { 2 }
              else                               { 1 }
 $epControls.Add((New-ZTControl -Id 'EP-03' -Name 'CA enforcement of device compliance' `
-    -NistTenets @('T3','T4','T6') -RepoXRef 'CA-AUT003' -Stage $ep03Stage `
+    -NistTenets @('T3','T4','T6') -RepoXRef 'CA-COV008, CA-SIG001, CA-COV014' -Stage $ep03Stage `
     -Signal @{ CompliantDeviceEnforced = $compliantDeviceEnforced; CompliantDeviceReportOnly = $compliantDeviceReportOnly }))
 # EP-04 through EP-07 — Intune-scoped, ManualReview
 $epControls.Add((New-ZTControl -Id 'EP-04' -Name 'App protection policies BYOD MAM' `
