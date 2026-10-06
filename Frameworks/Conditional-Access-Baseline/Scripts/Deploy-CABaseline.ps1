@@ -334,7 +334,15 @@ try {
             # the entire deployment for tenants that do not run that policy.
             if ($expandedJson -match 'REPLACE_WITH_TRUSTED_IPS_LOCATION_ID') {
                 if (-not $script:TrustedIpsLocationId) {
-                    $script:TrustedIpsLocationId = Resolve-NamedLocationId -DisplayName $TrustedIpsLocationName
+                    try {
+                        $script:TrustedIpsLocationId = Resolve-NamedLocationId -DisplayName $TrustedIpsLocationName
+                    }
+                    catch {
+                        # The resolver's generic message points at Supporting-Artifacts/, but no
+                        # template exists for this location: its IP ranges are tenant-specific.
+                        if ($_.Exception.Message -notlike 'Named location not found*') { throw }
+                        throw "Named location not found in tenant: '$TrustedIpsLocationName'. CA-COV010 needs an IP ranges named location listing your trusted egress IPs. No Supporting-Artifacts template exists for it because the ranges are tenant-specific; see Policies/CA-COV010-WorkloadIdentities.md. If yours has a different name, pass -TrustedIpsLocationName."
+                    }
                 }
                 $expandedJson = $expandedJson -replace 'REPLACE_WITH_TRUSTED_IPS_LOCATION_ID', $script:TrustedIpsLocationId
             }
