@@ -19,11 +19,26 @@ Thank you for considering a contribution. This repo is maintained as a practical
 1. Fork the repo and create a feature branch from `main`
 2. Make your changes
 3. Test any scripts in a lab tenant — **never submit code you haven't run**
-4. Open a pull request with a clear title and a description covering:
+4. Run the repository's offline tests and make sure CI passes (see [Tests and CI](#tests-and-ci))
+5. Open a pull request with a clear title and a description covering:
    - What the change does
    - Why it's needed
    - How you validated it (lab tenant, test output, sign-in log screenshot, etc.)
-5. Be responsive to review feedback — most PRs need at least one round of iteration
+6. Be responsive to review feedback — most PRs need at least one round of iteration
+
+## Tests and CI
+
+Every push and pull request runs the checks in `.github/workflows/ci.yml`. None of them touches a tenant. Run them locally before opening a PR:
+
+```powershell
+./Tests/Invoke-Tests.ps1          # regression harnesses for the PowerShell scripts
+./Tests/Invoke-ScriptAnalysis.ps1 # fails on parse errors and Error-severity PSScriptAnalyzer findings
+./Tests/Test-Repository.ps1       # JSON validity, relative links, documented invariants
+```
+
+CI also runs `markdownlint` with the repository's `.markdownlint.json`, on the Markdown files your change touches. Older files carry findings from before the gate existed, so editing one means fixing its findings too.
+
+If you change a script that has a harness under `Tests/`, extend the harness to cover the change. Any new assertion must fail against the code before your fix; an assertion that passes either way proves nothing. See [`Tests/README.md`](./Tests/README.md) for the harness conventions.
 
 ## Style guide
 

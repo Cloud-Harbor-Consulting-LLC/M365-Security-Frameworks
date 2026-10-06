@@ -12,11 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: complete Entra ID P2 business case — P1 vs P2 feature comparison, P2-exclusive controls used in this repo (Identity Protection risk policies CA-SIG003/004/008/009/COV011, PIM future scope, Access Reviews EIG-AR001/EIG-AR002), per-user licensing cost verified from Microsoft pricing (standalone $10.00/user/mo, M365 E5 $60.00/user/mo), operational savings (Access Review automation: 10 to 28 hours/year per 100 users; risk policy enforcement after promotion to On: 30 to 90 min per avoided manual remediation), compliance mapping (SOC 2 CC6.1/CC6.3/CC6.6/CC7.2/CC7.4, ISO 27001:2022 A.5.15/A.5.18/A.5.25/A.5.26/A.8.15/A.8.16, NIST SP 800-53 Rev 5 AC-2/AC-6/AU-2/IA-4/RA-3), CFO summary with guest MAU billing note and 2-year vs 3-year licensing path, and cross-references to ROI-CONDITIONAL-ACCESS.md and ROI-ENTRA-GOVERNANCE.md.
+- `Tests/`: the repository's first tracked tests. Five regression harnesses (252 assertions) for Deploy-CABaseline.ps1, Get-ITPScorecard.ps1, Get-ZTReadinessScore.ps1 and Format-ZTReadinessReport.ps1, which test the shipped code via AST extraction against mocked Graph. Also a runner (`Invoke-Tests.ps1`), a static-analysis gate (`Invoke-ScriptAnalysis.ps1`, failing on parse errors and Error-severity PSScriptAnalyzer findings), and repository checks (`Test-Repository.ps1`: JSON validity, relative links, CA templates shipping report-only with matching names, and the Policy Kit copy matching its canonical template). `Tests/README.md` documents the harness conventions.
+- `.github/workflows/ci.yml`: CI on every push and pull request into main — the harnesses and the analysis gate on Windows, repository checks on Linux, and markdownlint on the Markdown files a change touches. README gains a CI status badge.
 
 ### Changed
 
 - `CONTRIBUTING.md`: added Style guide convention for compliance control rows — copy control labels and criterion descriptions from existing verified documents in the repo (ROI-ENTRA-ID-P2.md, Audit-Attestation.md, ROI-REPORTING-RUBRIC.md) rather than writing from memory; notes two concrete examples of non-obvious numbering (CC7.1, A.8.16).
 - `Frameworks/Entra-ID-Governance-Toolkit/README.md`: Business case section expanded to surface both `Business-Case/` documents (ROI-ENTRA-GOVERNANCE.md and ROI-ENTRA-ID-P2.md) with one-line descriptions of each.
+- `CONTRIBUTING.md`: new "Tests and CI" section covering how to run the checks locally, the changed-files markdownlint gate, and the rule that a new assertion must fail against the code before the fix.
+- `Frameworks/Zero-Trust-Readiness-Assessment/Examples/Board-Summary-Template.md`: the footer hardcoded `ZTRA v0.1.0-preview`, stale since v0.1.1. It now reads `ZTRA [collector version]`, like the template's other placeholders, because the formatter stamps the version from the result. The ZTRA harness now fails if a template hardcodes a version, and checks the business case's version stamp.
 
 ### Fixed
 

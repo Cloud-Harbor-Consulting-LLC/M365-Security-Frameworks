@@ -53,4 +53,4 @@ The organization was assessed across Microsoft's 6 Zero Trust pillars. Scores re
 
 ---
 
-*Assessment: ZTRA v0.1.0-preview | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207 | Delivered by Cloud Harbor Consulting LLC*
+*Assessment: ZTRA [collector version] | Framework: CISA ZTMM v2.0 | Methodology: NIST SP 800-207 | Delivered by Cloud Harbor Consulting LLC*
