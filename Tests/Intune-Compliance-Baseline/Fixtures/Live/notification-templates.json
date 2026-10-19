@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/notificationMessageTemplates",
+  "value": [
+    {
+      "id": "53d28085-c0cf-41d0-88fc-11aeb709ee75",
+      "lastModifiedDateTime": "2026-10-12T14:35:28Z",
+      "displayName": "ICB - Device Noncompliant",
+      "description": null,
+      "defaultLocale": "en-us",
+      "brandingOptions": "includeCompanyLogo,includeCompanyName,includeContactInformation,includeCompanyPortalLink",
+      "roleScopeTagIds": [
+        "0"
+      ]
+    }
+  ]
+}

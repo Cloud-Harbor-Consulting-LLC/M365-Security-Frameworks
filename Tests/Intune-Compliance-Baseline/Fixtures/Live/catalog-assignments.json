@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/compliancePolicies('aa8e9dac-0bb4-41a9-a2e3-d9f14e3be6d7')/assignments",
+  "value": [
+    {
+      "id": "aa8e9dac-0bb4-41a9-a2e3-d9f14e3be6d7_ac6c4705-d4f9-42cd-97a4-f31ca6689942",
+      "source": "direct",
+      "sourceId": "aa8e9dac-0bb4-41a9-a2e3-d9f14e3be6d7",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "deviceAndAppManagementAssignmentFilterId": null,
+        "deviceAndAppManagementAssignmentFilterType": "none",
+        "groupId": "ac6c4705-d4f9-42cd-97a4-f31ca6689942"
+      }
+    }
+  ]
+}

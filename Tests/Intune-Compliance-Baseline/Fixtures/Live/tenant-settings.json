@@ -1,0 +1,17 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/settings",
+  "deviceComplianceCheckinThresholdDays": 30,
+  "isScheduledActionEnabled": true,
+  "secureByDefault": true,
+  "enhancedJailBreak": false,
+  "deviceInactivityBeforeRetirementInDay": 0,
+  "derivedCredentialProvider": "notConfigured",
+  "derivedCredentialUrl": null,
+  "androidDeviceAdministratorEnrollmentEnabled": false,
+  "ignoreDevicesForUnsupportedSettingsEnabled": false,
+  "enableLogCollection": true,
+  "enableAutopilotDiagnostics": true,
+  "enableEnhancedTroubleshootingExperience": false,
+  "enableDeviceGroupMembershipReport": false,
+  "m365AppDiagnosticsEnabled": true
+}
