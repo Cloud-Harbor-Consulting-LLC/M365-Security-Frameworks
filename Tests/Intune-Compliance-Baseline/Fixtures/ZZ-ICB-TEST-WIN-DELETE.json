@@ -1,0 +1,38 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "displayName": "ZZ-ICB-TEST-WIN-DELETE",
+  "description": "Test fixture for Deploy-ICBaseline.ps1 (Tests/Intune-Compliance-Baseline). Safe to delete.",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "activeFirewallRequired": true,
+  "rtpEnabled": true,
+  "passwordMinimumLength": 6,
+  "scheduledActionsForRule": [
+    {
+      "ruleName": null,
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 168,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}

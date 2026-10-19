@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/compliancePolicies('aa8e9dac-0bb4-41a9-a2e3-d9f14e3be6d7')/settings",
+  "@odata.count": 1,
+  "value": [
+    {
+      "id": "0",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "linux_deviceencryption_required",
+        "settingInstanceTemplateReference": null,
+        "auditRuleInformation": null,
+        "choiceSettingValue": {
+          "settingValueTemplateReference": null,
+          "value": "linux_deviceencryption_required_true",
+          "children": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/compliancePolicies/$entity",
+  "id": "aa8e9dac-0bb4-41a9-a2e3-d9f14e3be6d7",
+  "name": "ZZ-ICB-PROBE-LIN-DELETE",
+  "description": "Temporary. Created by Probe-ICBDeployerApi.ps1 to record Graph responses for Deploy-ICBaseline.ps1. Safe to delete.",
+  "platforms": "linux",
+  "technologies": "linuxMdm",
+  "createdDateTime": "2026-10-12T15:01:02.7981856Z",
+  "lastModifiedDateTime": "2026-10-12T15:01:02.7981856Z",
+  "settingCount": 1,
+  "creationSource": null,
+  "roleScopeTagIds": [
+    "0"
+  ]
+}
