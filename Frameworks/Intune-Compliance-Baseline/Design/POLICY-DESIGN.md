@@ -286,13 +286,15 @@ Each ICB-* template is specified below. Every spec follows the same structure: i
 
 **Maintenance:** `defenderVersion` is set at each release to the current Defender platform version minus five, following Microsoft's "no more than five versions behind" recommendation. Defender's platform updates monthly, so the value loosens over time without ever causing an outage. Review it quarterly.
 
+**Why five and not two:** Microsoft fully supports only the latest platform release and the two before it; older versions get technical upgrade support only (Microsoft Defender Antivirus security intelligence and product updates and support). Platform releases roll out gradually, so a floor of N-2 would mark healthy devices noncompliant during normal update lag. ICB keeps Microsoft's compliance guidance of five versions, and treats a device more than two behind as an update problem to investigate, not a compliance failure.
+
 **Actions for noncompliance:** email at 0 hours; mark noncompliant at 168 hours (Section 5.1).
 
 **License requirements:** Microsoft Intune Plan 1. The Defender settings need Microsoft Defender Antivirus as the active antivirus (in-box on Windows 11; no additional license).
 
 **Validation:** device-validated on a Windows 11 device in the demo tenant: compliant as designed, and noncompliant with the firewall turned off.
 
-**JSON template:** `../Policies/ICB-WIN001-Baseline-DefenderAndBitLocker.json`. The file in `Policies/` today is the v0.1.0-preview template, which also carries the Defender for Endpoint risk setting now in ICB-WIN008. It is replaced with the template specified here before v1.0.0.
+**JSON template:** `../Policies/ICB-WIN001-Baseline-DefenderAndBitLocker.json`. It replaces the v0.1.0-preview template, which also carried the Defender for Endpoint risk setting now in ICB-WIN008 and wrote `signatureOutOfDate` as a number where Graph's type is Boolean.
 
 ---
 
@@ -310,7 +312,7 @@ Each ICB-* template is specified below. Every spec follows the same structure: i
 
 **Validation:** device-validated.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-WIN002-Hardening-SecureBoot.json`
 
 ---
 
@@ -330,7 +332,7 @@ This is not Memory Integrity (hypervisor-protected code integrity, HVCI), which 
 
 **Validation:** device-validated.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-WIN003-Hardening-CodeIntegrity.json`
 
 ---
 
@@ -348,7 +350,7 @@ This is not Memory Integrity (hypervisor-protected code integrity, HVCI), which 
 
 **Validation:** device-validated.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-WIN004-Baseline-OSVersionFloor.json`
 
 ---
 
@@ -380,7 +382,7 @@ This is not Memory Integrity (hypervisor-protected code integrity, HVCI), which 
 
 **Validation:** device-validated.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-WIN005-Hardening-PasswordPIN.json`
 
 ---
 
@@ -392,15 +394,19 @@ This is not Memory Integrity (hypervisor-protected code integrity, HVCI), which 
 
 **Evaluated settings:** `deviceThreatProtectionEnabled` = true; `deviceThreatProtectionRequiredSecurityLevel` = `medium`. Upstream: Microsoft Defender for Endpoint machine risk, through the Intune connector.
 
+**Why medium:** Medium is the level in Microsoft's Zero Trust compliance settings for the Enterprise protection level, which ICB follows. Intune's Defender for Endpoint integration guide recommends Low for most organizations. Because WIN008 has no grace period, Low would mark a device noncompliant, and block it wherever Conditional Access requires compliance, on any medium-severity alert. Tenants that accept that trade can set `low`; the deployer reports the change as drift unless the template is edited.
+
 Split from ICB-WIN001 for v1.0. Under WIN001's 7-day grace period, a device Defender rated high-risk stayed compliant to Conditional Access for a week.
 
 **Actions for noncompliance:** email at 0 hours; mark noncompliant at 0 hours.
 
-**License requirements:** Microsoft Intune Plan 1 and Microsoft Defender for Endpoint, with the Defender for Endpoint connector enabled in Intune. Whether Microsoft Defender for Business (included in Microsoft 365 Business Premium) supplies the machine risk score is confirmed before this template ships, and this section will state the result.
+**License requirements:** Microsoft Intune Plan 1 and Microsoft Defender for Endpoint, with the Intune connection on in the Defender portal and "Connect Windows devices to Defender for Endpoint" on in Intune (Endpoint security › Microsoft Defender for Endpoint).
+
+**Defender for Business (Microsoft 365 Business Premium): not verified.** WIN008 is validated with Defender for Endpoint Plan 2. Microsoft describes Defender for Business as based on Defender for Endpoint, with endpoint detection and response included, but no Microsoft documentation states that it supplies the machine risk score Intune evaluates, and ICB has not tested it. Business Premium tenants should deploy WIN008 in observation mode and run `-Enforce` only once Intune's device compliance report shows WIN008's risk setting as Compliant or Not compliant, not Not evaluated.
 
 **Validation:** device-validated. Without the connector the setting evaluates as `notEvaluated`, not compliant; confirm the risk signal is flowing before enforcing.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-WIN008-Threat-DefenderRiskScore.json`
 
 ---
 

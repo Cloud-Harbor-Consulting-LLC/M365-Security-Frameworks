@@ -1,0 +1,36 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "displayName": "ICB-WIN002-Hardening-SecureBoot",
+  "description": "Intune Compliance Baseline, Windows 11. Verifies Secure Boot, attested at boot through Microsoft Azure Attestation. See Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md section 8.2.",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "secureBootEnabled": true,
+  "scheduledActionsForRule": [
+    {
+      "ruleName": null,
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 168,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}

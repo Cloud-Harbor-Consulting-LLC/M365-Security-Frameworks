@@ -1,0 +1,36 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "displayName": "ICB-WIN004-Baseline-OSVersionFloor",
+  "description": "Intune Compliance Baseline, Windows 11. Verifies the OS build is still in servicing: 25H2 (build 26200) or later, on the Home/Pro timeline. Enterprise, Education and LTSC 2024 fleets may lower it to 10.0.26100.0. Reviewed annually. See Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md section 2.3 and 8.4.",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "osMinimumVersion": "10.0.26200.0",
+  "scheduledActionsForRule": [
+    {
+      "ruleName": null,
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 168,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}

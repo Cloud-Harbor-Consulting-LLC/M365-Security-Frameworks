@@ -1,0 +1,37 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "displayName": "ICB-WIN008-Threat-DefenderRiskScore",
+  "description": "Intune Compliance Baseline, Windows 11. Marks the device noncompliant immediately when Microsoft Defender for Endpoint rates its machine risk above medium. Risk signals carry no grace period. Requires the Defender for Endpoint connector. See Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md section 1.4 and 8.6.",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "deviceThreatProtectionEnabled": true,
+  "deviceThreatProtectionRequiredSecurityLevel": "medium",
+  "scheduledActionsForRule": [
+    {
+      "ruleName": null,
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}

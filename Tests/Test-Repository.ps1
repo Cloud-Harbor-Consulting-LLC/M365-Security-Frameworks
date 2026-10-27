@@ -12,6 +12,8 @@
          matches its file name (the CA Baseline README promises both).
       4. The Board & Executive Policy Kit's copy of Board-Posture-Summary.md is byte-identical to the
          canonical one in Examples/ (the kit README promises this).
+      5. Every Intune Compliance Baseline template meets the invariants Deploy-ICBaseline.ps1
+         relies on, and classic templates use only properties and types the live tenant returns.
 
     Runs on Windows and Linux.
 
@@ -104,6 +106,79 @@ if ((Test-Path $canonical) -and (Test-Path $kitCopy)) {
 else {
     Add-Failure 'kit-copy' 'Frameworks/Security-Reporting-Decision-Rubric' 'Board-Posture-Summary.md missing from Examples/ or Board-Executive-Policy-Kit/'
 }
+
+# -- 5. ICB templates: the invariants Deploy-ICBaseline relies on ---------------
+# Name matches the file; a shape the deployer recognizes; one schedule with exactly one
+# mark-noncompliant (block) action; email actions use the notification placeholder; a persona
+# assignment and no other placeholder. Classic templates whose type has a live read-back fixture
+# also have every property checked against it: the name must exist on the live object and the
+# value must have the live type (the first ICB-WIN001 shipped signatureOutOfDate as 1, a number,
+# where Graph's type is Boolean).
+$icbPolicies = Join-Path $Path 'Frameworks' 'Intune-Compliance-Baseline' 'Policies'
+$icbTemplates = @(Get-ChildItem -Path $icbPolicies -Filter '*.json' -File)
+$liveFixtures = @{
+    '#microsoft.graph.windows10CompliancePolicy' = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'classic-readback.json'
+}
+# Properties a live read-back returns as null carry no type; these are Graph's documented types.
+$declaredTypes = @{
+    passwordMinimumLength = 'number'; passwordMinutesOfInactivityBeforeLock = 'number'; passwordPreviousPasswordBlockCount = 'number'
+    passwordExpirationDays = 'number'; passwordMinimumCharacterSetCount = 'number'
+    defenderVersion = 'string'; osMinimumVersion = 'string'; osMaximumVersion = 'string'; mobileOsMinimumVersion = 'string'; mobileOsMaximumVersion = 'string'
+}
+$nonSettings = @('@odata.type', 'displayName', 'name', 'description', 'roleScopeTagIds', 'scheduledActionsForRule', 'assignments', 'settings', 'platforms', 'technologies')
+function Get-JsonKind($Value) {
+    if ($null -eq $Value) { return 'null' }
+    if ($Value -is [bool]) { return 'boolean' }
+    if ($Value -is [string]) { return 'string' }
+    if ($Value -is [int] -or $Value -is [long] -or $Value -is [double] -or $Value -is [decimal]) { return 'number' }
+    if ($Value -is [System.Collections.IDictionary]) { return 'object' }
+    if ($Value -is [System.Collections.IList]) { return 'array' }
+    return $Value.GetType().Name
+}
+$liveCache = @{}
+foreach ($f in $icbTemplates) {
+    $rel = Get-Relative $f.FullName
+    $raw = Get-Content -Path $f.FullName -Raw
+    $t = $raw | ConvertFrom-Json -AsHashtable -Depth 100
+    $type = [string]$t['@odata.type']
+    $classic = $type -like '#microsoft.graph.*CompliancePolicy' -and $type -ne '#microsoft.graph.deviceManagementCompliancePolicy'
+    $catalog = (-not $classic) -and $t.ContainsKey('platforms') -and $t.ContainsKey('settings')
+    if (-not ($classic -or $catalog)) { Add-Failure 'icb-shape' $rel "neither a classic compliance policy (per-platform @odata.type) nor a Settings Catalog policy (platforms and settings)"; continue }
+    $name = if ($classic) { [string]$t['displayName'] } else { [string]$t['name'] }
+    if ($name -ne $f.BaseName) { Add-Failure 'icb-name' $rel "$(if ($classic) { 'displayName' } else { 'name' }) '$name' does not match the file name" }
+
+    $rules = @($t['scheduledActionsForRule'] | Where-Object { $null -ne $_ })
+    if ($rules.Count -ne 1) { Add-Failure 'icb-schedule' $rel "has $($rules.Count) scheduledActionsForRule entries; exactly one is required" }
+    else {
+        $actions = @($rules[0]['scheduledActionConfigurations'] | Where-Object { $null -ne $_ })
+        $blocks = @($actions | Where-Object { $_['actionType'] -eq 'block' })
+        if ($blocks.Count -ne 1) { Add-Failure 'icb-schedule' $rel "has $($blocks.Count) block (mark noncompliant) actions; exactly one is required" }
+        foreach ($a in @($actions | Where-Object { $_['actionType'] -eq 'notification' })) {
+            if ($a['notificationTemplateId'] -ne 'REPLACE_WITH_NOTIFICATION_TEMPLATE_ID') { Add-Failure 'icb-schedule' $rel "an email action must use REPLACE_WITH_NOTIFICATION_TEMPLATE_ID, not '$($a['notificationTemplateId'])'" }
+        }
+    }
+    $groups = @($t['assignments'] | Where-Object { $null -ne $_ } | ForEach-Object { [string]$_['target']['groupId'] })
+    if ($groups.Count -eq 0) { Add-Failure 'icb-assignment' $rel 'has no group assignment' }
+    foreach ($g in $groups) {
+        if ($g -notmatch '^REPLACE_WITH_ICB_PERSONA_(CORPWINDOWS|CORPMAC|CORPMOBILE|BYODMOBILE|CORPLINUX)_GROUP_OBJECT_ID$') { Add-Failure 'icb-assignment' $rel "assignment target '$g' is not a persona placeholder" }
+    }
+    foreach ($m in [regex]::Matches($raw, 'REPLACE_WITH_[A-Z_]+')) {
+        if ($m.Value -ne 'REPLACE_WITH_NOTIFICATION_TEMPLATE_ID' -and $m.Value -notmatch '^REPLACE_WITH_ICB_PERSONA_(CORPWINDOWS|CORPMAC|CORPMOBILE|BYODMOBILE|CORPLINUX)_GROUP_OBJECT_ID$') { Add-Failure 'icb-placeholder' $rel "unknown placeholder $($m.Value)" }
+    }
+
+    if ($classic -and $liveFixtures.ContainsKey($type)) {
+        if (-not $liveCache.ContainsKey($type)) { $liveCache[$type] = Get-Content -Path $liveFixtures[$type] -Raw | ConvertFrom-Json -AsHashtable -Depth 100 }
+        $live = $liveCache[$type]
+        foreach ($key in @($t.Keys | Where-Object { $_ -notin $nonSettings })) {
+            if (-not $live.ContainsKey($key)) { Add-Failure 'icb-property' $rel "'$key' is not a property of $type as the live tenant returns it"; continue }
+            $want = if ($null -ne $live[$key]) { Get-JsonKind $live[$key] } elseif ($declaredTypes.ContainsKey($key)) { $declaredTypes[$key] } else { $null }
+            if (-not $want) { Add-Failure 'icb-property' $rel "'$key' has no known type (live value is null); add it to the declared types"; continue }
+            $have = Get-JsonKind $t[$key]
+            if ($have -ne $want) { Add-Failure 'icb-type' $rel "'$key' is a $have; Graph's type is $want" }
+        }
+    }
+}
+Write-Host "ICB templates checked: $($icbTemplates.Count)"
 
 Write-Host ''
 if ($failures.Count -gt 0) {
