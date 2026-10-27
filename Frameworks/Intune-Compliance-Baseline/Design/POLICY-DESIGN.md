@@ -168,6 +168,8 @@ Deploy-ICBaseline deploys every template in **observation mode** unless it is ru
 
 Observation mode is the Intune counterpart of the Conditional Access Baseline's report-only default. Intune compliance policies have no report-only state, and a policy cannot be deployed without its mark-noncompliant action, so a long grace period is the only way to observe without blocking anyone.
 
+Observation mode holds only while ICB's are the only compliance policies on a device. Intune combines every policy that targets a device, so one non-ICB policy with a shorter schedule makes the device noncompliant on that policy's schedule, observation mode or not. ICB's own validation showed this. On the demo tenant, a pre-existing Windows policy that marked devices noncompliant at 0 hours turned the test device noncompliant, and Microsoft Entra reported it not compliant, even though all six ICB Windows policies were in observation mode. Once that policy was removed, the same device sat in its grace period and Entra reported it compliant. Section 7.1 makes this a prerequisite.
+
 ### 5.3 The retire list
 
 ICB-AND002's third action is "Add device to retire list". Microsoft implements it as a list, not a wipe: the device is not retired, and no data is removed, until an administrator retires it from the list. Retiring a personally owned work-profile device removes the work profile and its corporate data and leaves the user's personal data in place.
@@ -226,6 +228,7 @@ Tenant-wide settings (Intune admin center, Endpoint security > Device compliance
 - **Mark devices with no compliance policy assigned as: Not compliant.** Intune's default is Compliant, which lets an enrolled device that no compliance policy targets pass Conditional Access's "require compliant device". Microsoft recommends Not compliant wherever Conditional Access consumes compliance; so do the CIS Microsoft 365 Foundations Benchmark (4.1) and the CIS iOS Intune Benchmark (4.6). With it set, the Company Portal tells an affected user "No compliance policies have been assigned". Side effect: devices deliberately kept out of ICB become noncompliant (Section 4).
 - **Compliance status validity period: 7 days or fewer** (Intune default 30, range 1 to 120), per the CIS iOS Intune Benchmark (4.7). A device that has not reported its compliance within the period is marked noncompliant, so a lost or abandoned device stops counting as compliant within a week rather than a month. A device that returns after a longer absence is re-evaluated when it next checks in.
 - **A notification message template** for the email action, created under the compliance policy notifications in the Intune admin center. Deploy-ICBaseline resolves it by name.
+- **No other compliance policy targets ICB's devices.** Retire existing compliance policies that ICB replaces, or exclude the ICB persona groups from them, before deploying. ICB's validation found two ways an overlapping policy breaks the baseline. A shorter schedule overrides observation mode (Section 5.2). And while another policy carried the same Defender for Endpoint risk setting, ICB-WIN008 reported Not applicable instead of evaluating the risk (Section 8.6). Deploy-ICBaseline does not check for this.
 
 Windows:
 
@@ -402,9 +405,9 @@ Split from ICB-WIN001 for v1.0. Under WIN001's 7-day grace period, a device Defe
 
 **License requirements:** Microsoft Intune Plan 1 and Microsoft Defender for Endpoint, with the Intune connection on in the Defender portal and "Connect Windows devices to Defender for Endpoint" on in Intune (Endpoint security › Microsoft Defender for Endpoint).
 
-**Defender for Business (Microsoft 365 Business Premium): not verified.** WIN008 is validated with Defender for Endpoint Plan 2. Microsoft describes Defender for Business as based on Defender for Endpoint, with endpoint detection and response included, but no Microsoft documentation states that it supplies the machine risk score Intune evaluates, and ICB has not tested it. Business Premium tenants should deploy WIN008 in observation mode and run `-Enforce` only once Intune's device compliance report shows WIN008's risk setting as Compliant or Not compliant, not Not evaluated.
+**Defender for Business (Microsoft 365 Business Premium): not verified.** WIN008 is validated with Defender for Endpoint Plan 2. Microsoft describes Defender for Business as based on Defender for Endpoint, with endpoint detection and response included, but no Microsoft documentation states that it supplies the machine risk score Intune evaluates, and ICB has not tested it. Business Premium tenants should deploy WIN008 in observation mode and run `-Enforce` only once Intune's device compliance report shows WIN008's risk setting as Compliant or Not compliant, not Not evaluated or Not applicable.
 
-**Validation:** device-validated. Without the connector the setting evaluates as `notEvaluated`, not compliant; confirm the risk signal is flowing before enforcing.
+**Validation:** device-validated with Defender for Endpoint Plan 2 on Windows 11 26H2: the risk setting evaluated as Compliant on an onboarded device. While a second compliance policy targeting the same device carried the same two risk settings, WIN008 reported Not applicable for that device, and the other policy evaluated the risk instead. WIN008 evaluated normally once that policy was removed (Section 7.1). Before enforcing, confirm the risk setting reports Compliant or Not compliant for the fleet: Not evaluated or Not applicable means the risk signal is not reaching WIN008.
 
 **JSON template:** `../Policies/ICB-WIN008-Threat-DefenderRiskScore.json`
 
