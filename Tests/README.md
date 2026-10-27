@@ -30,7 +30,8 @@ From the repository root, with PowerShell 7:
 - every JSON file parses;
 - every relative Markdown link resolves;
 - every Conditional Access template ships report-only, with a `displayName` matching its file name;
-- the Board & Executive Policy Kit's copy of `Board-Posture-Summary.md` matches the canonical one in `Examples/`.
+- the Board & Executive Policy Kit's copy of `Board-Posture-Summary.md` matches the canonical one in `Examples/`;
+- every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows templates use only properties and value types that a live tenant's read-back (`Intune-Compliance-Baseline/Fixtures/Live/classic-readback.json`) contains.
 
 ## Harness conventions
 

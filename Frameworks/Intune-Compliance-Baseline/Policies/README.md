@@ -1,59 +1,60 @@
 # Intune Compliance Baseline — Policies
 
-This folder contains the platform-scoped compliance policy templates that make up the Intune Compliance Baseline (ICB). Each template is a Microsoft Graph deviceCompliancePolicy JSON object that can be imported directly into a tenant.
+This folder contains the platform-scoped compliance policy templates that make up the Intune Compliance Baseline (ICB). Each template is a Microsoft Graph beta compliance policy body, plus the actions for noncompliance its design calls for and the persona group it is assigned to.
 
-For the design philosophy, naming convention, persona model, and rollout sequence, read [../Design/POLICY-DESIGN.md](../Design/POLICY-DESIGN.md) first.
+For the design philosophy, the persona model, the actions for noncompliance and the rollout sequence, read [../Design/POLICY-DESIGN.md](../Design/POLICY-DESIGN.md) first. Section 8 specifies every template.
 
-## Week 1 import model — manual
+## Deploying
 
-ICB ships in week 1 without a deployer script. The template count is small (one Windows template at v0.1.0-preview), and a hand-imported policy gives the adopter an unambiguous read on what the baseline actually enforces. A deployer script is on the roadmap but deferred until the template count justifies the orchestration layer (see POLICY-DESIGN.md section 4 out-of-scope list).
-
-Two supported import paths.
-
-### Option 1 — Microsoft Graph PowerShell
+Use [`../Scripts/Deploy-ICBaseline.ps1`](../Scripts/README.md). It resolves the placeholders, deploys in observation mode by default (mark noncompliant after 365 days, no email), reads every policy back and compares it with the template, and is safe to re-run:
 
 ```powershell
-Connect-MgGraph -Scopes "DeviceManagementConfiguration.ReadWrite.All","Group.Read.All"
-
-$policy = Get-Content -Raw -Path ".\ICB-WIN001-Baseline-DefenderAndBitLocker.json" `
-  | ConvertFrom-Json `
-  | ConvertTo-Json -Depth 20
-
-Invoke-MgGraphRequest `
-  -Method POST `
-  -Uri "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies" `
-  -Body $policy `
-  -ContentType "application/json"
+Connect-MgGraph -Scopes DeviceManagementConfiguration.ReadWrite.All, Group.Read.All
+..\Scripts\Deploy-ICBaseline.ps1 -WhatIf                      # preview
+..\Scripts\Deploy-ICBaseline.ps1 -Template 'ICB-WIN*'         # deploy the Windows templates in observation mode
+..\Scripts\Deploy-ICBaseline.ps1 -Template 'ICB-WIN001*' -Enforce   # promote one after its observation period
 ```
 
-The Graph beta endpoint is intentional — the scheduledActionsForRule shape on v1.0 lags the beta surface, and the baseline's graduated-response model relies on the beta payload.
-
-### Option 2 — Intune portal
-
-1. Sign in to <https://intune.microsoft.com>
-2. Devices → Compliance policies → Create policy
-3. Platform: Windows 10 and later. Profile type: Windows 10/11 compliance policy.
-4. Transcribe the settings from the JSON template (BitLocker, storage encryption, firewall, TPM, antivirus, Defender, signature freshness, real-time protection, Defender for Endpoint at medium).
-5. Actions for noncompliance: notify at 0 days, mark noncompliant at 7 days (no retire on corporate Windows).
-6. Assignments: include the ICB-Persona-CorpWindows group.
-
-## Placeholder substitution
-
-Templates ship with REPLACE_WITH_* placeholders rather than real tenant IDs. Substitute before import.
-
-| Placeholder | Source |
-|---|---|
-| REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID | Entra ID group object ID for the persona group (see POLICY-DESIGN.md section 3) |
-| REPLACE_WITH_NOTIFICATION_TEMPLATE_ID | Intune notification message template ID (Devices → Compliance policies → Notifications). Leave the JSON empty-string-equivalent if the tenant has no template yet; the policy will still grade compliance, just without the email step. |
-
-## Validation after import
-
-- Devices → Compliance policies → ICB-WIN001 → Device status: every assigned device evaluates to compliant, noncompliant, inGracePeriod, or notEvaluated within roughly 8 hours of check-in.
-- Devices → Monitor → Noncompliant devices: confirm the noncompliant list matches expectations for the assigned persona before letting the 7-day block grace period expire.
-- Cross-check the deviceComplianceState field on the Graph /deviceManagement/managedDevices endpoint to confirm the Conditional Access signal handoff (see POLICY-DESIGN.md section 6).
+The templates target the Graph **beta** endpoint (POLICY-DESIGN.md section 2.4). Microsoft Graph's own documentation is not always what Intune does, so the deployer follows what a live tenant was observed to return; its README describes the differences.
 
 ## Templates in this folder
 
-| ID | Platform | Scope | Status |
-|---|---|---|---|
-| ICB-WIN001-Baseline-DefenderAndBitLocker.json | Windows 10/11 | ICB-Persona-CorpWindows | v0.1.0-preview |
+| Template | Platform | Persona group | Verifies | Mark noncompliant (with `-Enforce`) |
+|---|---|---|---|---|
+| `ICB-WIN001-Baseline-DefenderAndBitLocker.json` | Windows 11 | `ICB-Persona-CorpWindows` | BitLocker, encryption, firewall, TPM, antivirus, antispyware, Defender Antivirus with its platform version, current security intelligence and real-time protection | 7 days |
+| `ICB-WIN002-Hardening-SecureBoot.json` | Windows 11 | `ICB-Persona-CorpWindows` | Secure Boot | 7 days |
+| `ICB-WIN003-Hardening-CodeIntegrity.json` | Windows 11 | `ICB-Persona-CorpWindows` | Windows code integrity | 7 days |
+| `ICB-WIN004-Baseline-OSVersionFloor.json` | Windows 11 | `ICB-Persona-CorpWindows` | Build 26200 (25H2) or later | 7 days |
+| `ICB-WIN005-Hardening-PasswordPIN.json` | Windows 11 | `ICB-Persona-CorpWindows` | Device unlock credential (the Windows Hello PIN) | 7 days |
+| `ICB-WIN008-Threat-DefenderRiskScore.json` | Windows 11 | `ICB-Persona-CorpWindows` | Defender for Endpoint machine risk at or below medium | Immediately |
+
+Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. The macOS, iOS/iPadOS, Android and Linux templates are added before v1.0.0 (POLICY-DESIGN.md section 9.1).
+
+## Placeholders
+
+Templates carry placeholders, never tenant IDs. The deployer resolves them by name.
+
+| Placeholder | Resolved from | Deployer parameter |
+|---|---|---|
+| `REPLACE_WITH_ICB_PERSONA_CORPWINDOWS_GROUP_OBJECT_ID` | Group `ICB-Persona-CorpWindows` | `-CorpWindowsGroupName` |
+| `REPLACE_WITH_ICB_PERSONA_CORPMAC_GROUP_OBJECT_ID` | Group `ICB-Persona-CorpMac` | `-CorpMacGroupName` |
+| `REPLACE_WITH_ICB_PERSONA_CORPMOBILE_GROUP_OBJECT_ID` | Group `ICB-Persona-CorpMobile` | `-CorpMobileGroupName` |
+| `REPLACE_WITH_ICB_PERSONA_BYODMOBILE_GROUP_OBJECT_ID` | Group `ICB-Persona-BYODMobile` | `-BYODMobileGroupName` |
+| `REPLACE_WITH_ICB_PERSONA_CORPLINUX_GROUP_OBJECT_ID` | Group `ICB-Persona-CorpLinux` | `-CorpLinuxGroupName` |
+| `REPLACE_WITH_NOTIFICATION_TEMPLATE_ID` | Notification message template `ICB - Device noncompliant`, used only with `-Enforce` | `-NotificationTemplateName` |
+
+## Importing without the deployer
+
+To create a policy by hand, substitute the placeholders yourself and keep these points, each learned from a live tenant:
+
+- POST classic templates to `https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies` without the `assignments` property, then assign with `POST …/{id}/assign`.
+- For observation, replace the template's actions with a single `block` action at `gracePeriodHours: 8760` and no `notification` action.
+- Graph's create response does not include the actions for noncompliance. Read the policy back with `?$expand=scheduledActionsForRule($expand=scheduledActionConfigurations)` to confirm them.
+
+In the Intune admin center the equivalent is Devices › Compliance › Create policy, platform Windows 10 and later, transcribing the settings and actions from the template and assigning the persona group.
+
+## Validation after deployment
+
+- Devices › Compliance › Policies › each template › Device status: assigned devices evaluate within about 8 hours of check-in. BitLocker, Secure Boot and code integrity are measured at boot, so a device reports them only after a restart.
+- In observation mode a failing device shows **In grace period**, and Conditional Access still treats it as compliant. Review the failures before promoting a template with `-Enforce` (POLICY-DESIGN.md section 7.2).
+- WIN008 needs the Microsoft Defender for Endpoint connector. Without it the setting reports **Not evaluated** rather than Compliant (POLICY-DESIGN.md section 8.6).
