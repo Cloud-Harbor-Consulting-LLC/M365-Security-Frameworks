@@ -1,11 +1,12 @@
 {
   "displayName": "StandardAuth",
-  "description": "Phishing-resistant first, with a password + Microsoft Authenticator push fallback.",
+  "description": "Phishing-resistant first, with a password + Microsoft Authenticator push fallback. A one-time Temporary Access Pass lets new users register their first method.",
   "policyType": "custom",
   "requirementsSatisfied": "mfa",
   "allowedCombinations": [
     "windowsHelloForBusiness",
     "fido2",
+    "temporaryAccessPassOneTime",
     "password,microsoftAuthenticatorPush"
   ]
 }

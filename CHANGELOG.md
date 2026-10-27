@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `Frameworks/Conditional-Access-Baseline/Design/POLICY-DESIGN.md` 6.3 explains:
+  - why CA-AUT002 excludes guests;
+  - why StandardAuth includes a one-time Temporary Access Pass;
+  - inbound MFA trust, per partner organization, as the option for guests from Microsoft Entra organizations to do MFA at home.
+
+  Sections 1.4 and 6.2 and the framework README, Supporting-Artifacts README and business case are updated to match.
 - `Frameworks/Intune-Compliance-Baseline/Policies/ICB-WIN001-Baseline-DefenderAndBitLocker.json`: rebuilt to POLICY-DESIGN.md section 8.1. It adds antispyware and a Defender Antivirus minimum platform version (4.18.26040.7, five releases behind the current one), and moves the Defender for Endpoint risk check to ICB-WIN008, whose risk signal carries no grace period. Graph-style empty rule name; email at 0 hours, mark noncompliant at 7 days.
 - `Frameworks/Intune-Compliance-Baseline/Policies/README.md`: rewritten for Deploy-ICBaseline, the six Windows templates and the placeholders the deployer resolves; manual import kept as a fallback with the live-tenant caveats.
 - `Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md`: sections 8.1 to 8.6 point to their templates. 8.1 explains the five-release Defender version floor against Microsoft's two-release product support window; 8.6 explains the medium risk level against Intune's recommendation of low, and records that Defender for Business is not verified for WIN008, with an observation-first check for Business Premium tenants. A new prerequisite in 7.1, with the reasoning in 5.2 and 8.6, comes from validating the templates on a Windows 11 device: no other compliance policy may target ICB's devices. On the demo tenant, a pre-existing policy that marked devices noncompliant at 0 hours overrode observation mode, and while it carried the same Defender for Endpoint risk setting, WIN008 reported Not applicable instead of evaluating the risk.
@@ -33,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `Frameworks/Conditional-Access-Baseline/Policies/CA-AUT002-Global-RegisterSecurityInfo.json`: now excludes all guest and external users.
+  - **Symptom:** a B2B guest registering MFA in the tenant was blocked with AADSTS53010.
+  - **Cause:** a guest can't satisfy StandardAuth there. Only SMS, voice, Authenticator push and software OATH count for guests in a resource tenant, a first-time guest has none of them, and a Temporary Access Pass can't be issued to an external guest.
+  - **Basis:** Microsoft's own template for securing security info registration makes the same exclusion. CA-SIG002 continues to require MFA for every guest sign-in.
+- `Frameworks/Conditional-Access-Baseline/Supporting-Artifacts/CA-AUTH-STRENGTH-StandardAuth.json`: adds the one-time Temporary Access Pass (`temporaryAccessPassOneTime`).
+  - **Symptom:** a new user with no methods couldn't use a pass to satisfy CA-AUT002, so their first registration was blocked with AADSTS53010.
+  - **Cause:** a custom strength accepts only the combinations it lists.
+  - **Validated on the demo tenant with CA-AUT002 enforced:** the registration failed CA-AUT002 before the change and succeeded after it. The test user then registered Microsoft Authenticator and a passkey.
+  - **Reach:** StandardAuth is used only by CA-AUT001 and CA-AUT002.
+  - **Existing tenants:** add the combination to their StandardAuth strength. Deploy-CABaseline resolves the strength by name and does not update it.
 - `Frameworks/Intune-Compliance-Baseline/Policies/ICB-WIN001-Baseline-DefenderAndBitLocker.json`: `signatureOutOfDate` was written as `1`, a number, where Graph's type is Boolean. The new repository check found it by comparing the template with a live tenant's read-back; the rebuilt template writes `true`.
 - Verified with a new **104-assertion harness** — ZTRA had none — extracting the shipped functions via AST rather than reimplementing them, and driving the formatter end to end on three result shapes including a pillar with no gaps and an all-manual tenant. Every defect above was reproduced against the shipped code before it was changed, and the live-run findings were caught by running the corrected collector against a real tenant before this shipped. `Scripts/README.md` gains sections on the absent/unassessable/unanswered distinction and on throttling and paging; `SCORING-RUBRIC.md` records what now counts as coverage and as phishing-resistant for ID-01.
 - `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: corrected SOC 2 CC control mappings — CC6.7 (data transmission restriction) replaced with CC6.6 (logical access security against external threats); CC7.1 (configuration change monitoring) replaced with CC7.2 (anomaly detection indicative of malicious acts). Source: Azure + Dynamics 365 + Online Services SOC 2 Type II Report (2025-04-01 to 2026-03-31).
