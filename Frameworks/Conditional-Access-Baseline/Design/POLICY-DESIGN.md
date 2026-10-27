@@ -32,7 +32,7 @@ Four principles anchor every design decision in this framework:
 
 **What it means:** Not all MFA is equal. SMS and voice-call MFA are phishable via AiTM (adversary-in-the-middle) proxies; FIDO2, Windows Hello for Business, and certificate-based authentication are not. Privileged identities and high-value workloads must be protected by phishing-resistant methods.
 
-**How this baseline implements it:** Three named authentication strengths are defined in `Supporting-Artifacts/`: `StandardAuth` (WHfB + FIDO2 + password + Authenticator push), `StrongAuth` (WHfB + FIDO2 only), and `AdminAuth` (FIDO2 only). `CA-AUT001` and `CA-AUT002` require `StandardAuth` for the registration user actions. `CA-AUT003` requires `AdminAuth` on admin portals. Risk policies `CA-SIG003` and `CA-SIG004` require `StrongAuth` as part of their graduated response.
+**How this baseline implements it:** Three named authentication strengths are defined in `Supporting-Artifacts/`: `StandardAuth` (WHfB + FIDO2 + one-time Temporary Access Pass + password + Authenticator push), `StrongAuth` (WHfB + FIDO2 only), and `AdminAuth` (FIDO2 only). `CA-AUT001` and `CA-AUT002` require `StandardAuth` for the registration user actions. `CA-AUT003` requires `AdminAuth` on admin portals. Risk policies `CA-SIG003` and `CA-SIG004` require `StrongAuth` as part of their graduated response.
 
 ### 1.5 v1.3 design refinements
 
@@ -328,7 +328,7 @@ This section provides one subsection per policy. The first 24 are ordered to mat
 | Applications | `includeUserActions: ["urn:user:registerdevice"]` — targets the registration ceremony, not a specific app |
 | Client app types | `["all"]` |
 
-**Grant control:** `authenticationStrength.id: REPLACE_WITH_STANDARDAUTH_STRENGTH_ID` with `operator: "OR"`. StandardAuth allows WHfB, FIDO2, or password + Microsoft Authenticator push.
+**Grant control:** `authenticationStrength.id: REPLACE_WITH_STANDARDAUTH_STRENGTH_ID` with `operator: "OR"`. StandardAuth allows WHfB, FIDO2, a one-time Temporary Access Pass, or password + Microsoft Authenticator push.
 
 **Session controls:** None.
 
@@ -355,17 +355,38 @@ This section provides one subsection per policy. The first 24 are ordered to mat
 | Dimension | Value |
 |---|---|
 | Users | `includeUsers: ["All"]` |
-| Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
+| Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]`; `excludeGuestsOrExternalUsers` — all six guest and external user types, `membershipKind: "all"` |
 | Applications | `includeUserActions: ["urn:user:registersecurityinfo"]` |
 | Client app types | `["all"]` |
 
-**Grant control:** `authenticationStrength.id: REPLACE_WITH_STANDARDAUTH_STRENGTH_ID` with `operator: "OR"`.
+**Grant control:** `authenticationStrength.id: REPLACE_WITH_STANDARDAUTH_STRENGTH_ID` with `operator: "OR"`. StandardAuth includes a one-time Temporary Access Pass, so a new user can register their first method.
 
 **Session controls:** None.
 
-**License requirements:** Entra ID P1. StandardAuth custom authentication strength must exist in the tenant.
+**License requirements:** Entra ID P1. StandardAuth custom authentication strength must exist in the tenant, and the Temporary Access Pass method must be enabled for the users who onboard with it.
 
-**Validation steps:** Same pattern as 6.2. Verify that a test security info registration (adding an Authenticator app) from a modern auth client succeeds, while a test from a non-registered device without WHfB or FIDO2 is challenged.
+**Why guests and external users are excluded:** a guest registering MFA in this tenant cannot satisfy StandardAuth.
+
+- **Guests have nothing to satisfy it with.** A B2B guest who completes MFA in the resource tenant can use only SMS, voice, Microsoft Authenticator push or a software OATH token there. A guest registering for the first time has none of these yet.
+- **A Temporary Access Pass isn't an option.** It can't be issued to an external guest.
+- **What the guest sees:** the registration is blocked with AADSTS53010 ("Cannot configure multi-factor authentication methods because the organization requires this information to be set from specific locations or devices").
+- **Microsoft's template agrees.** Its own policy for securing security info registration excludes all guest and external users for the same reason.
+- **Guest MFA is enforced elsewhere.** CA-SIG002 requires MFA for every guest sign-in, using the MFA grant control that email one-time passcode, Google, SAML and Microsoft account guests can satisfy.
+- **Optional extra:** a tenant that wants guests from Microsoft Entra organizations to perform MFA in their home tenant, rather than register methods here, enables inbound MFA trust in cross-tenant access settings. Enable it per partner organization where the partner's MFA posture is known.
+
+**Why StandardAuth includes a one-time Temporary Access Pass:** Microsoft's onboarding path for a user with no methods is a Temporary Access Pass, and Microsoft documents a "bootstrap and recovery" strength that includes one for this user action. A custom strength accepts only the combinations it lists. Without the pass, the first registration of every new internal user is blocked with AADSTS53010. Since July 2026 that also covers Windows Hello for Business and macOS Platform SSO credential registration. StandardAuth is used only by CA-AUT001 and CA-AUT002, so the pass satisfies nothing else. Both need it: setting up Microsoft Authenticator also registers the phone as a device, which CA-AUT001 evaluates.
+
+On a phone, users register most reliably from the Microsoft Authenticator app, signing in with the pass. In the browser, each "Add sign-in method" re-evaluates CA-AUT002. A one-time pass that has already been used can't satisfy it again, and the page then shows "No methods available" rather than an error. The user needs a fresh pass, or must register within the same sign-in.
+
+**Validation steps:**
+
+1. In report-only, confirm that security info registrations show CA-AUT002 as `reportOnlySuccess` for users with a registered StandardAuth method, and `notApplied` for guests.
+2. Issue a one-time Temporary Access Pass to a test user with no methods, sign in to the Microsoft Authenticator app with it, and register. CA-AUT002 reports `success` and the methods appear on the user.
+3. Validated on the CHC demo tenant on 2026-10-27, with CA-AUT002 enforced:
+   - with StandardAuth as previously shipped, the test user's registration failed CA-AUT002 with AADSTS53010;
+   - with the one-time pass added, CA-AUT002 succeeded;
+   - from the Authenticator app on a fresh pass, CA-AUT001 and CA-AUT002 both succeeded, and the user registered Microsoft Authenticator, phone sign-in and a passkey;
+   - a guest invited to a tenant without the guest exclusion hit AADSTS53010, and registered successfully once guests were excluded.
 
 **Exclusion rationale:** Same as CA-AUT001.
 

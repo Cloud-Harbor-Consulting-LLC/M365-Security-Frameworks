@@ -16,6 +16,12 @@
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
         "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
+      "excludeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all"
+        },
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+      },
       "includeUsers": [
         "All"
       ]

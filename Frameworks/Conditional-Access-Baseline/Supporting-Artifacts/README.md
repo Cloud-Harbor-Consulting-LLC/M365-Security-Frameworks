@@ -10,7 +10,7 @@ Three custom authentication strengths that the v1.2 policy slate binds via `gran
 
 | Artifact | Allowed combinations | Purpose |
 |----------|----------------------|---------|
-| CA-AUTH-STRENGTH-StandardAuth.json | Windows Hello for Business, FIDO2, password + Microsoft Authenticator push | Default strength for general user populations. Phishing-resistant first, with a password-backed fallback for rollout periods. |
+| CA-AUTH-STRENGTH-StandardAuth.json | Windows Hello for Business, FIDO2, one-time Temporary Access Pass, password + Microsoft Authenticator push | The registration strength, required by CA-AUT001 and CA-AUT002. Phishing-resistant first, with a password-backed fallback for rollout periods. The one-time Temporary Access Pass is how a new user, who has no methods yet, registers their first one. A custom strength accepts only the combinations it lists, so without it a pass can't satisfy CA-AUT002. Tenants that issue multi-use passes add `temporaryAccessPassMultiUse`. |
 | CA-AUTH-STRENGTH-StrongAuth.json | Windows Hello for Business, FIDO2 | Phishing-resistant only. No password-backed factors. Use for sensitive scenarios where the rollout to phishing-resistant credentials is complete. |
 | CA-AUTH-STRENGTH-AdminAuth.json | FIDO2 only | The narrowest strength in the baseline. Use for privileged accounts and admin roles. No Windows Hello, no password-backed factors. |
 

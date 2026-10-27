@@ -69,7 +69,7 @@ All 28 policies ship in report-only on first deployment. Operators opt in to enf
 | Policy | Intent |
 |---|---|
 | CA-AUT001-Global-RegisterDevice | Require StandardAuth for the device-registration user action. |
-| CA-AUT002-Global-RegisterSecurityInfo | Require StandardAuth for the security-info registration user action. |
+| CA-AUT002-Global-RegisterSecurityInfo | Require StandardAuth for the security-info registration user action. Guests and external users are excluded (CA-SIG002 covers their MFA). |
 
 ### Internal persona (2)
 
