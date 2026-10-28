@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Terms of Use licensing (CA-SIG010).** The baseline said Terms of Use needs Entra ID P2, with one P2 license covering five guests. Microsoft Learn lists **Entra ID P1** as the prerequisite. B2B guests are billed through Microsoft Entra External ID by monthly active users, which requires the tenant to be linked to an Azure subscription, and the 1:5 ratio no longer appears in Microsoft's guidance. Corrected in the CA-SIG010 runbook (section 3 rewritten with sources, plus the checklist, promotion criteria and rollout prerequisites), POLICY-DESIGN sections 5 and 6.24, the framework README prerequisites, and the business case's policy and licensing tables.
 - `Frameworks/Conditional-Access-Baseline/Policies/CA-SIG010-Guests-RequireToU.md`:
   - **Per-device consent:** section 4.2 now says to leave **Require users to consent on every device** Off. Microsoft documents that B2B users aren't supported for per-device terms of use; with it on, a guest failed sign-in with AADSTS530004 after accepting. The setting can't be edited after creation, so the fix is a new agreement.
   - **Portal path:** Terms of use moved to **Entra ID > Conditional Access > Terms of use**; sections 4.2, 4.5, 5 and 6 are updated.

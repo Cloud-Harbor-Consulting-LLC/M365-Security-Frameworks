@@ -42,17 +42,19 @@ CA-SIG002 and CA-SIG010 each use `operator: "OR"` because each has exactly one g
 
 ---
 
-## 3. Microsoft Entra ID Premium P2 prerequisite
+## 3. Licensing prerequisite
 
-The Terms of Use feature in Microsoft Entra ID requires **Entra ID Premium P2** licensing for each user who is covered by a ToU-based Conditional Access policy.
+The Terms of Use feature requires **Microsoft Entra ID P1**, the same license as the rest of the baseline's Conditional Access. CA-SIG010 needs no P2.
 
-For guest users, licensing is determined by the 1:5 ratio rule: one Entra ID P2 license in the tenant covers up to five guest users. This means a tenant with 10 Entra ID P2 licenses can extend ToU enforcement to up to 50 guest users without additional guest licensing. Tenants whose guest population exceeds the 5x multiplier of P2 licenses need to acquire additional licenses before enforcing this policy.
+Guests are not licensed per seat. B2B guests are billed through **Microsoft Entra External ID** on a monthly active users (MAU) model: the count of unique guests who sign in to the tenant in a calendar month. MAU billing requires the tenant to be linked to an Azure subscription (**Entra ID > External Identities > Overview > Linked subscriptions**). The older rule that each P1 or P2 license covered five guests (the 1:5 ratio) no longer appears in Microsoft's guidance; don't size guest licensing by it.
 
-Verify your licensing position before promoting CA-SIG010 from report-only to enforced. Enforcement without sufficient licenses may violate your Microsoft licensing agreement, and Microsoft may throttle the ToU feature for unlicensed guests.
+Before promoting CA-SIG010 to enforced, confirm that the tenant has Entra ID P1 and is linked to a subscription for External ID billing, and check your expected guest MAU against the current External ID pricing.
 
-Full documentation for the Terms of Use feature, including licensing requirements, the acceptance log schema, and re-consent configuration options, is at:
+Sources:
 
-<https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>
+- Terms of Use, including prerequisites, the acceptance log and re-consent: <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>
+- External ID billing model and subscription linking: <https://learn.microsoft.com/en-us/entra/external-id/external-identities-pricing>
+- Current External ID pricing: <https://aka.ms/ExternalIDPricing>
 
 ---
 
@@ -158,7 +160,7 @@ Complete these steps in order before enforcing CA-SIG010:
    The deployer resolves the agreement ID at runtime and substitutes `REPLACE_WITH_TERMS_OF_USE_ID` in the template before creating the policy.
 
 5. **Soak the policy in report-only for 14 days.** See Section 6 for what to monitor.
-6. **Verify licensing.** Confirm Entra ID P2 seat count covers the guest population (1:5 ratio rule).
+6. **Verify licensing.** Confirm Entra ID P1 and that the tenant is linked to a subscription for External ID guest billing (Section 3).
 7. **Promote to enforcement** after the soak window closes and the impact analysis is clean.
 
 ---
@@ -202,7 +204,7 @@ Promote CA-SIG010 to enforced when all of the following are true:
 - The 14-day soak window is complete.
 - No `reportOnlyFailure` results appear in the sign-in log.
 - The `reportOnlyInterrupted` count is understood (each guest will be prompted once on enforcement day; plan for user communications if the count is large).
-- Licensing is confirmed (Entra ID P2 at the 1:5 guest ratio).
+- Licensing is confirmed (Entra ID P1, and External ID guest billing through a linked subscription).
 - The ToU document is legally reviewed and version-pinned.
 - The acceptance event confirmed via the test guest account (see above).
 
@@ -236,7 +238,7 @@ Placing CA-SIG010 last in the sequence also ensures that all Guests persona enfo
 
 **Prerequisites before promotion:**
 
-- Entra ID P2 licensing confirmed for the guest population
+- Entra ID P1 confirmed and External ID guest billing set up (Section 3)
 - ToU agreement published and agreement ID captured
 - Test guest acceptance verified
 - Guest population notified of the upcoming prompt

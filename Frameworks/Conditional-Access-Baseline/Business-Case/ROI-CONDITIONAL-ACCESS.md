@@ -93,7 +93,7 @@ Twenty-eight policies, each addressing a specific business risk. Policies are gr
 | CA-SIG007 | Internal | Cryptographically bind refresh tokens to the issuing Windows device's TPM-protected key | Entra ID P1 | Stolen tokens cannot be replayed from any other device; defeats infostealer token theft |
 | CA-SIG008 | Global | Block all users on high user risk | Entra ID P2 | Zero tolerance for high-confidence account compromise indicators |
 | CA-SIG009 | Global | Block all users on high sign-in risk | Entra ID P2 | Zero tolerance for high-confidence session anomaly indicators |
-| CA-SIG010 | Guests | Require B2B guests to accept a Terms of Use before access is granted | Entra ID P2 | Documented consent gate for every B2B guest; supports contractual disclosure requirements |
+| CA-SIG010 | Guests | Require B2B guests to accept a Terms of Use before access is granted | Entra ID P1 + External ID guest MAU billing | Documented consent gate for every B2B guest; supports contractual disclosure requirements |
 
 ## Risk reduction framing
 
@@ -191,13 +191,13 @@ For executive audiences: targeting the beta endpoint is not the same as running 
 | Microsoft Entra ID P1 | All 28 policies (minimum) | Required for basic Conditional Access, device compliance integration, and named-location controls |
 | Microsoft Entra ID P2 — Identity Protection | CA-SIG003, CA-SIG004, CA-SIG005, CA-SIG008, CA-SIG009, CA-COV011, CA-COV013 | User risk, sign-in risk, and agent risk signals; required for the risk-response policy tier on users, agent identities, and agent user accounts |
 | Microsoft Entra ID P2 — Privileged Identity Management | Operational model (Section 4) | PIM activation enforces phishing-resistant MFA at role elevation; assumed in the AuthN strength model |
-| Microsoft Entra ID P2 — Terms of Use | CA-SIG010 | Terms of Use feature for B2B guest consent gating. The 1:5 guest-licensing ratio applies. |
+| Microsoft Entra External ID (guest MAU billing) | CA-SIG010 and every guest policy | Terms of Use needs only Entra ID P1. B2B guests are billed by monthly active users through a linked Azure subscription; the older 1:5 guest ratio no longer applies. See [External ID pricing](https://learn.microsoft.com/en-us/entra/external-id/external-identities-pricing). |
 | Microsoft Entra Workload Identities Premium | CA-COV010 | Separate SKU from Entra ID P1/P2. Required for service-principal Conditional Access. |
 | Microsoft Intune | CA-COV008, CA-SIG001, CA-COV014 | Required for `compliantDevice` grant control. Hybrid Azure AD join is an accepted alternative for CA-COV008 and CA-SIG001; CA-COV014 evaluates compliance on Intune-managed Windows 365 Cloud PCs for Agents. |
 | Microsoft Agent 365 (per user) | CA-COV011, CA-COV012, CA-COV013, CA-COV014, CA-COV015 | Conditional Access for agents requires Entra ID P1 or P2 plus a Microsoft Agent 365 license per user, across both the Agents and AgentUsers personas. Risk-based enforcement (CA-COV011, CA-COV013) requires P2. Enforcement of the Agent 365 requirement is described as coming soon. |
 | Microsoft Entra Internet Access | CA-COV015 | Required for the compliant-network block on agent user account sign-ins. Relies on the Global Secure Access client on the endpoint. Separate subscription from Entra ID P1/P2. |
 
-If P1 is already licensed for all users, the incremental cost of this baseline covers the P2 upgrade for Identity Protection, PIM, and Terms of Use; the Workload Identities Premium SKU; the per-user Microsoft Agent 365 license for agent coverage; and Microsoft Entra Internet Access if network-based agent controls are in scope.
+If P1 is already licensed for all users, the incremental cost of this baseline covers the P2 upgrade for Identity Protection and PIM; External ID guest MAU charges above the free tier; the Workload Identities Premium SKU; the per-user Microsoft Agent 365 license for agent coverage; and Microsoft Entra Internet Access if network-based agent controls are in scope.
 
 If P2 is not yet in place, calculate the incremental cost against the organization's Microsoft 365 agreement:
 

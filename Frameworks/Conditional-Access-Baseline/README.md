@@ -177,7 +177,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 
 - **Entra ID P1** (minimum). Required by all policies.
 - **Entra ID P2** (Identity Protection). Required by CA-SIG003, CA-SIG004, CA-SIG005, CA-SIG008, CA-SIG009.
-- **Entra ID P2** (Terms of Use feature). Required by CA-SIG010. Covers guest users at the 1:5 ratio (one P2 license covers five guest users). See <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
+- **Microsoft Entra External ID guest billing**. Terms of Use (CA-SIG010) needs only Entra ID P1. Guests are billed by monthly active users, which requires the tenant to be linked to an Azure subscription; see `Policies/CA-SIG010-Guests-RequireToU.md` section 3.
 - **Microsoft Entra Workload Identities Premium**. Required by CA-COV010. Separate SKU from Entra ID P1/P2.
 - **Microsoft Intune**. Required for `compliantDevice` grant control (CA-COV008, CA-SIG001). Hybrid Azure AD join is an accepted alternative.
 - **Microsoft Entra ID P1 or P2 plus a Microsoft Agent 365 license per user**. Required by CA-COV011 for Conditional Access for agents. Risk-based enforcement through Identity Protection requires P2. Microsoft describes enforcement of the Agent 365 licensing requirement as coming soon.
