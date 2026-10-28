@@ -271,7 +271,7 @@ All 28 policies ship in `enabledForReportingButNotEnforced` state. The table bel
 | 21 | CA-SIG009-AllUsers-BlockHighSignInRisk | 7 days | Identity Protection P2 active; process for risk dismissal established |
 | 22 | CA-COV010-WorkloadIdentities-TrustedLocations | 14 days | Workload Identities Premium; Trusted IPs location provisioned; SPN exclusion list reviewed |
 | 23 | CA-COV011-Agents-BlockMediumAndHighRisk | 14 days | Agent ID inventory complete; Identity Protection agent signals active |
-| 24 | CA-SIG010-Guests-RequireToU | 14 days | ToU agreement published; Entra ID P2 licensing confirmed; guest population notified |
+| 24 | CA-SIG010-Guests-RequireToU | 14 days | ToU agreement published; External ID guest billing set up; guest population notified |
 
 ---
 
@@ -1067,7 +1067,7 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, ma
 
 **Session controls:** None.
 
-**License requirements:** Entra ID Premium P2 (for the Terms of Use feature). The 1:5 ratio rule applies to guest users: one P2 license in the tenant covers up to five guest users for ToU enforcement. Full documentation at <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
+**License requirements:** Entra ID P1 (the Terms of Use feature has no P2 requirement). Guests are billed through Microsoft Entra External ID by monthly active users, which requires the tenant to be linked to an Azure subscription; the older 1:5 guest ratio no longer applies. See `Policies/CA-SIG010-Guests-RequireToU.md` section 3 and <https://learn.microsoft.com/en-us/entra/identity/conditional-access/terms-of-use>.
 
 **Validation steps:**
 
