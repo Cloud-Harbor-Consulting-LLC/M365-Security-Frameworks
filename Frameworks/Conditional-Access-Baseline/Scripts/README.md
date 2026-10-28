@@ -26,13 +26,14 @@ Before running any script in this folder, confirm the following are in place in 
 
 ### In your tenant
 
-Five persona groups must exist with exact display names, or override the defaults via script parameters:
+Four persona groups must exist with exact display names, or override the defaults via script parameters:
 
 - `CA-Persona-EmergencyAccess` — exactly 2 members, monitored by alert rule per `Policies/CA-EXC001-EmergencyAccess-Exclusion.md`
 - `CA-Persona-WorkloadIdentities` — per `Design/POLICY-DESIGN.md` section 3
 - `CA-Persona-InternalUsers` — dynamic group recommended (`userType eq 'Member'`)
 - `CA-Persona-ServiceAccounts` — attested per `Policies/CA-EXC002-ServiceAccounts-Exclusion.md`
-- `CA-Persona-Guests` — dynamic group recommended (`userType eq 'Guest'`)
+
+**Note on Guests persona:** The Guests persona does not require a persona group. CA-SIG002, CA-SIG006 and CA-SIG010 target guest and external user types directly. Earlier versions resolved a `CA-Persona-Guests` group through `-GuestsGroupName`; that parameter is gone.
 
 **Note on Agents persona:** The Agents persona does not require a persona group. Targeting is via Agent ID-specific filters in `CA-COV011` (`IncludeAgentIdServicePrincipals: ["All"]` and `IncludeApplications: ["AllAgentIdResources"]`). The deployer does not resolve an `AgentsGroupName` parameter. See `Policies/CA-EXC003-Agents-Persona.md` for the full Agents persona governance model.
 
@@ -107,7 +108,6 @@ Successful report-only deployment produces output similar to:
 [OK]     REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID -> <guid>
 [OK]     REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID -> <guid>
 [OK]     REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID -> <guid>
-[OK]     REPLACE_WITH_GUESTS_GROUP_OBJECT_ID -> <guid>
 [OK]     REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID -> <guid>
 [OK]     REPLACE_WITH_STANDARDAUTH_STRENGTH_ID -> <guid>
 [OK]     REPLACE_WITH_STRONGAUTH_STRENGTH_ID -> <guid>

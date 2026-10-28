@@ -38,9 +38,6 @@
 .PARAMETER ServiceAccountsGroupName
     Display name of the service accounts persona group. Default: CA-Persona-ServiceAccounts.
 
-.PARAMETER GuestsGroupName
-    Display name of the guests persona group. Default: CA-Persona-Guests.
-
 .PARAMETER TrustedCountriesLocationName
     Display name of the trusted-countries named location. Default: Trusted Countries.
 
@@ -116,9 +113,6 @@ param(
 
     [Parameter()]
     [string]$ServiceAccountsGroupName = 'CA-Persona-ServiceAccounts',
-
-    [Parameter()]
-    [string]$GuestsGroupName = 'CA-Persona-Guests',
 
     [Parameter()]
     [string]$TrustedCountriesLocationName = 'Trusted Countries',
@@ -298,7 +292,6 @@ try {
         'REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID' = Resolve-GroupId -DisplayName $WorkloadIdentitiesGroupName
         'REPLACE_WITH_INTERNAL_USERS_GROUP_OBJECT_ID'      = Resolve-GroupId -DisplayName $InternalUsersGroupName
         'REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID'    = Resolve-GroupId -DisplayName $ServiceAccountsGroupName
-        'REPLACE_WITH_GUESTS_GROUP_OBJECT_ID'              = Resolve-GroupId -DisplayName $GuestsGroupName
         'REPLACE_WITH_TRUSTED_COUNTRIES_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $TrustedCountriesLocationName
         'REPLACE_WITH_COMPLIANT_NETWORK_LOCATION_ID'       = Resolve-NamedLocationId -DisplayName $CompliantNetworkLocationName
         'REPLACE_WITH_STANDARDAUTH_STRENGTH_ID'            = Resolve-AuthStrengthId -DisplayName $StandardAuthStrengthName

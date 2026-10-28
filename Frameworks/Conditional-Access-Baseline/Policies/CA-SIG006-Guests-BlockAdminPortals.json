@@ -1,13 +1,11 @@
 {
-  "displayName": "CA-SIG006-Guests-BlockNonGuestAppAccess",
+  "displayName": "CA-SIG006-Guests-BlockAdminPortals",
   "state": "enabledForReportingButNotEnforced",
   "conditions": {
     "applications": {
-      "excludeApplications": [
-        "Office365"
-      ],
       "includeApplications": [
-        "All"
+        "MicrosoftAdminPortals",
+        "797f4846-ba00-4fd7-ba43-dac1f8f63013"
       ]
     },
     "clientAppTypes": [
@@ -19,9 +17,12 @@
         "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
         "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
       ],
-      "includeGroups": [
-        "REPLACE_WITH_GUESTS_GROUP_OBJECT_ID"
-      ]
+      "includeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all"
+        },
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser"
+      }
     }
   },
   "grantControls": {
