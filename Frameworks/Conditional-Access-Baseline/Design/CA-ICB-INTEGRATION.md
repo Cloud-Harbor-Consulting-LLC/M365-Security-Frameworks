@@ -181,7 +181,7 @@ ICB-WIN001 must be assigned to the `ICB-Persona-CorpWindows` group before CA-COV
 
 ### 4.2 CA-SIG001-SensitiveApps-RequireCompliantDevice
 
-**Intent summary:** Require device compliance or hybrid Azure AD join for Internal users accessing Azure Service Management. Azure management operations must not originate from unmanaged devices. The application scope is intentionally narrow — this policy targets a single high-value application rather than all applications — which allows it to be enforced before the broader CA-COV008 with lower risk of unexpected user disruption.
+**Intent summary:** Require device compliance or hybrid Azure AD join for Internal users accessing Azure Resource Manager. Azure management operations must not originate from unmanaged devices. The application scope is intentionally narrow — this policy targets a single high-value application rather than all applications — which allows it to be enforced before the broader CA-COV008 with lower risk of unexpected user disruption.
 
 **Grant control mechanic:**
 
@@ -192,9 +192,9 @@ ICB-WIN001 must be assigned to the `ICB-Persona-CorpWindows` group before CA-COV
 
 Same `OR` mechanic as CA-COV008. Either Intune compliance or hybrid Azure AD join satisfies the requirement.
 
-**User scope:** Internal persona (`CA-Persona-InternalUsers`). Excludes EmergencyAccess and WorkloadIdentities per POLICY-DESIGN.md Section 6.15. ServiceAccounts is intentionally not excluded: service accounts should not have interactive Azure Service Management access, and any that do warrant investigation rather than silent exclusion.
+**User scope:** Internal persona (`CA-Persona-InternalUsers`). Excludes EmergencyAccess and WorkloadIdentities per POLICY-DESIGN.md Section 6.15. ServiceAccounts is intentionally not excluded: service accounts should not have interactive Azure Resource Manager access, and any that do warrant investigation rather than silent exclusion.
 
-**Application scope:** Azure Service Management only (`includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013"]`). This application ID gates the Azure portal, Azure CLI, Azure PowerShell, and the Azure Resource Manager REST API. The narrow scope means that non-compliance only blocks Azure management operations, not general Microsoft 365 productivity. This makes CA-SIG001 the safer initial enforcement point for the `compliantDevice` grant mechanic.
+**Application scope:** Azure Resource Manager only (`includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013"]`; the app picker shows this name, while Microsoft Learn still calls it Windows Azure Service Management API). This application ID gates the Azure portal, Azure CLI, Azure PowerShell, and the Azure Resource Manager REST API. The narrow scope means that non-compliance only blocks Azure management operations, not general Microsoft 365 productivity. This makes CA-SIG001 the safer initial enforcement point for the `compliantDevice` grant mechanic.
 
 **Client app types:** Browser and mobile apps and desktop clients (`["browser", "mobileAppsAndDesktopClients"]`).
 

@@ -21,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CA-SIG006 redesigned and renamed** from `CA-SIG006-Guests-BlockNonGuestAppAccess` to `CA-SIG006-Guests-BlockAdminPortals` (`Frameworks/Conditional-Access-Baseline/Policies/`).
+  - **Before:** blocked a dynamic `CA-Persona-Guests` group from all resources except Office 365.
+  - **After:** blocks all guest and external user types except service provider users, in all external tenants, from **Microsoft Admin Portals** and **Azure Resource Manager** (`797f4846-…`). No group, no app exclusions.
+  - **Why:** validated with B2B guests in two tenants. My Account and Security info request tokens for many backend services in one sign-in, and a block applies when any of them isn't excluded, so excluding the portals themselves didn't help and guests couldn't manage MFA methods or leave the organization. The dynamic group lagged behind redemption and missed B2B collaboration members.
+  - **Validated** in two tenants with a personal Microsoft account guest: My Apps, My Account, Security info, Teams and SharePoint not applied; the Entra admin center and Azure portal blocked with 53003 by CA-SIG006.
+  - **New prerequisite:** guest user access restricted to their own directory objects, because Conditional Access can't block Graph PowerShell or Graph Explorer.
+  - **Existing tenants:** Deploy-CABaseline creates policies and doesn't update them, so edit the existing CA-SIG006 in place (rename it, replace users and target resources) rather than redeploying.
+  - POLICY-DESIGN 3, 3.1, 5 and 6.20, the framework README, the business case and the CA-SIG010 runbook are updated to match. 6.20 covers the reasoning, the prerequisite, service provider users, cross-tenant administration as a tenant-specific exception, and the 10-minute wait before validating a policy change.
+- `Frameworks/Conditional-Access-Baseline/Scripts/Deploy-CABaseline.ps1`: **removes `-GuestsGroupName`** and the `REPLACE_WITH_GUESTS_GROUP_OBJECT_ID` placeholder. No template uses a guests group; every guest policy targets guest user types. Scripts that pass `-GuestsGroupName` must drop it. The harness asserts the CA-SIG006 targeting and the parameter's removal (each assertion fails against a planted regression). Validated with `-WhatIf` against a live tenant: 9 placeholders resolve and CA-SIG006 previews.
+- Azure Resource Manager naming: the Conditional Access app picker now shows `797f4846-ba00-4fd7-ba43-dac1f8f63013` as **Azure Resource Manager**; Microsoft Learn still calls it Windows Azure Service Management API. POLICY-DESIGN 6.15 and 6.20 and CA-ICB-INTEGRATION 4.2 use the picker name; the templates are unchanged because they use the ID.
 - `Frameworks/Conditional-Access-Baseline/Design/POLICY-DESIGN.md` 6.3 explains:
   - why CA-AUT002 excludes guests;
   - why StandardAuth includes a one-time Temporary Access Pass;
@@ -39,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `Frameworks/Conditional-Access-Baseline/Policies/CA-SIG010-Guests-RequireToU.md`:
+  - **Per-device consent:** section 4.2 now says to leave **Require users to consent on every device** Off. Microsoft documents that B2B users aren't supported for per-device terms of use; with it on, a guest failed sign-in with AADSTS530004 after accepting. The setting can't be edited after creation, so the fix is a new agreement.
+  - **Portal path:** Terms of use moved to **Entra ID > Conditional Access > Terms of use**; sections 4.2, 4.5, 5 and 6 are updated.
+  - **New section 4.6, guest self-service links:** the Security info link inside My Apps and My Account carries no tenant, so a guest with a personal Microsoft account gets AADSTS50020 for tenant "Microsoft Services". Guests get the direct link with the tenant ID.
 - `Frameworks/Conditional-Access-Baseline/Policies/CA-AUT002-Global-RegisterSecurityInfo.json`: now excludes all guest and external users.
   - **Symptom:** a B2B guest registering MFA in the tenant was blocked with AADSTS53010.
   - **Cause:** a guest can't satisfy StandardAuth there. Only SMS, voice, Authenticator push and software OATH count for guests in a resource tenant, a first-time guest has none of them, and a Temporary Access Pass can't be issued to an external guest.

@@ -105,8 +105,9 @@ $used = @($templates | ForEach-Object {
         [regex]::Matches((Get-Content $_.FullName -Raw), 'REPLACE_WITH_[A-Z_]+')
     } | ForEach-Object { $_.Value } | Sort-Object -Unique)
 $covered = @($mapKeys) + $lazyKeys
-Assert-Equal 'placeholders in templates' $used.Count 12
-Assert-Equal 'eager map covers 10' @($mapKeys).Count 10
+# 11 and 9 since CA-SIG006 targets guest user types instead of the guests group.
+Assert-Equal 'placeholders in templates' $used.Count 11
+Assert-Equal 'eager map covers 9' @($mapKeys).Count 9
 $orphans = @($used | Where-Object { $_ -notin $covered })
 Assert-Equal 'placeholders with no resolver' $orphans.Count 0
 if ($orphans.Count) { $orphans | ForEach-Object { "      ORPHAN: $_" } }
@@ -261,6 +262,30 @@ $found = { param($DisplayName) 'aaaa-1111' }
 $r = Invoke-TrustedBlock $found
 Assert-Equal 'found location: no error' $r.Error $null
 Assert-Equal 'found location: placeholder replaced' ($r.Json -like '*aaaa-1111*' -and $r.Json -notlike '*REPLACE_WITH_*') $true
+
+# ── 8. CA-SIG006 targets guest user types and blocks only admin surfaces ─────
+# A dynamic guests group lagged behind invitation redemption, and the old
+# "All resources except Office365" block cut guests off from My Account and
+# Security info, whose backend tokens cover services no exclusion list keeps up
+# with. The policy now names what it blocks.
+$sig006 = @($templates | Where-Object { $_.Name -like 'CA-SIG006-*' })
+Assert-Equal 'one CA-SIG006 template' $sig006.Count 1
+$p = if ($sig006.Count -eq 1) { Get-Content $sig006[0].FullName -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+Assert-Equal 'CA-SIG006 file and displayName' "$($sig006[0].BaseName)|$($p['displayName'])" `
+    'CA-SIG006-Guests-BlockAdminPortals|CA-SIG006-Guests-BlockAdminPortals'
+$users = $p['conditions']['users']
+Assert-Equal 'CA-SIG006 has no include groups' ($users.ContainsKey('includeGroups')) $false
+$types = @("$($users['includeGuestsOrExternalUsers']['guestOrExternalUserTypes'])" -split ',' | Sort-Object)
+Assert-Equal 'CA-SIG006 guest types' ($types -join ',') `
+    'b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,internalGuest,otherExternalUser'
+Assert-Equal 'CA-SIG006 all external tenants' $users['includeGuestsOrExternalUsers']['externalTenants']['membershipKind'] 'all'
+$apps = $p['conditions']['applications']
+Assert-Equal 'CA-SIG006 blocks admin portals and Azure Resource Manager' `
+    ((@($apps['includeApplications']) | Sort-Object) -join ',') '797f4846-ba00-4fd7-ba43-dac1f8f63013,MicrosoftAdminPortals'
+Assert-Equal 'CA-SIG006 has no app exclusions' (@($apps['excludeApplications']).Where({ $_ }).Count) 0
+Assert-Equal 'CA-SIG006 grant is block' ((@($p['grantControls']['builtInControls'])) -join ',') 'block'
+$guestsParam = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'GuestsGroupName' }
+Assert-Equal 'GuestsGroupName parameter removed' ($null -eq $guestsParam) $true
 
 "`npassed: $script:Passed   failed: $script:Failed"
 if ($script:Failed) { exit 1 }

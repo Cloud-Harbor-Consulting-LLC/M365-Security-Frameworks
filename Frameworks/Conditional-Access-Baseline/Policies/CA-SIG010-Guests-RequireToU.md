@@ -36,7 +36,7 @@ The combined effect is a three-policy Guests persona stack:
 |---|---|---|
 | CA-SIG002-Guests-RequireMFA | Identity | Second-factor authentication |
 | CA-SIG010-Guests-RequireToU | Grant | ToU acceptance |
-| CA-SIG006-Guests-BlockNonGuestAppAccess | Application scope | Restricts guest tokens to Office365 applications |
+| CA-SIG006-Guests-BlockAdminPortals | Application scope | Blocks guests from the Microsoft admin portals and Azure Resource Manager |
 
 CA-SIG002 and CA-SIG010 each use `operator: "OR"` because each has exactly one grant requirement. This is not a multi-control combination within a single policy; the AND semantics emerge from Conditional Access evaluating both policies independently and requiring both to pass.
 
@@ -74,14 +74,16 @@ Pin a version number in the document filename and footer. When the document cont
 
 Publish the ToU document via the Microsoft Entra admin center:
 
-1. Navigate to **Microsoft Entra ID > External Identities > Terms of use**.
+1. Navigate to **Entra ID > Conditional Access > Terms of use**.
 2. Click **New terms**.
 3. Upload the ToU document (PDF format, under 4 MB).
-4. Set the display name (this is the name you will pass to `Deploy-CABaseline.ps1 -TermsOfUseName`).
+4. Set the name (this is the name you will pass to `Deploy-CABaseline.ps1 -TermsOfUseName`).
 5. Enable **Require users to expand the terms of use** if you want to force the guest to scroll the document before accepting.
-6. Set the **Expire consents** option if your legal requirements call for periodic re-consent (common in regulated industries — annual re-consent is a standard pattern).
-7. Set the language. If your guest population spans languages, upload localized versions.
-8. Click **Create**.
+6. Leave **Require users to consent on every device** set to **Off**. Per-device terms of use require a device registered in your tenant, and Microsoft documents that B2B users aren't supported. With it on, guests fail sign-in with AADSTS530004 after accepting. The setting can't be changed after creation; to fix an agreement created with it on, create a new agreement, point CA-SIG010 at it, then delete the old one.
+7. Set the **Expire consents** option if your legal requirements call for periodic re-consent (common in regulated industries — annual re-consent is a standard pattern).
+8. Set the language. If your guest population spans languages, upload localized versions.
+9. Under **Conditional Access**, select **Create Conditional Access policy later**. The deployer creates CA-SIG010.
+10. Click **Create**.
 
 After creation, the agreement appears in the Terms of use list with a unique agreement ID.
 
@@ -122,9 +124,21 @@ To remove the ToU gate:
 1. Promote CA-SIG010 to `disabled` state via the Entra admin center or the deployer.
 2. Wait for the change to propagate (typically under 5 minutes).
 3. Verify guest sign-ins no longer show a ToU prompt in the sign-in log.
-4. Delete or archive the ToU agreement in **External Identities > Terms of use** if no other policies reference it.
+4. Delete or archive the ToU agreement in **Entra ID > Conditional Access > Terms of use** if no other policies reference it.
 
 Do not delete the ToU agreement while the policy is still in report-only or enforced state — the policy will fail to evaluate and will block guest access.
+
+### 4.6 Guest self-service links
+
+Include these links, with your tenant ID, in the invitation message or guest onboarding notes. Guests use them to manage their sign-in methods, review the accepted terms, and leave the organization.
+
+| Page | Link |
+|---|---|
+| My Apps | `https://myapps.microsoft.com/?tenantid=<tenant ID>` |
+| My Account (profile, organizations, accepted terms under **Settings & Privacy › Privacy**) | `https://myaccount.microsoft.com/?tenantId=<tenant ID>` |
+| Security info (MFA methods) | `https://mysignins.microsoft.com/security-info?tenant=<tenant ID>` |
+
+Give guests the Security info link directly. The **Security info** links inside My Apps and My Account don't carry the tenant, so a guest who signs in with a personal Microsoft account is sent to the My Signins app's home tenant and receives AADSTS50020 ("Selected user account does not exist in tenant 'Microsoft Services'").
 
 ---
 
@@ -133,7 +147,7 @@ Do not delete the ToU agreement while the policy is still in report-only or enfo
 Complete these steps in order before enforcing CA-SIG010:
 
 1. **Draft and legal-review the ToU document.** Obtain sign-off from your legal team on the content and version.
-2. **Publish the ToU agreement** in the tenant via **Microsoft Entra > External Identities > Terms of use**. Note the display name you use — this becomes the value of `-TermsOfUseName`.
+2. **Publish the ToU agreement** in the tenant via **Entra ID > Conditional Access > Terms of use**, with **Require users to consent on every device** left **Off** (section 4.2). Note the name you use — this becomes the value of `-TermsOfUseName`.
 3. **Capture the agreement ID** from the Graph endpoint `https://graph.microsoft.com/beta/identityGovernance/termsOfUse/agreements`. Confirm the ID maps to the correct agreement.
 4. **Deploy the policy in report-only** by running:
 
@@ -177,7 +191,7 @@ To confirm the prompt mechanism works before enforcement day, promote the policy
 2. The display name matches the expected agreement.
 3. Accepting the ToU completes the sign-in successfully.
 4. Declining the ToU returns an access-denied result and the sign-in is blocked.
-5. The acceptance event appears in **Microsoft Entra > External Identities > Terms of use > Agreements > [your agreement] > Consents**.
+5. The acceptance event appears in **Entra ID > Conditional Access > Terms of use**: select the number under **Accepted** for your agreement.
 
 Return the policy to report-only after the test.
 

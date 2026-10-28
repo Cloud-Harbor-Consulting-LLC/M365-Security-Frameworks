@@ -190,7 +190,7 @@ Eight personas are defined in this baseline. Each persona maps to an identity cl
 | Global | `users.includeUsers: ["All"]` | Per-policy (EA, SA excluded; WI excluded from user-context policies) | Universal baseline scope. Applies to all users including guests unless overridden. |
 | Internal | `users.includeGroups: [CA-Persona-InternalUsers]` | EA, WI, SA excluded per-policy | Member users only. Dynamic group recommended (`userType eq 'Member'`). |
 | Admins | `users.includeRoles: [39 template IDs]` | EA, WI, SA excluded per-policy | 39 highly-privileged Entra ID directory roles. Scoped via role template IDs, not a static group. |
-| Guests | `users.includeGuestsOrExternalUsers` or `users.includeGroups: [CA-Persona-Guests]` | EA excluded per-policy | B2B collaboration guests, external users, service providers. |
+| Guests | `users.includeGuestsOrExternalUsers` (guest and external user types, all external tenants) | EA excluded per-policy | B2B collaboration guests and members, B2B direct connect users, other external users, and service providers where the policy includes them. No persona group: the user type is evaluated at sign-in, so there is no lag between redemption and coverage. |
 | ServiceAccounts | `users.includeGroups: [CA-Persona-ServiceAccounts]` | EA, WI excluded from CA-COV009 | Positive inclusion target for CA-COV009. Excluded from all human-targeted policies via CA-EXC002. |
 | WorkloadIdentities | `clientApplications.includeServicePrincipals: [ServicePrincipalsInMyTenant]` | Not applicable (not a user persona) | Inclusion target for CA-COV010. Excluded from human-targeted user policies by virtue of not being users. |
 | Agents | `clientApplications.includeAgentIdServicePrincipals: ["All"]`, with `agentIdServicePrincipalFilter` (mode exclude) for approved agents | Not applicable (not a user persona) | Inclusion target for CA-COV011 (risk-based block) and CA-COV012 (allow-only-approved). Microsoft Agent IDs. Agents are selectable via the enhanced object picker (All, Agent blueprint principals, Agent identities) or custom security attributes, not "All-only". Persona governed by CA-EXC003. |
@@ -204,7 +204,8 @@ Eight personas are defined in this baseline. Each persona maps to an identity cl
 | `CA-Persona-InternalUsers` | Internal | Dynamic recommended (`userType eq 'Member'`) |
 | `CA-Persona-ServiceAccounts` | ServiceAccounts | Static, curated per CA-EXC002 |
 | `CA-Persona-WorkloadIdentities` | WorkloadIdentities | Deprecated from user group model; service principals are targeted via `clientApplications` |
-| `CA-Persona-Guests` | Guests | Dynamic recommended (`userType eq 'Guest'`) or use `includeGuestsOrExternalUsers` condition |
+
+The Guests persona does not have a corresponding Entra group. Every guest policy targets guest and external user types with `includeGuestsOrExternalUsers`. A dynamic group (`userType eq 'Guest'`) adds a membership-processing delay after each invitation is redeemed, during which the guest is outside every group-scoped policy, and it misses B2B collaboration members (`userType eq 'Member'`).
 
 The Agents persona does not have a corresponding Entra group. Targeting is via application-side CA conditions only. See `Policies/CA-EXC003-Agents-Persona.md` for details.
 
@@ -264,7 +265,7 @@ All 28 policies ship in `enabledForReportingButNotEnforced` state. The table bel
 | 15 | CA-COV009-ServiceAccounts-BlockUntrustedLocations | 14 days | ServiceAccounts group membership attested per CA-EXC002; location inventory complete |
 | 16 | CA-SIG003-Global-MediumUserRisk | 14 days | StrongAuth strength provisioned; Identity Protection P2 active |
 | 17 | CA-SIG004-Global-MediumSignInRisk | 14 days | StrongAuth strength provisioned; Identity Protection P2 active |
-| 18 | CA-SIG006-Guests-BlockNonGuestAppAccess | 7 days | Review guest sign-ins to non-Office365 apps; extend excludeApplications if needed |
+| 18 | CA-SIG006-Guests-BlockAdminPortals | 7 days | Guest user access restricted to own directory objects; cross-tenant admins identified and excluded per tenant |
 | 19 | CA-SIG007-Internal-TokenProtection | 14 days | Windows TPM inventory; client version inventory per CA-SIG007-Internal-TokenProtection.md |
 | 20 | CA-SIG008-AllUsers-BlockHighUserRisk | 7 days | Identity Protection P2 active; process for risk dismissal established |
 | 21 | CA-SIG009-AllUsers-BlockHighSignInRisk | 7 days | Identity Protection P2 active; process for risk dismissal established |
@@ -404,7 +405,7 @@ On a phone, users register most reliably from the Microsoft Authenticator app, s
 |---|---|
 | Users | `includeRoles: [39 privileged directory role template IDs]` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
-| Applications | `includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013", "MicrosoftAdminPortals"]` — Azure Service Management + Microsoft Admin Portals |
+| Applications | `includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013", "MicrosoftAdminPortals"]` — Azure Resource Manager (shown under that name in the app picker; Microsoft Learn still calls it Windows Azure Service Management API) + Microsoft Admin Portals |
 | Client app types | `["all"]` |
 
 **Grant control:** `authenticationStrength.id: REPLACE_WITH_ADMINAUTH_STRENGTH_ID` with `operator: "OR"`. AdminAuth allows FIDO2 hardware key only.
@@ -760,7 +761,7 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 
 ### 6.15 CA-SIG001-SensitiveApps-RequireCompliantDevice
 
-**Intent:** Require compliant device or hybrid Azure AD join for Internal users accessing Azure Service Management (`797f4846-ba00-4fd7-ba43-dac1f8f63013`). Azure Service Management is the highest-value sensitive application in most Microsoft 365 tenants — it controls Azure subscription access, resource provisioning, and policy changes. Requiring device compliance for this application ensures that Azure management operations cannot originate from unmanaged or compromised devices.
+**Intent:** Require compliant device or hybrid Azure AD join for Internal users accessing Azure Resource Manager (`797f4846-ba00-4fd7-ba43-dac1f8f63013`; formerly Windows Azure Service Management API, the name Microsoft Learn still uses). This target is the highest-value sensitive application in most Microsoft 365 tenants — it controls Azure subscription access, resource provisioning, and policy changes. Requiring device compliance for this application ensures that Azure management operations cannot originate from unmanaged or compromised devices.
 
 **Principle mapping:** 1.3 Layered signals. Application sensitivity combined with device compliance and persona scope.
 
@@ -770,7 +771,7 @@ Operational patterns for SPN per-pipeline scoping, Trusted IPs named-location re
 |---|---|
 | Users | `includeGroups: [CA-Persona-InternalUsers]` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities]` |
-| Applications | `includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013"]` — Azure Service Management |
+| Applications | `includeApplications: ["797f4846-ba00-4fd7-ba43-dac1f8f63013"]` — Azure Resource Manager |
 | Client app types | `["browser", "mobileAppsAndDesktopClients"]` |
 
 **Grant control:** `builtInControls: ["compliantDevice", "domainJoinedDevice"]` with `operator: "OR"`.
@@ -912,30 +913,49 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, fa
 
 ---
 
-### 6.20 CA-SIG006-Guests-BlockNonGuestAppAccess
+### 6.20 CA-SIG006-Guests-BlockAdminPortals
 
-**Intent:** Block guest sign-ins to any application outside the Microsoft 365 collaboration set. A B2B guest token issued for collaboration (Teams, SharePoint, Exchange Online) should not be usable against unrelated registered applications in the tenant. This policy enforces the principle that guests have access to collaboration tools and nothing else unless explicitly granted.
+**Intent:** Block guests and external users from the tenant's administrative surfaces: the Microsoft admin portals, the Azure portal and Entra admin center, and Azure Resource Manager (Azure PowerShell, Azure CLI and the ARM API). A guest's role in a resource tenant is collaboration. Even a guest who is assigned a directory role by mistake, or whose home account is compromised, cannot administer the tenant through these surfaces.
 
-**Principle mapping:** 1.2 No standing exclusions (preventing guest tokens from spanning the tenant's full app surface), 1.3 Layered signals (user type + application scope).
+**Principle mapping:** 1.3 Layered signals (user type + application scope).
 
 **Scope:**
 
 | Dimension | Value |
 |---|---|
-| Users | `includeGroups: [CA-Persona-Guests]` |
+| Users | `includeGuestsOrExternalUsers`: `internalGuest`, `b2bCollaborationGuest`, `b2bCollaborationMember`, `b2bDirectConnectUser`, `otherExternalUser`; `externalTenants.membershipKind: "all"` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
-| Applications | `includeApplications: ["All"]`, `excludeApplications: ["Office365"]` |
+| Applications | `includeApplications: ["MicrosoftAdminPortals", "797f4846-ba00-4fd7-ba43-dac1f8f63013"]` — Microsoft Admin Portals + Azure Resource Manager |
 | Client app types | `["all"]` |
 
-**Grant control:** `builtInControls: ["block"]` with `operator: "OR"`. Any guest sign-in to a non-Office365 application is blocked.
+**Grant control:** `builtInControls: ["block"]` with `operator: "OR"`.
 
 **Session controls:** None.
 
 **License requirements:** Entra ID P1.
 
-**Validation steps:** Before enforcement, review guest sign-in logs for applications outside the Office365 bundle. If guests legitimately access line-of-business applications, add those application IDs to `excludeApplications` before enforcement.
+**Why a named block list, not "All resources except":** Earlier versions blocked guests from all resources except Office 365 and scoped the policy to a dynamic `CA-Persona-Guests` group. Validation with B2B guests in two tenants found three problems:
 
-**Exclusion rationale:** WorkloadIdentities and ServiceAccounts are excluded because they are not guest users; the `includeGroups` condition already limits scope to the Guests persona.
+- **Self-service broke.** My Account and Security info request tokens for many backend services in one sign-in: Microsoft Graph with AADReporting and the Azure Credential Configuration Endpoint Service, Microsoft App Access Panel, Microsoft Approval Management, Office365 Shell WCSS-Server, and more. A block policy applies when any requested service is not excluded. Excluding the portals themselves (My Apps, My Profile, My Signins) did not help; every backend service would have to be excluded, and Microsoft changes that set without notice. Guests could not manage their MFA methods or leave the organization.
+- **Missing service principals.** First-party apps that have no service principal in the tenant (My Signins in one tenant) do not appear in the app picker, so they cannot be excluded until one is created.
+- **Group lag.** A dynamic group adds a delay between redemption and membership, and `userType eq 'Guest'` misses B2B collaboration members.
+
+The two targets are app groupings that Microsoft maintains. Microsoft Admin Portals covers the Exchange admin center, Azure portal, Microsoft 365 admin center (Office 365 Portal) and the Microsoft 365 security and compliance center. Azure Resource Manager covers Azure Resource Manager, the Azure portal (including the Entra admin center), Azure Data Lake, the Application Insights API and the Log Analytics API. See [Targeting resources in Conditional Access policies](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-cloud-apps).
+
+**Prerequisite: guest user access restriction.** Conditional Access applies to resources, not to public client apps, so it cannot block Microsoft Graph PowerShell or Graph Explorer. Directory read access for guests is controlled instead by **Entra ID › External Identities › External collaboration settings › Guest user access**. Set it to **Guest user access is restricted to properties and memberships of their own directory objects** before enforcing this policy. Also set **Assignment required** on enterprise apps that guests must not reach.
+
+**Service provider users** are not included. They are partner administrators who arrive through GDAP delegated admin relationships, and blocking them from the admin portals would break managed-service administration.
+
+**Cross-tenant administration is a tenant-specific exception.** An administrator from another tenant who reaches this one through B2B collaboration or a multi-tenant organization signs in as a B2B collaboration guest or member, and this policy blocks them from the admin portals. Either administer through GDAP (service provider users are out of scope) or add those accounts to a tenant-managed exclusion group. The baseline does not ship that group. Do not use the emergency access accounts for routine administration.
+
+**Guest self-service needs the tenant in the URL.** My Apps and My Account link to Security info without the resource tenant. A guest who signs in with a personal Microsoft account is then sent to the My Signins app's home tenant and receives AADSTS50020 for tenant "Microsoft Services". Give guests `https://mysignins.microsoft.com/security-info?tenant=<tenant ID>`. See `Policies/CA-SIG010-Guests-RequireToU.md` section 4.6.
+
+**Validation steps:** Wait 10 minutes after creating or changing the policy; Conditional Access changes take several minutes to reach every evaluation node, and sign-ins in that window can be evaluated against the previous version. Then, as a B2B guest in a private browser window:
+
+1. My Apps, My Account, Security info (with the tenant URL above), Teams and SharePoint load. The sign-in log shows CA-SIG006 **Not applied**.
+2. The Entra admin center and the Azure portal are blocked with error 53003 and CA-SIG006 as the failed policy.
+
+**Exclusion rationale:** WorkloadIdentities and ServiceAccounts are excluded for consistency with the persona exclusion contract; the guest user type condition already limits scope to the Guests persona.
 
 ---
 
@@ -1031,7 +1051,7 @@ Cross-framework integration with the Intune Compliance Baseline (signal flow, ma
 
 **Intent:** Require acceptance of a tenant-defined Terms of Use agreement before B2B guest access is granted. Every guest sign-in is gated on click-through acceptance of the ToU document. The acceptance event is timestamped and logged in Microsoft Entra, producing an audit-evidence trail that the guest acknowledged the data-handling conditions of the tenant. This closes the gap between "guest has access" and "guest has consented to the conditions of that access."
 
-**Principle mapping:** 1.1 Identity-wide coverage (closes the consent-acknowledgment gap for the Guests persona) and 1.3 Layered signals (combines with CA-SIG002 MFA requirement and CA-SIG006 NonGuestAppAccess restriction to form a three-policy Guests persona stack).
+**Principle mapping:** 1.1 Identity-wide coverage (closes the consent-acknowledgment gap for the Guests persona) and 1.3 Layered signals (combines with CA-SIG002 MFA requirement and CA-SIG006 admin-portal block to form a three-policy Guests persona stack).
 
 **Scope:**
 

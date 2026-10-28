@@ -92,7 +92,7 @@ All 28 policies ship in report-only on first deployment. Operators opt in to enf
 | CA-SIG002-Guests-RequireMFA | Require MFA for every interactive guest sign-in. |
 | CA-SIG003-Global-MediumUserRisk | Graduated response to medium user risk: StrongAuth + risk remediation + SignInFreq every time. |
 | CA-SIG010-Guests-RequireToU | Require B2B guests to accept a tenant-defined Terms of Use before access is granted. |
-| CA-SIG006-Guests-BlockNonGuestAppAccess | Block guest sign-ins to any application outside the Microsoft 365 collaboration set. |
+| CA-SIG006-Guests-BlockAdminPortals | Block guests and external users from the Microsoft admin portals and Azure Resource Manager. |
 
 > Note: CA-SIG003 is scoped globally and appears in the Guests section because the `everyTime` frequency interval is a beta-only condition primarily relevant to the guest and risk-elevated sign-in population. See POLICY-DESIGN.md section 6.17 for the full scope specification.
 
