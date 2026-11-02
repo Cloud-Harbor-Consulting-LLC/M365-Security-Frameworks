@@ -1,0 +1,49 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies(scheduledActionsForRule(scheduledActionConfigurations()))/$entity",
+  "@odata.type": "#microsoft.graph.iosCompliancePolicy",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "id": "e6b63dda-f9c3-4bea-9a09-95d847d816d2",
+  "createdDateTime": "2026-10-06T15:03:44.8751605Z",
+  "description": null,
+  "lastModifiedDateTime": "2026-10-06T15:03:44.8751605Z",
+  "displayName": "ZZ-ICB-SCHEMA-IOS-DELETE",
+  "version": 1,
+  "passcodeBlockSimple": true,
+  "passcodeExpirationDays": null,
+  "passcodeMinimumLength": 4,
+  "passcodeMinutesOfInactivityBeforeLock": null,
+  "passcodeMinutesOfInactivityBeforeScreenTimeout": null,
+  "passcodePreviousPasscodeBlockCount": null,
+  "passcodeMinimumCharacterSetCount": null,
+  "passcodeRequiredType": "numeric",
+  "passcodeRequired": true,
+  "osMinimumVersion": "26.0.0",
+  "osMaximumVersion": null,
+  "osMinimumBuildVersion": "18A921",
+  "osMaximumBuildVersion": null,
+  "securityBlockJailbrokenDevices": true,
+  "deviceThreatProtectionEnabled": false,
+  "deviceThreatProtectionRequiredSecurityLevel": "unavailable",
+  "advancedThreatProtectionRequiredSecurityLevel": "unavailable",
+  "managedEmailProfileRequired": false,
+  "restrictedApps": [],
+  "scheduledActionsForRule@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('e6b63dda-f9c3-4bea-9a09-95d847d816d2')/microsoft.graph.iosCompliancePolicy/scheduledActionsForRule(scheduledActionConfigurations())",
+  "scheduledActionsForRule": [
+    {
+      "id": "e6b63dda-f9c3-4bea-9a09-95d847d816d2",
+      "ruleName": null,
+      "scheduledActionConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('e6b63dda-f9c3-4bea-9a09-95d847d816d2')/microsoft.graph.iosCompliancePolicy/scheduledActionsForRule('e6b63dda-f9c3-4bea-9a09-95d847d816d2')/scheduledActionConfigurations",
+      "scheduledActionConfigurations": [
+        {
+          "id": "e6801179-861b-412c-841c-a01dc6c5abf7",
+          "gracePeriodHours": 0,
+          "actionType": "block",
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ]
+}

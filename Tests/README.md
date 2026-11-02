@@ -31,7 +31,7 @@ From the repository root, with PowerShell 7:
 - every relative Markdown link resolves;
 - every Conditional Access template ships report-only, with a `displayName` matching its file name;
 - the Board & Executive Policy Kit's copy of `Board-Posture-Summary.md` matches the canonical one in `Examples/`;
-- every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows templates use only properties and value types that a live tenant's read-back (`Intune-Compliance-Baseline/Fixtures/Live/classic-readback.json`) contains.
+- every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows, macOS and iOS templates use only properties and value types that a live tenant's read-back for that platform contains (`classic-readback.json`, `macos-readback.json` and `ios-readback.json` in `Intune-Compliance-Baseline/Fixtures/Live/`).
 
 ## Harness conventions
 

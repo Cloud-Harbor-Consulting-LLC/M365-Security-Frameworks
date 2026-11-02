@@ -128,6 +128,8 @@ This baseline is deployed around the device populations it protects. Each person
 
 The grouping expressions are shorthand for the intent. Write each one in Entra ID's dynamic membership rule syntax, using the operating-system values your tenant's device objects actually report. Android dedicated devices are an exception to user-affinity grouping: Microsoft recommends assigning their compliance policy to device groups, and users on dedicated devices enrolled without Microsoft Entra shared device mode cannot reach Conditional Access-protected resources even when the device is compliant.
 
+A new device must reach its persona group when it enrolls. Until it does, no ICB template targets it, so under the tenant setting in Section 7.1 it is noncompliant from its first check-in, and wherever CA-COV008 is enforced its first sign-ins are refused. ICB's production rollout showed this. A new Windows 11 laptop set up through the out-of-box experience, with its persona group still an assigned group, was refused by CA-COV008 from its first sign-in during setup. The only policy evaluating it was Intune's built-in default compliance policy, which reported "has a compliance policy assigned" as Not compliant. Dynamic groups avoid this, as do Windows Autopilot device preparation, which adds the device to a chosen group during enrollment, and assigning the templates to users rather than device groups. Dynamic membership is still evaluated after enrollment, so expect a short delay.
+
 ### 3.1 Persona naming
 
 The `ICB-Persona-` prefix on groups is intentional: it makes persona groups sortable, searchable, and unambiguous in the Entra admin center, and distinguishes them from the CA framework's `CA-Persona-*` groups, which scope users rather than devices. Avoid reusing business groups (e.g., "All Engineering") as persona scopes — compliance scope and HR scope should not be conflated.
@@ -168,7 +170,9 @@ Deploy-ICBaseline deploys every template in **observation mode** unless it is ru
 
 Observation mode is the Intune counterpart of the Conditional Access Baseline's report-only default. Intune compliance policies have no report-only state, and a policy cannot be deployed without its mark-noncompliant action, so a long grace period is the only way to observe without blocking anyone.
 
-Observation mode holds only while ICB's are the only compliance policies on a device. Intune combines every policy that targets a device, so one non-ICB policy with a shorter schedule makes the device noncompliant on that policy's schedule, observation mode or not. ICB's own validation showed this. On the demo tenant, a pre-existing Windows policy that marked devices noncompliant at 0 hours turned the test device noncompliant, and Microsoft Entra reported it not compliant, even though all six ICB Windows policies were in observation mode. Once that policy was removed, the same device sat in its grace period and Entra reported it compliant. Section 7.1 makes this a prerequisite.
+Observation mode holds only while ICB's are the only compliance policies on a device. Intune combines every policy that targets a device, and the most restrictive result wins, so one non-ICB policy with a shorter schedule makes the device noncompliant on that policy's schedule, observation mode or not. Section 7.1 makes this a prerequisite.
+
+Intune's built-in **Default Device Compliance Policy** also counts. Under the tenant setting in Section 7.1, its "has a compliance policy assigned" check fails whenever a device has no other policy. ICB's validation saw this twice. In production, a device was noncompliant for about four minutes while it was briefly without any compliance policy, between the removal of a legacy policy and its first ICB evaluation. On a newly enrolled device it is noncompliant until the device joins its persona group (Section 3). A brief noncompliant state during assignment changes is therefore expected. A brief flip during ICB's demo-tenant validation, first attributed to a pre-existing 0-hour Windows policy, may have had this cause instead, because the default policy wasn't checked at the time.
 
 ### 5.3 The retire list
 
@@ -442,7 +446,7 @@ Split from ICB-WIN001 for v1.0. Under WIN001's 7-day grace period, a device Defe
 
 **Validation:** tenant-validated, not device-validated. Device validation is a v1.0.1 follow-up.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-MAC001-Baseline-EncryptionAndIntegrity.json`
 
 ---
 
@@ -469,11 +473,13 @@ Values follow the passcode baseline in Microsoft's iOS/iPadOS security configura
 
 **Actions for noncompliance:** email at 0 hours (CIS iOS Intune 4.4 asks for an email within 3 days); mark noncompliant at 0 hours, per CIS iOS Intune 4.3 and Microsoft's mobile frameworks. No retire-list action (Section 5.3).
 
+**Rollout note:** once a compliance policy with a passcode rule reaches a device that has no passcode, iOS prompts the user to set one every 15 minutes until they do. This happens in observation mode too, because observation only delays marking the device noncompliant, not the prompt. Tell users before deploying, especially owners of personal devices in `ICB-Persona-BYODMobile`. It parallels the password change ICB-WIN005 asks for (Section 8.5).
+
 **License requirements:** Microsoft Intune Plan 1.
 
 **Validation:** tenant-validated, not device-validated. Device validation is a v1.0.1 follow-up.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-IOS001-Baseline-PasscodeAndIntegrity.json`
 
 ---
 
