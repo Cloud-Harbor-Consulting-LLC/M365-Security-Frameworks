@@ -1,0 +1,52 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies(scheduledActionsForRule(scheduledActionConfigurations()))/$entity",
+  "@odata.type": "#microsoft.graph.macOSCompliancePolicy",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "id": "ab58b501-8081-4beb-80ed-6c1aa9103885",
+  "createdDateTime": "2026-10-06T15:01:34.7012454Z",
+  "description": null,
+  "lastModifiedDateTime": "2026-10-06T15:01:34.7012454Z",
+  "displayName": "ZZ-ICB-SCHEMA-MAC-DELETE",
+  "version": 1,
+  "passwordRequired": false,
+  "passwordBlockSimple": false,
+  "passwordExpirationDays": null,
+  "passwordMinimumLength": null,
+  "passwordMinutesOfInactivityBeforeLock": null,
+  "passwordPreviousPasswordBlockCount": null,
+  "passwordMinimumCharacterSetCount": null,
+  "passwordRequiredType": "deviceDefault",
+  "osMinimumVersion": "26.0.0",
+  "osMaximumVersion": null,
+  "osMinimumBuildVersion": "18A921",
+  "osMaximumBuildVersion": null,
+  "systemIntegrityProtectionEnabled": true,
+  "deviceThreatProtectionEnabled": false,
+  "deviceThreatProtectionRequiredSecurityLevel": "unavailable",
+  "advancedThreatProtectionRequiredSecurityLevel": "unavailable",
+  "storageRequireEncryption": true,
+  "gatekeeperAllowedAppSource": "macAppStoreAndIdentifiedDevelopers",
+  "firewallEnabled": true,
+  "firewallBlockAllIncoming": true,
+  "firewallEnableStealthMode": true,
+  "deviceCompliancePolicyScript": null,
+  "scheduledActionsForRule@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('ab58b501-8081-4beb-80ed-6c1aa9103885')/microsoft.graph.macOSCompliancePolicy/scheduledActionsForRule(scheduledActionConfigurations())",
+  "scheduledActionsForRule": [
+    {
+      "id": "ab58b501-8081-4beb-80ed-6c1aa9103885",
+      "ruleName": null,
+      "scheduledActionConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('ab58b501-8081-4beb-80ed-6c1aa9103885')/microsoft.graph.macOSCompliancePolicy/scheduledActionsForRule('ab58b501-8081-4beb-80ed-6c1aa9103885')/scheduledActionConfigurations",
+      "scheduledActionConfigurations": [
+        {
+          "id": "7a98d1a5-f233-4201-b786-62f84b7ecf37",
+          "gracePeriodHours": 0,
+          "actionType": "block",
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ]
+}

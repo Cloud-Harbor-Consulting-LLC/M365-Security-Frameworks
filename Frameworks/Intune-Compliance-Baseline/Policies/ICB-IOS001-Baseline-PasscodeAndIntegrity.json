@@ -1,0 +1,49 @@
+{
+  "@odata.type": "#microsoft.graph.iosCompliancePolicy",
+  "displayName": "ICB-IOS001-Baseline-PasscodeAndIntegrity",
+  "description": "Intune Compliance Baseline, iOS and iPadOS 18 and newer, corporate and personal devices. Verifies the passcode, which also turns on data encryption, blocks jailbroken devices and sets the OS floor. Marks noncompliant immediately. See Frameworks/Intune-Compliance-Baseline/Design/POLICY-DESIGN.md section 8.8.",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "passcodeRequired": true,
+  "passcodeBlockSimple": true,
+  "passcodeMinimumLength": 6,
+  "passcodeRequiredType": "numeric",
+  "passcodeMinutesOfInactivityBeforeLock": 5,
+  "passcodeMinutesOfInactivityBeforeScreenTimeout": 5,
+  "securityBlockJailbrokenDevices": true,
+  "osMinimumVersion": "18.0",
+  "scheduledActionsForRule": [
+    {
+      "ruleName": null,
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "REPLACE_WITH_NOTIFICATION_TEMPLATE_ID",
+          "notificationMessageCCList": []
+        },
+        {
+          "actionType": "block",
+          "gracePeriodHours": 0,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ],
+  "assignments": [
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_CORPMOBILE_GROUP_OBJECT_ID"
+      }
+    },
+    {
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "REPLACE_WITH_ICB_PERSONA_BYODMOBILE_GROUP_OBJECT_ID"
+      }
+    }
+  ]
+}

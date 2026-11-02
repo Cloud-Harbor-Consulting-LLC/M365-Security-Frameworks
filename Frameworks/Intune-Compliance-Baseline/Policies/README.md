@@ -27,8 +27,12 @@ The templates target the Graph **beta** endpoint (POLICY-DESIGN.md section 2.4).
 | `ICB-WIN004-Baseline-OSVersionFloor.json` | Windows 11 | `ICB-Persona-CorpWindows` | Build 26200 (25H2) or later | 7 days |
 | `ICB-WIN005-Hardening-PasswordPIN.json` | Windows 11 | `ICB-Persona-CorpWindows` | Device unlock credential (the Windows Hello PIN) | 7 days |
 | `ICB-WIN008-Threat-DefenderRiskScore.json` | Windows 11 | `ICB-Persona-CorpWindows` | Defender for Endpoint machine risk at or below medium | Immediately |
+| `ICB-MAC001-Baseline-EncryptionAndIntegrity.json` | macOS 15 and later | `ICB-Persona-CorpMac` | FileVault, System Integrity Protection, firewall with stealth mode, Gatekeeper (App Store and identified developers), macOS 15 or later. No password rule (POLICY-DESIGN.md section 8.7). | 7 days |
+| `ICB-IOS001-Baseline-PasscodeAndIntegrity.json` | iOS / iPadOS 18 and later | `ICB-Persona-CorpMobile`, `ICB-Persona-BYODMobile` | 6-digit numeric passcode, no simple passcodes, 5-minute auto-lock, no jailbroken devices, iOS 18 or later | Immediately |
 
-Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. The macOS, iOS/iPadOS, Android and Linux templates are added before v1.0.0 (POLICY-DESIGN.md section 9.1).
+Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. MAC001 and IOS001 are tenant-validated, not device-validated (POLICY-DESIGN.md section 9.1). The Android and Linux templates are added before v1.0.0.
+
+Assign each persona group so that a new device joins it when it enrolls. A device that no template targets is marked noncompliant under the tenant prerequisite, so with Conditional Access enforced its first sign-ins are refused (POLICY-DESIGN.md section 3).
 
 ## Placeholders
 
@@ -51,7 +55,7 @@ To create a policy by hand, substitute the placeholders yourself and keep these 
 - For observation, replace the template's actions with a single `block` action at `gracePeriodHours: 8760` and no `notification` action.
 - Graph's create response does not include the actions for noncompliance. Read the policy back with `?$expand=scheduledActionsForRule($expand=scheduledActionConfigurations)` to confirm them.
 
-In the Intune admin center the equivalent is Devices › Compliance › Create policy, platform Windows 10 and later, transcribing the settings and actions from the template and assigning the persona group.
+In the Intune admin center the equivalent is Devices › Compliance › Create policy, choosing the template's platform (Windows 10 and later, macOS, or iOS/iPadOS), transcribing the settings and actions from the template and assigning the persona group.
 
 ## Validation after deployment
 

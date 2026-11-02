@@ -118,11 +118,14 @@ $icbPolicies = Join-Path $Path 'Frameworks' 'Intune-Compliance-Baseline' 'Polici
 $icbTemplates = @(Get-ChildItem -Path $icbPolicies -Filter '*.json' -File)
 $liveFixtures = @{
     '#microsoft.graph.windows10CompliancePolicy' = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'classic-readback.json'
+    '#microsoft.graph.macOSCompliancePolicy'     = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'macos-readback.json'
+    '#microsoft.graph.iosCompliancePolicy'       = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'ios-readback.json'
 }
 # Properties a live read-back returns as null carry no type; these are Graph's documented types.
 $declaredTypes = @{
     passwordMinimumLength = 'number'; passwordMinutesOfInactivityBeforeLock = 'number'; passwordPreviousPasswordBlockCount = 'number'
     passwordExpirationDays = 'number'; passwordMinimumCharacterSetCount = 'number'
+    passcodeMinutesOfInactivityBeforeLock = 'number'; passcodeMinutesOfInactivityBeforeScreenTimeout = 'number'
     defenderVersion = 'string'; osMinimumVersion = 'string'; osMaximumVersion = 'string'; mobileOsMinimumVersion = 'string'; mobileOsMaximumVersion = 'string'
 }
 $nonSettings = @('@odata.type', 'displayName', 'name', 'description', 'roleScopeTagIds', 'scheduledActionsForRule', 'assignments', 'settings', 'platforms', 'technologies')
