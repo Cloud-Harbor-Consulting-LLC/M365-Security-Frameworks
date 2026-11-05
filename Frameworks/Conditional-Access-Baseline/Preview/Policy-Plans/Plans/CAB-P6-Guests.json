@@ -1,0 +1,98 @@
+{
+  "displayName": "CAB-P6-Guests",
+  "description": "All guest and external user types: MFA, the guest Terms of Use, and blocked admin portals and Azure Resource Manager. Copies CA-SIG002, CA-SIG010 and CA-SIG006.",
+  "sharedConditions": {
+    "users": {
+      "includeGuestsOrExternalUsers": {
+        "externalTenants": {
+          "membershipKind": "all"
+        },
+        "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+      },
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "displayName": "CA-SIG002-Guests-RequireMFA",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "clientAppTypes": [
+          "all"
+        ]
+      },
+      "controls": {
+        "grantControls": {
+          "builtInControls": [
+            "mfa"
+          ],
+          "operator": "OR"
+        }
+      }
+    },
+    {
+      "displayName": "CA-SIG010-Guests-RequireToU",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "clientAppTypes": [
+          "all"
+        ]
+      },
+      "controls": {
+        "grantControls": {
+          "operator": "OR",
+          "termsOfUse": [
+            "REPLACE_WITH_TERMS_OF_USE_ID"
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "MicrosoftAdminPortals",
+            "797f4846-ba00-4fd7-ba43-dac1f8f63013"
+          ]
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "users": {
+          "excludeGroups": [
+            "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+            "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+          ],
+          "excludeGuestsOrExternalUsers": {
+            "guestOrExternalUserTypes": "serviceProvider",
+            "externalTenants": {
+              "membershipKind": "all"
+            }
+          }
+        }
+      },
+      "controls": {
+        "grantControls": {
+          "builtInControls": [
+            "block"
+          ],
+          "operator": "OR"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,399 @@
+[
+  {
+    "id": "aaaaaaaa-1111-4000-8000-000000000001",
+    "createdDateTime": "2026-11-04T20:43:45Z",
+    "userPrincipalName": "guest_example.com#EXT#@contoso.example",
+    "appDisplayName": "My Apps",
+    "resourceDisplayName": "Microsoft Graph",
+    "status": {
+      "errorCode": 50074
+    },
+    "correlationId": "aaaaaaaa-2222-4000-8000-000000000001",
+    "appliedConditionalAccessPolicies": [
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000008",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "failure",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000019",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlyInterrupted",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000000a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "failure",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlyInterrupted",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000009",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "notApplied",
+        "conditionsSatisfied": "none",
+        "conditionsNotSatisfied": "users",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001b",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlyNotApplied",
+        "conditionsSatisfied": "none",
+        "conditionsNotSatisfied": "users",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      }
+    ]
+  },
+  {
+    "id": "aaaaaaaa-1111-4000-8000-000000000002",
+    "createdDateTime": "2026-11-04T20:45:03Z",
+    "userPrincipalName": "guest_example.com#EXT#@contoso.example",
+    "appDisplayName": "My Apps",
+    "resourceDisplayName": "My Apps",
+    "status": {
+      "errorCode": 0
+    },
+    "correlationId": "aaaaaaaa-2222-4000-8000-000000000002",
+    "appliedConditionalAccessPolicies": [
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000008",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000019",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000000a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000009",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "notApplied",
+        "conditionsSatisfied": "none",
+        "conditionsNotSatisfied": "users",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      }
+    ]
+  },
+  {
+    "id": "aaaaaaaa-1111-4000-8000-000000000003",
+    "createdDateTime": "2026-11-04T20:48:30Z",
+    "userPrincipalName": "guest_example.com#EXT#@contoso.example",
+    "appDisplayName": "Microsoft Teams Web Client",
+    "resourceDisplayName": "Microsoft Teams Services",
+    "status": {
+      "errorCode": 0
+    },
+    "correlationId": "aaaaaaaa-2222-4000-8000-000000000003",
+    "appliedConditionalAccessPolicies": [
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000008",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000019",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000000a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000009",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "notApplied",
+        "conditionsSatisfied": "none",
+        "conditionsNotSatisfied": "users",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001b",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlyNotApplied",
+        "conditionsSatisfied": "none",
+        "conditionsNotSatisfied": "users",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      }
+    ]
+  },
+  {
+    "id": "aaaaaaaa-1111-4000-8000-000000000004",
+    "createdDateTime": "2026-11-04T20:49:00Z",
+    "userPrincipalName": "guest_example.com#EXT#@contoso.example",
+    "appDisplayName": "Azure Portal",
+    "resourceDisplayName": "Azure Resource Manager",
+    "status": {
+      "errorCode": 53003
+    },
+    "correlationId": "aaaaaaaa-2222-4000-8000-000000000004",
+    "appliedConditionalAccessPolicies": [
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000008",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000019",
+        "displayName": "CA-SIG002-Guests-RequireMFA",
+        "enforcedGrantControls": [
+          "Mfa"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000000a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "success",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001a",
+        "displayName": "CA-SIG010-Guests-RequireToU",
+        "enforcedGrantControls": [
+          "Terms of Use - Guest Users"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlySuccess",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000009",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "failure",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-00000000001b",
+        "displayName": "CA-SIG006-Guests-BlockAdminPortals",
+        "enforcedGrantControls": [
+          "Block"
+        ],
+        "enforcedSessionControls": [],
+        "sessionControlsNotSatisfied": [],
+        "result": "reportOnlyFailure",
+        "conditionsSatisfied": "application,users",
+        "conditionsNotSatisfied": "none",
+        "includeRulesSatisfied": [],
+        "excludeRulesSatisfied": [],
+        "authenticationStrength": null
+      }
+    ]
+  }
+]

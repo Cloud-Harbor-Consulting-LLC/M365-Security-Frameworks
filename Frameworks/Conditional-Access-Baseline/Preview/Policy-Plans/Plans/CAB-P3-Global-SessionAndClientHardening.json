@@ -1,0 +1,164 @@
+{
+  "displayName": "CAB-P3-Global-SessionAndClientHardening",
+  "description": "All users: session limits on unmanaged browsers, and blocked device code flow, authentication transfer and unknown platforms. Copies CA-COV003 to CA-COV006.",
+  "sharedConditions": {
+    "users": {
+      "excludeGroups": [
+        "REPLACE_WITH_EMERGENCY_ACCESS_GROUP_OBJECT_ID",
+        "REPLACE_WITH_WORKLOAD_IDENTITIES_GROUP_OBJECT_ID",
+        "REPLACE_WITH_SERVICE_ACCOUNTS_GROUP_OBJECT_ID"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "displayName": "CA-COV003-Global-NoPersistentBrowserSessionOnNonCorpDevices",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "clientAppTypes": [
+          "browser"
+        ],
+        "devices": {
+          "deviceFilter": {
+            "mode": "exclude",
+            "rule": "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
+          }
+        },
+        "platforms": {
+          "excludePlatforms": [
+            "android",
+            "iOS"
+          ],
+          "includePlatforms": [
+            "all"
+          ]
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "controls": {
+        "sessionControls": {
+          "persistentBrowser": {
+            "isEnabled": true,
+            "mode": "never"
+          },
+          "signInFrequency": {
+            "authenticationType": "primaryAndSecondaryAuthentication",
+            "frequencyInterval": "timeBased",
+            "isEnabled": true,
+            "type": "hours",
+            "value": 4
+          }
+        }
+      }
+    },
+    {
+      "displayName": "CA-COV004-Global-BlockDeviceCodeFlow",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "authenticationFlows": {
+          "transferMethods": "deviceCodeFlow"
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "controls": {
+        "grantControls": {
+          "builtInControls": [
+            "block"
+          ],
+          "operator": "OR"
+        }
+      }
+    },
+    {
+      "displayName": "CA-COV005-Global-BlockAuthenticationTransfer",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "authenticationFlows": {
+          "transferMethods": "authenticationTransfer"
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "controls": {
+        "grantControls": {
+          "builtInControls": [
+            "block"
+          ],
+          "operator": "OR"
+        }
+      }
+    },
+    {
+      "displayName": "CA-COV006-Global-BlockUnknownPlatforms",
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "applications": {
+          "includeApplications": [
+            "All"
+          ]
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [
+            "android",
+            "iOS",
+            "windows",
+            "windowsPhone",
+            "macOS",
+            "linux"
+          ],
+          "includePlatforms": [
+            "all"
+          ]
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "controls": {
+        "grantControls": {
+          "builtInControls": [
+            "block"
+          ],
+          "operator": "OR"
+        }
+      }
+    }
+  ]
+}

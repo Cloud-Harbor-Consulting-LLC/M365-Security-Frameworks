@@ -14,6 +14,7 @@
          canonical one in Examples/ (the kit README promises this).
       5. Every Intune Compliance Baseline template meets the invariants Deploy-ICBaseline.ps1
          relies on, and classic templates use only properties and types the live tenant returns.
+      6. The policy plans preview's fixtures and reference plans carry no tenant identifiers.
 
     Runs on Windows and Linux.
 
@@ -182,6 +183,28 @@ foreach ($f in $icbTemplates) {
     }
 }
 Write-Host "ICB templates checked: $($icbTemplates.Count)"
+
+# -- 6. Policy plans preview: no tenant identifiers ------------------------------
+# The plan fixtures are exports from a real tenant, sanitized before commit, and the reference plans are built from
+# the templates. Every GUID in them must be a sanitizer placeholder (aaaaaaaa-...), a built-in ID (00000000-...), or
+# an ID the CA templates already publish (Microsoft's role template and first-party app IDs). No email address
+# other than the example domain, and no onmicrosoft.com domain.
+$caPublicIds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($f in $caTemplates) { foreach ($m in [regex]::Matches((Get-Content -Path $f.FullName -Raw), '[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}')) { [void]$caPublicIds.Add($m.Value) } }
+$planScopes = @((Join-Path $Path 'Tests' 'Conditional-Access-Baseline' 'Fixtures' 'Plans'), (Join-Path $Path 'Frameworks' 'Conditional-Access-Baseline' 'Preview'))
+$planFiles = @($planScopes | Where-Object { Test-Path $_ } | ForEach-Object { Get-ChildItem -Path $_ -Recurse -Filter '*.json' -File })
+foreach ($f in $planFiles) {
+    $rel = Get-Relative $f.FullName
+    $raw = Get-Content -Path $f.FullName -Raw
+    $bad = @([regex]::Matches($raw, '[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}') | ForEach-Object Value | Sort-Object -Unique |
+            Where-Object { $_ -notmatch '^(aaaaaaaa-|00000000-0000-0000-0000-)' -and -not $caPublicIds.Contains($_) })
+    if ($bad) { Add-Failure 'plans-ids' $rel "$($bad.Count) GUID(s) that are neither sanitized nor published in the CA templates, first $($bad[0])" }
+    foreach ($m in [regex]::Matches($raw, '[\w.+-]+@[\w-]+(\.[\w-]+)+')) {
+        if ($m.Value -notmatch '@contoso\.example$' -and $m.Value -notmatch '@odata\.') { Add-Failure 'plans-identity' $rel "email address $($m.Value)" }
+    }
+    if ($raw -match '(?i)[\w-]+\.onmicrosoft\.com') { Add-Failure 'plans-identity' $rel "tenant domain $($Matches[0])" }
+}
+Write-Host "Policy plans files checked for tenant identifiers: $($planFiles.Count)"
 
 Write-Host ''
 if ($failures.Count -gt 0) {
