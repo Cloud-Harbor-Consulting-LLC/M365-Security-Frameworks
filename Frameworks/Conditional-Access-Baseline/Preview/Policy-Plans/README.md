@@ -61,6 +61,7 @@ A policy plan holds shared conditions once, and its rules inherit them. This fol
 7. **Keep the export.** Policy backups don't include plans. The exporter writes each plan with its rules, which is the backup.
 
 **Building your own plan in the portal instead:**
+
 - For policies that target All users, use **Create plan** and add the shared exclusions yourself. The migration wizard keeps those exclusions on every rule.
 - Name each rule exactly as the policy it copies, because the scripts pair them by name.
 - Keep plan-level exclusions to those every member policy already has (design rule R2), and keep Location policies out of plans during the preview (R5).

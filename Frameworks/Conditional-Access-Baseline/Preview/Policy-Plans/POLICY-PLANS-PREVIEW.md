@@ -80,6 +80,7 @@ Exclusion shorthand: EA emergency access, WI workload identities, SA service acc
 | Standalone | — | COV007, COV009, COV014, COV015 (Location, R5); COV010; COV012 | — |
 
 **Counted from the 28 templates:**
+
 - **Objects:** 28 → 14 (8 plans holding 22 rules, plus 6 standalone policies).
 - **Exclusion-group references:** 55 → 27.
 - **The 39-role list:** written once instead of twice.
