@@ -1,0 +1,634 @@
+{
+  "plan": {
+    "id": "aaaaaaaa-0000-4000-8000-000000000013",
+    "displayName": "CAB-P3-Global-SessionAndClientHardening",
+    "description": null,
+    "owners": [
+      "aaaaaaaa-0000-4000-8000-000000000010"
+    ],
+    "tags": [],
+    "templateId": null,
+    "createdDateTime": "2026-11-03T19:37:09.3431814Z",
+    "modifiedDateTime": "2026-11-03T19:45:03.7515744Z",
+    "deletedDateTime": null,
+    "sharedConditions": {
+      "userRiskLevels": [],
+      "signInRiskLevels": [],
+      "clientAppTypes": [
+        "all"
+      ],
+      "applications": null,
+      "platforms": null,
+      "locations": null,
+      "times": null,
+      "deviceStates": null,
+      "devices": null,
+      "clientApplications": null,
+      "agents": null,
+      "actionsAndDestinations": null,
+      "users": {
+        "includeUsers": [],
+        "excludeUsers": [],
+        "includeGroups": [],
+        "excludeGroups": [
+          "aaaaaaaa-0000-4000-8000-000000000002",
+          "aaaaaaaa-0000-4000-8000-000000000004",
+          "aaaaaaaa-0000-4000-8000-000000000003"
+        ],
+        "includeRoles": [],
+        "excludeRoles": [],
+        "includeGuestsOrExternalUsers": null,
+        "excludeGuestsOrExternalUsers": null
+      }
+    },
+    "rules@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules",
+    "rules": [
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000014",
+        "displayName": "CA-COV003-Global-NoPersistentBrowserSessionOnNonCorpDevices",
+        "description": null,
+        "state": "enabledForReportingButNotEnforced",
+        "conditions": {
+          "userRiskLevels": [],
+          "signInRiskLevels": [],
+          "clientAppTypes": [
+            "browser"
+          ],
+          "locations": null,
+          "times": null,
+          "deviceStates": null,
+          "clientApplications": null,
+          "agents": null,
+          "actionsAndDestinations": null,
+          "applications": {
+            "includeApplications": [
+              "All"
+            ],
+            "excludeApplications": [],
+            "includeUserActions": [],
+            "includeAgentActions": [],
+            "includeAuthenticationContextClassReferences": [],
+            "applicationFilter": null
+          },
+          "users": {
+            "includeUsers": [
+              "All"
+            ],
+            "excludeUsers": [],
+            "includeGroups": [],
+            "excludeGroups": [
+              "aaaaaaaa-0000-4000-8000-000000000002",
+              "aaaaaaaa-0000-4000-8000-000000000003",
+              "aaaaaaaa-0000-4000-8000-000000000004"
+            ],
+            "includeRoles": [],
+            "excludeRoles": [],
+            "includeGuestsOrExternalUsers": null,
+            "excludeGuestsOrExternalUsers": null
+          },
+          "platforms": {
+            "includePlatforms": [
+              "all"
+            ],
+            "excludePlatforms": [
+              "android",
+              "iOS"
+            ]
+          },
+          "devices": {
+            "includeDeviceStates": [],
+            "excludeDeviceStates": [],
+            "includeDevices": [],
+            "excludeDevices": [],
+            "deviceFilter": {
+              "mode": "exclude",
+              "rule": "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
+            }
+          }
+        },
+        "controls": {
+          "grantControls": {
+            "operator": null,
+            "builtInControls": [],
+            "customAuthenticationFactors": [],
+            "termsOfUse": [],
+            "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000014')/controls/grantControls/authenticationStrength/$entity",
+            "authenticationStrength": null
+          },
+          "sessionControls": {
+            "disableResilienceDefaults": null,
+            "applicationEnforcedRestrictions": null,
+            "cloudAppSecurity": null,
+            "continuousAccessEvaluation": null,
+            "secureSignInSession": null,
+            "blockSensitiveActions": null,
+            "humanApproval": null,
+            "signInFrequency": {
+              "value": 4,
+              "type": "hours",
+              "authenticationType": "primaryAndSecondaryAuthentication",
+              "frequencyInterval": "timeBased",
+              "isEnabled": true
+            },
+            "persistentBrowser": {
+              "mode": "never",
+              "isEnabled": true
+            }
+          }
+        }
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000015",
+        "displayName": "CA-COV004-Global-BlockDeviceCodeFlow",
+        "description": null,
+        "state": "enabledForReportingButNotEnforced",
+        "conditions": {
+          "userRiskLevels": [],
+          "signInRiskLevels": [],
+          "clientAppTypes": [
+            "all"
+          ],
+          "platforms": null,
+          "locations": null,
+          "times": null,
+          "deviceStates": null,
+          "devices": null,
+          "clientApplications": null,
+          "agents": null,
+          "actionsAndDestinations": null,
+          "applications": {
+            "includeApplications": [
+              "All"
+            ],
+            "excludeApplications": [],
+            "includeUserActions": [],
+            "includeAgentActions": [],
+            "includeAuthenticationContextClassReferences": [],
+            "applicationFilter": null
+          },
+          "users": {
+            "includeUsers": [
+              "All"
+            ],
+            "excludeUsers": [],
+            "includeGroups": [],
+            "excludeGroups": [
+              "aaaaaaaa-0000-4000-8000-000000000002",
+              "aaaaaaaa-0000-4000-8000-000000000003",
+              "aaaaaaaa-0000-4000-8000-000000000004"
+            ],
+            "includeRoles": [],
+            "excludeRoles": [],
+            "includeGuestsOrExternalUsers": null,
+            "excludeGuestsOrExternalUsers": null
+          },
+          "authenticationFlows": {
+            "transferMethods": "deviceCodeFlow"
+          }
+        },
+        "controls": {
+          "sessionControls": null,
+          "grantControls": {
+            "operator": "OR",
+            "builtInControls": [
+              "block"
+            ],
+            "customAuthenticationFactors": [],
+            "termsOfUse": [],
+            "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000015')/controls/grantControls/authenticationStrength/$entity",
+            "authenticationStrength": null
+          }
+        }
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000016",
+        "displayName": "CA-COV005-Global-BlockAuthenticationTransfer",
+        "description": null,
+        "state": "enabledForReportingButNotEnforced",
+        "conditions": {
+          "userRiskLevels": [],
+          "signInRiskLevels": [],
+          "clientAppTypes": [
+            "all"
+          ],
+          "platforms": null,
+          "locations": null,
+          "times": null,
+          "deviceStates": null,
+          "devices": null,
+          "clientApplications": null,
+          "agents": null,
+          "actionsAndDestinations": null,
+          "applications": {
+            "includeApplications": [
+              "All"
+            ],
+            "excludeApplications": [],
+            "includeUserActions": [],
+            "includeAgentActions": [],
+            "includeAuthenticationContextClassReferences": [],
+            "applicationFilter": null
+          },
+          "users": {
+            "includeUsers": [
+              "All"
+            ],
+            "excludeUsers": [],
+            "includeGroups": [],
+            "excludeGroups": [
+              "aaaaaaaa-0000-4000-8000-000000000002",
+              "aaaaaaaa-0000-4000-8000-000000000003",
+              "aaaaaaaa-0000-4000-8000-000000000004"
+            ],
+            "includeRoles": [],
+            "excludeRoles": [],
+            "includeGuestsOrExternalUsers": null,
+            "excludeGuestsOrExternalUsers": null
+          },
+          "authenticationFlows": {
+            "transferMethods": "authenticationTransfer"
+          }
+        },
+        "controls": {
+          "sessionControls": null,
+          "grantControls": {
+            "operator": "OR",
+            "builtInControls": [
+              "block"
+            ],
+            "customAuthenticationFactors": [],
+            "termsOfUse": [],
+            "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000016')/controls/grantControls/authenticationStrength/$entity",
+            "authenticationStrength": null
+          }
+        }
+      },
+      {
+        "id": "aaaaaaaa-0000-4000-8000-000000000017",
+        "displayName": "CA-COV006-Global-BlockUnknownPlatforms",
+        "description": null,
+        "state": "enabledForReportingButNotEnforced",
+        "conditions": {
+          "userRiskLevels": [],
+          "signInRiskLevels": [],
+          "clientAppTypes": [
+            "all"
+          ],
+          "locations": null,
+          "times": null,
+          "deviceStates": null,
+          "devices": null,
+          "clientApplications": null,
+          "agents": null,
+          "actionsAndDestinations": null,
+          "applications": {
+            "includeApplications": [
+              "All"
+            ],
+            "excludeApplications": [],
+            "includeUserActions": [],
+            "includeAgentActions": [],
+            "includeAuthenticationContextClassReferences": [],
+            "applicationFilter": null
+          },
+          "users": {
+            "includeUsers": [
+              "All"
+            ],
+            "excludeUsers": [],
+            "includeGroups": [],
+            "excludeGroups": [
+              "aaaaaaaa-0000-4000-8000-000000000002",
+              "aaaaaaaa-0000-4000-8000-000000000003",
+              "aaaaaaaa-0000-4000-8000-000000000004"
+            ],
+            "includeRoles": [],
+            "excludeRoles": [],
+            "includeGuestsOrExternalUsers": null,
+            "excludeGuestsOrExternalUsers": null
+          },
+          "platforms": {
+            "includePlatforms": [
+              "all"
+            ],
+            "excludePlatforms": [
+              "android",
+              "iOS",
+              "windows",
+              "windowsPhone",
+              "macOS",
+              "linux"
+            ]
+          }
+        },
+        "controls": {
+          "sessionControls": null,
+          "grantControls": {
+            "operator": "OR",
+            "builtInControls": [
+              "block"
+            ],
+            "customAuthenticationFactors": [],
+            "termsOfUse": [],
+            "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000017')/controls/grantControls/authenticationStrength/$entity",
+            "authenticationStrength": null
+          }
+        }
+      }
+    ]
+  },
+  "rules": [
+    {
+      "id": "aaaaaaaa-0000-4000-8000-000000000014",
+      "displayName": "CA-COV003-Global-NoPersistentBrowserSessionOnNonCorpDevices",
+      "description": null,
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "userRiskLevels": [],
+        "signInRiskLevels": [],
+        "clientAppTypes": [
+          "browser"
+        ],
+        "locations": null,
+        "times": null,
+        "deviceStates": null,
+        "clientApplications": null,
+        "agents": null,
+        "actionsAndDestinations": null,
+        "applications": {
+          "includeApplications": [
+            "All"
+          ],
+          "excludeApplications": [],
+          "includeUserActions": [],
+          "includeAgentActions": [],
+          "includeAuthenticationContextClassReferences": [],
+          "applicationFilter": null
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "excludeGroups": [
+            "aaaaaaaa-0000-4000-8000-000000000002",
+            "aaaaaaaa-0000-4000-8000-000000000003",
+            "aaaaaaaa-0000-4000-8000-000000000004"
+          ],
+          "includeRoles": [],
+          "excludeRoles": [],
+          "includeGuestsOrExternalUsers": null,
+          "excludeGuestsOrExternalUsers": null
+        },
+        "platforms": {
+          "includePlatforms": [
+            "all"
+          ],
+          "excludePlatforms": [
+            "android",
+            "iOS"
+          ]
+        },
+        "devices": {
+          "includeDeviceStates": [],
+          "excludeDeviceStates": [],
+          "includeDevices": [],
+          "excludeDevices": [],
+          "deviceFilter": {
+            "mode": "exclude",
+            "rule": "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
+          }
+        }
+      },
+      "controls": {
+        "grantControls": {
+          "operator": null,
+          "builtInControls": [],
+          "customAuthenticationFactors": [],
+          "termsOfUse": [],
+          "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000014')/controls/grantControls/authenticationStrength/$entity",
+          "authenticationStrength": null
+        },
+        "sessionControls": {
+          "disableResilienceDefaults": null,
+          "applicationEnforcedRestrictions": null,
+          "cloudAppSecurity": null,
+          "continuousAccessEvaluation": null,
+          "secureSignInSession": null,
+          "blockSensitiveActions": null,
+          "humanApproval": null,
+          "signInFrequency": {
+            "value": 4,
+            "type": "hours",
+            "authenticationType": "primaryAndSecondaryAuthentication",
+            "frequencyInterval": "timeBased",
+            "isEnabled": true
+          },
+          "persistentBrowser": {
+            "mode": "never",
+            "isEnabled": true
+          }
+        }
+      }
+    },
+    {
+      "id": "aaaaaaaa-0000-4000-8000-000000000015",
+      "displayName": "CA-COV004-Global-BlockDeviceCodeFlow",
+      "description": null,
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "userRiskLevels": [],
+        "signInRiskLevels": [],
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": null,
+        "locations": null,
+        "times": null,
+        "deviceStates": null,
+        "devices": null,
+        "clientApplications": null,
+        "agents": null,
+        "actionsAndDestinations": null,
+        "applications": {
+          "includeApplications": [
+            "All"
+          ],
+          "excludeApplications": [],
+          "includeUserActions": [],
+          "includeAgentActions": [],
+          "includeAuthenticationContextClassReferences": [],
+          "applicationFilter": null
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "excludeGroups": [
+            "aaaaaaaa-0000-4000-8000-000000000002",
+            "aaaaaaaa-0000-4000-8000-000000000003",
+            "aaaaaaaa-0000-4000-8000-000000000004"
+          ],
+          "includeRoles": [],
+          "excludeRoles": [],
+          "includeGuestsOrExternalUsers": null,
+          "excludeGuestsOrExternalUsers": null
+        },
+        "authenticationFlows": {
+          "transferMethods": "deviceCodeFlow"
+        }
+      },
+      "controls": {
+        "sessionControls": null,
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "block"
+          ],
+          "customAuthenticationFactors": [],
+          "termsOfUse": [],
+          "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000015')/controls/grantControls/authenticationStrength/$entity",
+          "authenticationStrength": null
+        }
+      }
+    },
+    {
+      "id": "aaaaaaaa-0000-4000-8000-000000000016",
+      "displayName": "CA-COV005-Global-BlockAuthenticationTransfer",
+      "description": null,
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "userRiskLevels": [],
+        "signInRiskLevels": [],
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": null,
+        "locations": null,
+        "times": null,
+        "deviceStates": null,
+        "devices": null,
+        "clientApplications": null,
+        "agents": null,
+        "actionsAndDestinations": null,
+        "applications": {
+          "includeApplications": [
+            "All"
+          ],
+          "excludeApplications": [],
+          "includeUserActions": [],
+          "includeAgentActions": [],
+          "includeAuthenticationContextClassReferences": [],
+          "applicationFilter": null
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "excludeGroups": [
+            "aaaaaaaa-0000-4000-8000-000000000002",
+            "aaaaaaaa-0000-4000-8000-000000000003",
+            "aaaaaaaa-0000-4000-8000-000000000004"
+          ],
+          "includeRoles": [],
+          "excludeRoles": [],
+          "includeGuestsOrExternalUsers": null,
+          "excludeGuestsOrExternalUsers": null
+        },
+        "authenticationFlows": {
+          "transferMethods": "authenticationTransfer"
+        }
+      },
+      "controls": {
+        "sessionControls": null,
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "block"
+          ],
+          "customAuthenticationFactors": [],
+          "termsOfUse": [],
+          "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000016')/controls/grantControls/authenticationStrength/$entity",
+          "authenticationStrength": null
+        }
+      }
+    },
+    {
+      "id": "aaaaaaaa-0000-4000-8000-000000000017",
+      "displayName": "CA-COV006-Global-BlockUnknownPlatforms",
+      "description": null,
+      "state": "enabledForReportingButNotEnforced",
+      "conditions": {
+        "userRiskLevels": [],
+        "signInRiskLevels": [],
+        "clientAppTypes": [
+          "all"
+        ],
+        "locations": null,
+        "times": null,
+        "deviceStates": null,
+        "devices": null,
+        "clientApplications": null,
+        "agents": null,
+        "actionsAndDestinations": null,
+        "applications": {
+          "includeApplications": [
+            "All"
+          ],
+          "excludeApplications": [],
+          "includeUserActions": [],
+          "includeAgentActions": [],
+          "includeAuthenticationContextClassReferences": [],
+          "applicationFilter": null
+        },
+        "users": {
+          "includeUsers": [
+            "All"
+          ],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "excludeGroups": [
+            "aaaaaaaa-0000-4000-8000-000000000002",
+            "aaaaaaaa-0000-4000-8000-000000000003",
+            "aaaaaaaa-0000-4000-8000-000000000004"
+          ],
+          "includeRoles": [],
+          "excludeRoles": [],
+          "includeGuestsOrExternalUsers": null,
+          "excludeGuestsOrExternalUsers": null
+        },
+        "platforms": {
+          "includePlatforms": [
+            "all"
+          ],
+          "excludePlatforms": [
+            "android",
+            "iOS",
+            "windows",
+            "windowsPhone",
+            "macOS",
+            "linux"
+          ]
+        }
+      },
+      "controls": {
+        "sessionControls": null,
+        "grantControls": {
+          "operator": "OR",
+          "builtInControls": [
+            "block"
+          ],
+          "customAuthenticationFactors": [],
+          "termsOfUse": [],
+          "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/plans('aaaaaaaa-0000-4000-8000-000000000013')/rules('aaaaaaaa-0000-4000-8000-000000000017')/controls/grantControls/authenticationStrength/$entity",
+          "authenticationStrength": null
+        }
+      }
+    }
+  ]
+}

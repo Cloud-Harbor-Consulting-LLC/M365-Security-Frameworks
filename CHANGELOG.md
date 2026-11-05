@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Both email the user at 0 hours and deploy in observation mode by default. Both are tenant-validated, not device-validated.
 - `Tests/Intune-Compliance-Baseline/Fixtures/Live/macos-readback.json` and `ios-readback.json`: live read-backs of a macOS and an iOS compliance policy. `Test-Repository.ps1` now checks every property and value type of macOS and iOS templates against them, as it already did for Windows.
 - `.github/workflows/ci.yml`: CI on every push and pull request into main — the harnesses and the analysis gate on Windows, repository checks on Linux, and markdownlint on the Markdown files a change touches. README gains a CI status badge.
+- `Frameworks/Conditional-Access-Baseline/Preview/Policy-Plans/`: a preview of Conditional Access policy plans, a Microsoft Entra preview feature, for the baseline. Nothing in it deploys.
+  - `POLICY-PLANS-PREVIEW.md`: how plans behaved when 3 plans (9 rules) ran in report-only next to the policies they copy in a demo tenant, the design rules the baseline will follow (R1–R7), and the target design of 8 plans (28 objects to 14, exclusion-group references 55 to 27).
+  - `Scripts/Export-CABPolicyPlans.ps1` (read-only): exports each plan with its rules, snapshots the policies, and compares each rule plus its plan's shared conditions with the policy of the same name. Client app types must match both plan and rule; other values combine.
+  - `Scripts/Compare-CABPlanRuleSignIns.ps1` (read-only): compares each rule's sign-in results with its policy's. A report-only `interrupted` counts as the enforced `failure`. It also lists the sign-ins a rule would have failed and policies seen without their rule (propagation).
+  - `Plans/`: reference plans for P1 Admins, P3 Session and client hardening and P6 Guests, with the templates' placeholders and every rule report-only. Not deployable.
+- `Tests/Conditional-Access-Baseline/`: harnesses for both policy plans scripts (74 assertions), run against sanitized exports of the 3 demo plans and constructed sign-ins in the shape the tenant returned. 8 planted defects were each caught. `Test-Repository.ps1` now also fails on any GUID, email address or `onmicrosoft.com` domain in the plans fixtures or the preview folder that isn't sanitized or already published in the CA templates (3 planted leaks caught).
 
 ### Changed
 

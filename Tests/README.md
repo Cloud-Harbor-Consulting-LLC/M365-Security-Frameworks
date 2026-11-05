@@ -19,6 +19,8 @@ From the repository root, with PowerShell 7:
 | Harness | Script under test | Covers |
 |---|---|---|
 | `Conditional-Access-Baseline/Deploy-CABaseline.Harness.ps1` | `Deploy-CABaseline.ps1` | Default policy path; every placeholder in the 28 templates has a resolver; expansion over all templates with the unresolved-placeholder guard; the Trusted IPs resolver's not-found, duplicate and found cases; the CA policy cross-references printed by the ITPS and ZTRA collectors |
+| `Conditional-Access-Baseline/Policy-Plans.Harness.ps1` | `Preview/Policy-Plans/Scripts/Export-CABPolicyPlans.ps1` | The rule-versus-policy comparison against sanitized exports of 3 demo-tenant plans (`Fixtures/Plans/`): 8 rules match and CA-SIG006 differs only in its 3 guest-type paths; mutations that must and must not produce a difference; and the reference plans in `Preview/Policy-Plans/Plans/` reproducing their templates |
+| `Conditional-Access-Baseline/Compare-CABPlanRuleSignIns.Harness.ps1` | `Preview/Policy-Plans/Scripts/Compare-CABPlanRuleSignIns.ps1` | Decision comparison (a report-only `interrupted` equals the enforced `failure`), pairing rules with same-named policies, the would-fail list and policies seen without their rule, over constructed sign-ins in the shape the demo tenant returned |
 | `Identity-Threat-Protection-Scorecard/Get-ITPScorecard.Harness.ps1` | `Get-ITPScorecard.ps1` | Governance and Detection scoring, scope-filter matching for access reviews, sensor-deployment evidence |
 | `Identity-Threat-Protection-Scorecard/Get-ITPScorecard.Throttle.Harness.ps1` | `Get-ITPScorecard.ps1` | Retry on 429 and 5xx with `Retry-After`, immediate failure on 403, paging under throttling |
 | `Identity-Threat-Protection-Scorecard/Get-ITPScorecard.Evidence.Harness.ps1` | `Get-ITPScorecard.ps1` | `-IncludeEvidence` output, CA policy matching, phishing-resistant authentication strength classification |
@@ -31,6 +33,7 @@ From the repository root, with PowerShell 7:
 - every relative Markdown link resolves;
 - every Conditional Access template ships report-only, with a `displayName` matching its file name;
 - the Board & Executive Policy Kit's copy of `Board-Posture-Summary.md` matches the canonical one in `Examples/`;
+- the policy plans fixtures and preview files carry no tenant identifiers: every GUID is sanitized or already published in the CA templates, and there's no email address or `onmicrosoft.com` domain;
 - every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows, macOS and iOS templates use only properties and value types that a live tenant's read-back for that platform contains (`classic-readback.json`, `macos-readback.json` and `ios-readback.json` in `Intune-Compliance-Baseline/Fixtures/Live/`).
 
 ## Harness conventions
