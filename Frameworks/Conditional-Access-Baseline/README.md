@@ -156,7 +156,7 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 | Deployer | `Scripts/Deploy-CABaseline.ps1` | PowerShell 7 + `Microsoft.Graph.Authentication` module only. Placeholder resolution at runtime. `-WhatIf` and `-Enforce` supported. Targets beta endpoint. Report-only by default. |
 | Telemetry | `Scripts/Get-CABaselineImpact.ps1` | Report-only analyzer: summarizes what each policy would have done if enforced. Targets beta sign-in log endpoint. |
 | Business case | `Business-Case/ROI-CONDITIONAL-ACCESS.md` | Plain-language ROI document for executive and board-level audiences. |
-| Policy plans (preview) | [`Preview/Policy-Plans/`](Preview/Policy-Plans/) | Conditional Access policy plans, a Microsoft Entra preview feature: test findings and design rules, 2 read-only scripts that compare plan rules with the policies they copy, and reference plans for 3 personas. Nothing here deploys. |
+| Policy plans (preview) | [`Preview/Policy-Plans/`](Preview/Policy-Plans/) | Conditional Access policy plans, a Microsoft Entra preview feature: test findings and design rules, 3 plans (Admins, Session and client hardening, Guests), a deployer that creates them with every rule in report-only, and 2 read-only scripts that compare plan rules with the policies they copy. |
 
 ---
 
@@ -277,8 +277,8 @@ Per-policy design specs (intent, principle mapping, scope, conditions, controls,
 
 ### Preview — Policy plans (2026-11)
 
-- [x] [`Preview/Policy-Plans/`](Preview/Policy-Plans/): findings from testing plans against the baseline in report-only, design rules R1–R7, read-only export and sign-in comparison scripts, and reference plans P1, P3 and P6
-- [ ] Policy plans as a supported edition of the baseline, with deployer support, once Microsoft makes plans generally available (v2.0)
+- [x] [`Preview/Policy-Plans/`](Preview/Policy-Plans/): findings from testing plans against the baseline in report-only, design rules R1–R7, plans P1, P3 and P6 with a report-only deployer, and read-only export and sign-in comparison scripts
+- [ ] Policy plans as a supported edition of the baseline, enforced and deployed by `Deploy-CABaseline.ps1`, once Microsoft makes plans generally available (v2.0)
 
 ---
 

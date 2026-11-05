@@ -1,6 +1,6 @@
 # Conditional Access policy plans: preview design note
 
-**Status:** preview, November 2026. Conditional Access policy plans are a Microsoft Entra preview feature. Nothing in this folder deploys anything. The baseline's standalone policies in [`../../Policies/`](../../Policies/) remain the supported edition. Plan support in the deployer, and plans as an edition of the baseline, wait for general availability (CAB v2.0 on the roadmap).
+**Status:** preview, November 2026. Conditional Access policy plans are a Microsoft Entra preview feature. `Scripts/Deploy-CABPolicyPlans.ps1` deploys the plans in [`Plans/`](Plans/) with every rule in report-only, alongside the baseline's standalone policies in [`../../Policies/`](../../Policies/), which remain the supported edition. Enforced plans, plan support in `Deploy-CABaseline.ps1`, and plans as an edition of the baseline wait for general availability (CAB v2.0 on the roadmap).
 
 This note records how plans behave, as tested against the baseline in a demo tenant, and the rules the baseline will follow when it adopts them.
 
@@ -85,7 +85,7 @@ Exclusion shorthand: EA emergency access, WI workload identities, SA service acc
 - **The 39-role list:** written once instead of twice.
 - **Not reduced:** emergency access still appears in 9 places, because plans remove duplication within a plan, not across plans.
 
-P1, P3 and P6 are in [`Plans/`](Plans/) as reference JSON. Combined with its plan's shared conditions, each rule reproduces its template, which the repository's tests check. CA-SIG006 is the one exception: it differs only in how its guest types are written. The template includes 5 types, while the plan includes 6 and the rule excludes 1, which is the same effective scope.
+P1, P3 and P6 are in [`Plans/`](Plans/), ready for the deployer. Combined with its plan's shared conditions, each rule reproduces its template, which the repository's tests check. CA-SIG006 is the one exception: it differs only in how its guest types are written. The template includes 5 types, while the plan includes 6 and the rule excludes 1, which is the same effective scope.
 
 ## 5. Open questions
 
