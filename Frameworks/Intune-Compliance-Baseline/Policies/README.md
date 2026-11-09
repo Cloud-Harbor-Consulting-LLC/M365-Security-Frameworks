@@ -29,6 +29,9 @@ The templates target the Graph **beta** endpoint (POLICY-DESIGN.md section 2.4).
 | `ICB-WIN008-Threat-DefenderRiskScore.json` | Windows 11 | `ICB-Persona-CorpWindows` | Defender for Endpoint machine risk at or below medium | Immediately |
 | `ICB-MAC001-Baseline-EncryptionAndIntegrity.json` | macOS 15 and later | `ICB-Persona-CorpMac` | FileVault, System Integrity Protection, firewall with stealth mode, Gatekeeper (App Store and identified developers), macOS 15 or later. No password rule (POLICY-DESIGN.md section 8.7). | 7 days |
 | `ICB-IOS001-Baseline-PasscodeAndIntegrity.json` | iOS / iPadOS 18 and later | `ICB-Persona-CorpMobile`, `ICB-Persona-BYODMobile` | 6-digit numeric passcode, no simple passcodes, 5-minute auto-lock, no jailbroken devices, iOS 18 or later | Immediately |
+| `ICB-AND001-Corporate-IntegrityAndPasscode.json` | Android 10 and later, Android Enterprise fully managed, dedicated and corporate-owned work profile | `ICB-Persona-CorpMobile` | Play Integrity basic, device and strong integrity, no rooted devices, Intune app runtime integrity, encryption, 6-digit numeric complex passcode, 5-minute lock, last 5 not reused, Android 10 or later | Immediately |
+| `ICB-AND002-PersonalWorkProfile-IntegrityAndPasscode.json` | Android 10 and later, Android Enterprise personally owned work profile | `ICB-Persona-BYODMobile` | Play Integrity basic, device and strong integrity, no rooted devices, Google Play Services, an up-to-date security provider, Company Portal runtime integrity, USB debugging blocked, encryption, passcode complexity High (Android 12 and later), 5-minute lock, Android 10 or later | Immediately; added to the retire list after 30 days |
+| `ICB-LIN001-Baseline-EncryptionAndPassword.json` | Ubuntu Desktop 24.04 LTS and later, RHEL 9 and later | `ICB-Persona-CorpLinux` | Disk encryption (dm-crypt or LUKS), the distribution and version, a 14-character minimum for the local account password | 7 days |
 
 Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. MAC001 and IOS001 are tenant-validated, not device-validated (POLICY-DESIGN.md section 9.1). The Android and Linux templates are added before v1.0.0.
 
@@ -54,8 +57,9 @@ To create a policy by hand, substitute the placeholders yourself and keep these 
 - POST classic templates to `https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies` without the `assignments` property, then assign with `POST …/{id}/assign`.
 - For observation, replace the template's actions with a single `block` action at `gracePeriodHours: 8760` and no `notification` action.
 - Graph's create response does not include the actions for noncompliance. Read the policy back with `?$expand=scheduledActionsForRule($expand=scheduledActionConfigurations)` to confirm them.
+- POST the Linux template, a Settings Catalog policy, to `https://graph.microsoft.com/beta/deviceManagement/compliancePolicies` without `assignments`, then set its actions with `POST …/{id}/setScheduledActions`. Graph accepts actions inline on create but stores its own default (mark noncompliant at 0 hours) instead.
 
-In the Intune admin center the equivalent is Devices › Compliance › Create policy, choosing the template's platform (Windows 10 and later, macOS, or iOS/iPadOS), transcribing the settings and actions from the template and assigning the persona group.
+In the Intune admin center the equivalent is Devices › Compliance › Create policy, choosing the template's platform (Windows 10 and later, macOS, iOS/iPadOS, Android Enterprise with the matching profile type, or Linux), transcribing the settings and actions from the template and assigning the persona group. Linux settings come from the settings catalog.
 
 ## Validation after deployment
 

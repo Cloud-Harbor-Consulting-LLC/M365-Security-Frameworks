@@ -1,0 +1,62 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies(scheduledActionsForRule(scheduledActionConfigurations()))/$entity",
+  "@odata.type": "#microsoft.graph.androidWorkProfileCompliancePolicy",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "id": "ba67e3d1-b63b-476f-bfbf-e6800949d94f",
+  "createdDateTime": "2026-10-06T15:14:22.2683887Z",
+  "description": null,
+  "lastModifiedDateTime": "2026-10-06T15:14:22.2683887Z",
+  "displayName": "ZZ-ICB-SCHEMA-ANDBYOD-DELETE",
+  "version": 1,
+  "passwordRequired": true,
+  "passwordMinimumLength": 4,
+  "passwordRequiredType": "numeric",
+  "requiredPasswordComplexity": "high",
+  "passwordMinutesOfInactivityBeforeLock": 30,
+  "passwordExpirationDays": 90,
+  "passwordPreviousPasswordBlockCount": 10,
+  "passwordSignInFailureCountBeforeFactoryReset": null,
+  "workProfilePasswordExpirationInDays": 90,
+  "workProfilePasswordMinimumLength": 4,
+  "workProfileInactiveBeforeScreenLockInMinutes": 30,
+  "workProfilePreviousPasswordBlockCount": 10,
+  "workProfilePasswordRequiredType": "atLeastNumeric",
+  "workProfileRequiredPasswordComplexity": "high",
+  "workProfileRequirePassword": true,
+  "securityPreventInstallAppsFromUnknownSources": true,
+  "securityDisableUsbDebugging": true,
+  "securityRequireVerifyApps": false,
+  "deviceThreatProtectionEnabled": true,
+  "deviceThreatProtectionRequiredSecurityLevel": "medium",
+  "advancedThreatProtectionRequiredSecurityLevel": "medium",
+  "securityBlockJailbrokenDevices": true,
+  "osMinimumVersion": "7.1",
+  "osMaximumVersion": null,
+  "minAndroidSecurityPatchLevel": "2026-10-06",
+  "storageRequireEncryption": true,
+  "securityRequireSafetyNetAttestationBasicIntegrity": true,
+  "securityRequireSafetyNetAttestationCertifiedDevice": true,
+  "securityRequireGooglePlayServices": false,
+  "securityRequireUpToDateSecurityProviders": false,
+  "securityRequireCompanyPortalAppIntegrity": true,
+  "securityRequiredAndroidSafetyNetEvaluationType": "hardwareBacked",
+  "scheduledActionsForRule@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('ba67e3d1-b63b-476f-bfbf-e6800949d94f')/microsoft.graph.androidWorkProfileCompliancePolicy/scheduledActionsForRule(scheduledActionConfigurations())",
+  "scheduledActionsForRule": [
+    {
+      "id": "ba67e3d1-b63b-476f-bfbf-e6800949d94f",
+      "ruleName": null,
+      "scheduledActionConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('ba67e3d1-b63b-476f-bfbf-e6800949d94f')/microsoft.graph.androidWorkProfileCompliancePolicy/scheduledActionsForRule('ba67e3d1-b63b-476f-bfbf-e6800949d94f')/scheduledActionConfigurations",
+      "scheduledActionConfigurations": [
+        {
+          "id": "b3fdace4-8e6e-4fa0-ab2b-ffbbf6970031",
+          "gracePeriodHours": 0,
+          "actionType": "block",
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ]
+}

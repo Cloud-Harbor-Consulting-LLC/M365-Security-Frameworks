@@ -35,7 +35,7 @@ From the repository root, with PowerShell 7:
 - every Conditional Access template ships report-only, with a `displayName` matching its file name;
 - the Board & Executive Policy Kit's copy of `Board-Posture-Summary.md` matches the canonical one in `Examples/`;
 - the policy plans fixtures and preview files carry no tenant identifiers: every GUID is sanitized or already published in the CA templates, and there's no email address or `onmicrosoft.com` domain;
-- every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows, macOS and iOS templates use only properties and value types that a live tenant's read-back for that platform contains (`classic-readback.json`, `macos-readback.json` and `ios-readback.json` in `Intune-Compliance-Baseline/Fixtures/Live/`).
+- every Intune Compliance Baseline template meets the invariants `Deploy-ICBaseline.ps1` relies on, and classic Windows, macOS, iOS and Android templates use only properties and value types that a live tenant's read-back for that platform contains (`classic-readback.json`, `macos-readback.json`, `ios-readback.json`, `android-deviceowner-readback.json` and `android-workprofile-readback.json` in `Intune-Compliance-Baseline/Fixtures/Live/`).
 
 ## Harness conventions
 

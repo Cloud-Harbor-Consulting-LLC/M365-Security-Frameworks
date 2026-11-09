@@ -121,10 +121,12 @@ $liveFixtures = @{
     '#microsoft.graph.windows10CompliancePolicy' = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'classic-readback.json'
     '#microsoft.graph.macOSCompliancePolicy'     = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'macos-readback.json'
     '#microsoft.graph.iosCompliancePolicy'       = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'ios-readback.json'
+    '#microsoft.graph.androidDeviceOwnerCompliancePolicy' = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'android-deviceowner-readback.json'
+    '#microsoft.graph.androidWorkProfileCompliancePolicy' = Join-Path $Path 'Tests' 'Intune-Compliance-Baseline' 'Fixtures' 'Live' 'android-workprofile-readback.json'
 }
 # Properties a live read-back returns as null carry no type; these are Graph's documented types.
 $declaredTypes = @{
-    passwordMinimumLength = 'number'; passwordMinutesOfInactivityBeforeLock = 'number'; passwordPreviousPasswordBlockCount = 'number'
+    passwordMinimumLength = 'number'; passwordMinutesOfInactivityBeforeLock = 'number'; passwordPreviousPasswordBlockCount = 'number'; passwordPreviousPasswordCountToBlock = 'number'
     passwordExpirationDays = 'number'; passwordMinimumCharacterSetCount = 'number'
     passcodeMinutesOfInactivityBeforeLock = 'number'; passcodeMinutesOfInactivityBeforeScreenTimeout = 'number'
     defenderVersion = 'string'; osMinimumVersion = 'string'; osMaximumVersion = 'string'; mobileOsMinimumVersion = 'string'; mobileOsMaximumVersion = 'string'
