@@ -11,6 +11,9 @@
     - Resolves tenant-specific placeholders (persona group IDs, named location IDs,
       authentication strength IDs) by looking them up in the tenant at runtime
     - Validates every placeholder resolves before submitting any policy
+    - Checks that every application ID a template names (for example CA-COV008's
+      Microsoft Intune Enrollment exclusion) has a service principal in the tenant,
+      and says how to create one that is missing
     - Defaults to report-only state (enabledForReportingButNotEnforced); use
       -Enforce to promote to enabled state (requires explicit confirmation)
     - Supports -WhatIf for safe preview: in WhatIf mode the script connects to
@@ -245,6 +248,41 @@ function Resolve-TermsOfUseId {
     return $tou.id
 }
 
+function Assert-TemplateApplications {
+    # Conditional Access can only reference an application that has a service principal
+    # in the tenant. Some first-party apps do not get one automatically: Microsoft Learn
+    # says Microsoft Intune Enrollment "isn't created automatically for new tenants", and
+    # CA-COV008 excludes it so Linux devices can enroll. Check every app ID a template
+    # names before creating the policy, and say how to fix a missing one.
+    param(
+        [Parameter(Mandatory)][hashtable]$Policy,
+        [Parameter(Mandatory)][string]$TemplateName
+    )
+    $knownNames = @{
+        '0000000a-0000-0000-c000-000000000000' = 'Microsoft Intune'
+        'd4ebce55-015a-49b5-a083-c84d1797ae8c' = 'Microsoft Intune Enrollment'
+    }
+    if (-not (Test-Path variable:script:ServicePrincipalExists)) { $script:ServicePrincipalExists = @{} }
+    $conditions = $Policy['conditions']
+    if (-not $conditions) { return }
+    $apps = $conditions['applications']
+    if (-not $apps) { return }
+    # Keywords such as All, Office365 and MicrosoftAdminPortals are not app IDs.
+    $appIds = @(@($apps['includeApplications']) + @($apps['excludeApplications']) |
+        Where-Object { $_ -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$' } | Sort-Object -Unique)
+    foreach ($appId in $appIds) {
+        if (-not $script:ServicePrincipalExists.ContainsKey($appId)) {
+            $response = Invoke-MgGraphRequest -Method GET `
+                -Uri "https://graph.microsoft.com/v1.0/servicePrincipals?`$filter=appId eq '$appId'&`$select=id"
+            $script:ServicePrincipalExists[$appId] = (@($response.value).Count -gt 0)
+        }
+        if (-not $script:ServicePrincipalExists[$appId]) {
+            $label = if ($knownNames.ContainsKey($appId)) { "$($knownNames[$appId]) ($appId)" } else { "the application $appId" }
+            throw "$TemplateName references $label, which has no service principal in this tenant, so Conditional Access cannot use it. An Entra administrator must create it first: Connect-MgGraph -Scopes Application.ReadWrite.All, then New-MgServicePrincipal -AppId $appId. See Scripts/README.md, ""Application has no service principal""."
+        }
+    }
+}
+
 function Expand-Placeholders {
     param(
         [Parameter(Mandatory)][string]$JsonContent,
@@ -350,6 +388,7 @@ try {
             }
 
             $body = $expandedJson | ConvertFrom-Json -AsHashtable
+            Assert-TemplateApplications -Policy $body -TemplateName $template.Name
             $body['state'] = if ($Enforce) { 'enabled' } else { 'enabledForReportingButNotEnforced' }
 
             if ($PSCmdlet.ShouldProcess($body['displayName'], "Create Conditional Access policy (state=$($body['state'])) on beta endpoint")) {

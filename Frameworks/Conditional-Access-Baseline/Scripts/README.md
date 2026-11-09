@@ -42,6 +42,7 @@ Additional tenant prerequisites:
 - Three custom authentication strengths created from `Supporting-Artifacts/CA-AUTH-STRENGTH-*.json` (StandardAuth, StrongAuth, AdminAuth).
 - Trusted Countries named location created from `Supporting-Artifacts/CA-LOCATION-TrustedCountries.json`.
 - Trusted IPs named location created for workload identity egress (see `Policies/CA-COV010-WorkloadIdentities.md`).
+- A service principal for every application a template names. CA-COV008 excludes Microsoft Intune and Microsoft Intune Enrollment; Microsoft Intune Enrollment is not created automatically in newer tenants (see "Application has no service principal" below). The deployer checks this before creating each policy.
 
 ## Deploy-CABaseline.ps1
 
@@ -145,6 +146,17 @@ Invoke-MgGraphRequest -Method GET "https://graph.microsoft.com/v1.0/identity/con
 #### "Named location not found"
 
 The Trusted Countries or Trusted IPs named location is missing. Provision it and retry. See `Supporting-Artifacts/` and `Policies/CA-COV010-WorkloadIdentities.md`.
+
+#### "Application has no service principal"
+
+The deployer stops a template, with an error naming the application, when that template includes or excludes an application that has no service principal in the tenant. Conditional Access can reference only applications that exist in the tenant. The usual case is CA-COV008's exclusion of **Microsoft Intune Enrollment** (`d4ebce55-015a-49b5-a083-c84d1797ae8c`): Microsoft Learn notes it "isn't created automatically for new tenants". An Entra administrator creates it once:
+
+```powershell
+Connect-MgGraph -Scopes "Application.ReadWrite.All"
+New-MgServicePrincipal -AppId d4ebce55-015a-49b5-a083-c84d1797ae8c
+```
+
+`New-MgServicePrincipal` is in the Microsoft.Graph.Applications module. Then re-run the deployer for the failed template. The check itself only reads (`Application.Read.All`, which the deployer already requires).
 
 #### "Unresolved placeholders remain"
 

@@ -110,7 +110,7 @@ This section documents the three CA policies in v1.4 that depend on the ICB comp
 
 | Policy | Grant mechanism | Application scope | Required ICB policy | Satisfying device state |
 |---|---|---|---|---|
-| CA-COV008-Internal-RequireCompliantDeviceOnDesktops | `compliantDevice OR domainJoinedDevice` | All applications | ICB-WIN001 (Windows), ICB-MAC001 (macOS), ICB-LIN001 (Linux) | `isCompliant: true` or `trustType: ServerAD` |
+| CA-COV008-Internal-RequireCompliantDeviceOnDesktops | `compliantDevice OR domainJoinedDevice` | All applications except Microsoft Intune and Microsoft Intune Enrollment | ICB-WIN001 (Windows), ICB-MAC001 (macOS), ICB-LIN001 (Linux) | `isCompliant: true` or `trustType: ServerAD` |
 | CA-SIG001-SensitiveApps-RequireCompliantDevice | `compliantDevice OR domainJoinedDevice` | Azure Service Management only | Same as CA-COV008 | `isCompliant: true` or `trustType: ServerAD` |
 | CA-SIG007-Internal-TokenProtection | Session control (token binding) | Office365 bundle | ICB-WIN001 (managed device state required) | Any enrolled state (Intune-enrolled or hybrid-joined) |
 | CA-COV014-AgentUsers-RequireCompliantDevice | `compliantDevice` | All applications | Intune compliance policy on Windows 365 Cloud PCs for Agents | `isCompliant: true` on the Cloud PC for Agents |
@@ -157,7 +157,7 @@ The `OR` operator means either control satisfies the requirement independently. 
 
 **User scope:** Internal persona (`CA-Persona-InternalUsers`). Member users only. A dynamic group on `userType eq 'Member'` is recommended for maintenance-free membership. Excludes EmergencyAccess, WorkloadIdentities, and ServiceAccounts per the per-policy exclusion rationale in POLICY-DESIGN.md Section 6.11.
 
-**Application scope:** All applications (`includeApplications: ["All"]`). This policy is the broadest of the three; it covers every application that Internal users access from desktop platforms. The broad application scope is intentional: device compliance should be a prerequisite for all internal access from desktops, not just specific applications.
+**Application scope:** All applications (`includeApplications: ["All"]`). This policy is the broadest of the three; it covers every application that Internal users access from desktop platforms. The broad application scope is intentional: device compliance should be a prerequisite for all internal access from desktops, not just specific applications. The one exception is Intune itself: Microsoft Intune and Microsoft Intune Enrollment are excluded, because the Intune app for Linux must reach both to enroll a device before the device can be compliant (POLICY-DESIGN.md Section 6.11). Microsoft Intune Enrollment needs a service principal in the tenant before the policy can reference it.
 
 **Platform scope:** Windows, macOS, and Linux (`includePlatforms: ["windows", "macOS", "linux"]`). Mobile platforms (iOS, Android) are excluded at the platform condition level; they are out of scope for this desktop-focused policy.
 
@@ -344,6 +344,8 @@ Before beginning the rollout sequence, verify the following conditions are true:
 9. **Layer CA-SIG007-Internal-TokenProtection on Windows once CA-COV008 and ICB-WIN001 are in steady state.** Token Protection enforcement (position 19 in the POLICY-DESIGN.md rollout sequence) should be applied only after the managed-device coverage established by CA-COV008 and ICB-WIN001 is stable and well understood. Follow the Token Protection rollout procedure in `Design/CAE-TOKEN-PROTECTION-LAYERING.md` Section 7, which includes the required non-supporting-client inventory step and the 14-day soak procedure for CA-SIG007. Token Protection is downstream of device compliance: the ICB signal ensures the managed device population that Token Protection binding requires is already in place.
 
 The rollout sequence for non-Windows platforms (macOS, iOS, Android, Linux) waits on ICB v1.0 platform baselines. Until those baselines are available, assigned, and evaluated, CA-COV008 enforcement on macOS and Linux will block users whose devices cannot satisfy the `compliantDevice` grant and are not hybrid-joined. Plan platform rollout timing to coincide with ICB v1.0 availability rather than forcing users into a blocked state on platforms where no remediation path yet exists.
+
+**Linux enrollment with CA-COV008 enforced:** the policy's Microsoft Intune and Microsoft Intune Enrollment exclusions let a new Linux device enroll; without them the Intune app is refused (530003) and the device can never become compliant. Two further points from device validation on Ubuntu 24.04 (Intune Compliance Baseline POLICY-DESIGN.md section 8.11): sign in to the Intune app with a credential the user can present twice, such as a password with Microsoft Authenticator, because a one-time Temporary Access Pass is consumed by device registration and the next step fails; and expect sign-ins to other resources to be refused until the device's first compliance check completes.
 
 ### 7.3 Post-enforcement monitoring checklist
 

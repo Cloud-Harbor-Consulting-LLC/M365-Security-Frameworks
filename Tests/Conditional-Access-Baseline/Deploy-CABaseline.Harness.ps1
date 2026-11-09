@@ -287,5 +287,97 @@ Assert-Equal 'CA-SIG006 grant is block' ((@($p['grantControls']['builtInControls
 $guestsParam = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'GuestsGroupName' }
 Assert-Equal 'GuestsGroupName parameter removed' ($null -eq $guestsParam) $true
 
+# ── 9. CA-COV008 lets Linux devices enroll ──────────────────────────────────
+# Found in ICB PR E's device validation (2026-11-09): with COV008 enforced on
+# All resources, the Intune app for Linux was refused (530003) on Microsoft
+# Intune and then on Microsoft Intune Enrollment before the device could enroll,
+# so it could never become compliant. Both are excluded; nothing else changes.
+$intuneApps = '0000000a-0000-0000-c000-000000000000,d4ebce55-015a-49b5-a083-c84d1797ae8c'
+$cov008 = @($templates | Where-Object { $_.Name -like 'CA-COV008-*' })
+Assert-Equal 'one CA-COV008 template' $cov008.Count 1
+$c8 = if ($cov008.Count -eq 1) { Get-Content $cov008[0].FullName -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+$c8apps = $c8['conditions']['applications']
+Assert-Equal 'CA-COV008 includes All resources' ((@($c8apps['includeApplications'])) -join ',') 'All'
+Assert-Equal 'CA-COV008 excludes Microsoft Intune and Intune Enrollment' `
+    ((@($c8apps['excludeApplications']) | Sort-Object) -join ',') $intuneApps
+# The demo tenant's live COV008 dropped 'browser' for a Defender for Cloud Apps
+# test; the template must not.
+Assert-Equal 'CA-COV008 client app types unchanged' `
+    ((@($c8['conditions']['clientAppTypes']) | Sort-Object) -join ',') 'browser,mobileAppsAndDesktopClients'
+Assert-Equal 'CA-COV008 platforms unchanged' `
+    ((@($c8['conditions']['platforms']['includePlatforms']) | Sort-Object) -join ',') 'linux,macOS,windows'
+
+# ── 10. Apps a template names must exist in the tenant ──────────────────────
+# Microsoft Intune Enrollment has no service principal in newer tenants until an
+# administrator creates one, so the deployer checks every app ID first. The
+# shipped function runs here against a mocked Graph.
+$fnApps = $ast.FindAll({ param($n)
+    $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $n.Name -eq 'Assert-TemplateApplications' }, $true)
+Assert-Equal 'Assert-TemplateApplications found' $fnApps.Count 1
+if ($fnApps.Count -eq 1) { . ([scriptblock]::Create($fnApps[0].Extent.Text)) }
+# Called from the main loop on every parsed template, before the create.
+$loopCall = [regex]::Matches($ast.Extent.Text, 'Assert-TemplateApplications -Policy \$body -TemplateName \$template\.Name')
+Assert-Equal 'main loop checks each template' $loopCall.Count 1
+$mainText = $ast.Extent.Text
+Assert-Equal 'check runs before the create call' `
+    ($mainText.IndexOf('Assert-TemplateApplications -Policy $body') -lt $mainText.IndexOf("-Method POST")) $true
+
+$script:SpLookups = [System.Collections.Generic.List[string]]::new()
+$script:SpPresent = @()
+function Invoke-MgGraphRequest {
+    param($Method, $Uri)
+    $id = if ($Uri -match "appId eq '([^']+)'") { $Matches[1] } else { '<none>' }
+    $script:SpLookups.Add($id)
+    @{ value = @(if ($id -in $script:SpPresent) { @{ id = 'sp-' + $id } }) }
+}
+function Invoke-AppCheck([hashtable]$Policy, [string[]]$Present) {
+    $script:SpPresent = $Present
+    $script:SpLookups.Clear()
+    Remove-Variable -Name ServicePrincipalExists -Scope Script -ErrorAction SilentlyContinue
+    try { Assert-TemplateApplications -Policy $Policy -TemplateName 'CA-COV008-Internal-RequireCompliantDeviceOnDesktops.json'; $null }
+    catch { $_.Exception.Message }
+}
+$both = $intuneApps -split ','
+$err = Invoke-AppCheck $c8 $both
+Assert-Equal 'both apps present: no error' $err $null
+Assert-Equal 'both apps present: one lookup each' $script:SpLookups.Count 2
+Assert-Equal 'keyword All is not looked up' ('All' -in $script:SpLookups) $false
+
+$err = Invoke-AppCheck $c8 @('0000000a-0000-0000-c000-000000000000')
+Assert-Equal 'Enrollment missing: refused' ($null -ne $err) $true
+Assert-Equal 'Enrollment missing: names the app' ("$err" -like '*Microsoft Intune Enrollment (d4ebce55-015a-49b5-a083-c84d1797ae8c)*') $true
+Assert-Equal 'Enrollment missing: gives the fix' ("$err" -like '*New-MgServicePrincipal -AppId d4ebce55-015a-49b5-a083-c84d1797ae8c*') $true
+Assert-Equal 'Enrollment missing: names the template' ("$err" -like 'CA-COV008-*') $true
+
+$sig = if ($sig006.Count -eq 1) { Get-Content $sig006[0].FullName -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+$err = Invoke-AppCheck $sig @()
+Assert-Equal 'unknown app missing: refused with its ID' ("$err" -like '*the application 797f4846-ba00-4fd7-ba43-dac1f8f63013*') $true
+Assert-Equal 'keyword MicrosoftAdminPortals is not looked up' ('MicrosoftAdminPortals' -in $script:SpLookups) $false
+
+# One lookup per app across templates, not one per template.
+$script:SpPresent = $both
+$script:SpLookups.Clear()
+Remove-Variable -Name ServicePrincipalExists -Scope Script -ErrorAction SilentlyContinue
+Assert-TemplateApplications -Policy $c8 -TemplateName 'a.json'
+Assert-TemplateApplications -Policy $c8 -TemplateName 'b.json'
+Assert-Equal 'lookups cached across templates' $script:SpLookups.Count 2
+
+# A template with no applications block (user actions only) passes without a call.
+$aut001 = @($templates | Where-Object { $_.Name -like 'CA-AUT001-*' })
+$a1 = if ($aut001.Count -eq 1) { Get-Content $aut001[0].FullName -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+$err = Invoke-AppCheck $a1 @()
+Assert-Equal 'user-action template: no error, no lookup' "$err|$($script:SpLookups.Count)" '|0'
+
+# Across all 28 templates, only these app IDs are looked up, so tenants need
+# nothing new beyond Microsoft Intune Enrollment.
+$allIds = @($templates | ForEach-Object {
+        $pp = Get-Content $_.FullName -Raw | ConvertFrom-Json -AsHashtable
+        $aa = if ($pp['conditions']) { $pp['conditions']['applications'] } else { $null }
+        if ($aa) { @($aa['includeApplications']) + @($aa['excludeApplications']) }
+    } | Where-Object { $_ -match '^[0-9a-fA-F]{8}-' } | Sort-Object -Unique)
+Assert-Equal 'app IDs named across all templates' ($allIds -join ',') `
+    '0000000a-0000-0000-c000-000000000000,797f4846-ba00-4fd7-ba43-dac1f8f63013,d4ebce55-015a-49b5-a083-c84d1797ae8c'
+
 "`npassed: $script:Passed   failed: $script:Failed"
 if ($script:Failed) { exit 1 }

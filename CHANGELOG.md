@@ -47,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CA-COV008 excludes Microsoft Intune and Microsoft Intune Enrollment** (`0000000a-0000-0000-c000-000000000000`, `d4ebce55-015a-49b5-a083-c84d1797ae8c`), so Linux devices can enroll (`Frameworks/Conditional-Access-Baseline/Policies/`).
+  - **Why:** found in Intune Compliance Baseline device validation on Ubuntu 24.04. With COV008 applied to All resources, the Intune app for Linux was refused (530003, "Get this app to continue") first on Microsoft Intune and then on Microsoft Intune Enrollment, so the device could never enroll and become compliant. With both excluded it enrolled and became compliant. Every other resource still requires a compliant device; client app types and platforms are unchanged.
+  - **New prerequisite:** Microsoft Intune Enrollment "isn't created automatically for new tenants" (Microsoft Learn), and Conditional Access can reference only applications with a service principal. An Entra administrator creates it with `New-MgServicePrincipal -AppId d4ebce55-015a-49b5-a083-c84d1797ae8c`.
+  - **`Deploy-CABaseline.ps1`** now checks that every application ID a template includes or excludes has a service principal before creating the policy, and stops that template with the command to fix it. It uses `Application.Read.All`, which it already required. Validated with `-WhatIf` against a live tenant: COV008 previews; a copy naming an app the tenant lacks is refused with the fix.
+  - **Existing tenants:** Deploy-CABaseline creates policies and doesn't update them, so add the two exclusions to the existing CA-COV008 in place.
+  - The harness asserts the exclusions, unchanged client app types and platforms, and the check's behaviour against a mocked Graph (8 planted regressions caught). POLICY-DESIGN 6.11, CA-ICB-INTEGRATION, Scripts/README and ICB POLICY-DESIGN 8.11 are updated to match.
 - **CA-SIG006 redesigned and renamed** from `CA-SIG006-Guests-BlockNonGuestAppAccess` to `CA-SIG006-Guests-BlockAdminPortals` (`Frameworks/Conditional-Access-Baseline/Policies/`).
   - **Before:** blocked a dynamic `CA-Persona-Guests` group from all resources except Office 365.
   - **After:** blocks all guest and external user types except service provider users, in all external tenants, from **Microsoft Admin Portals** and **Azure Resource Manager** (`797f4846-…`). No group, no app exclusions.
