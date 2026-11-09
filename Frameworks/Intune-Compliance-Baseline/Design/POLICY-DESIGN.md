@@ -515,7 +515,7 @@ Play Integrity is written as `SafetyNet` properties (Section 2.4). Strong integr
 
 **Validation:** tenant-validated, not device-validated. Device validation is a v1.0.1 follow-up.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-AND001-Corporate-IntegrityAndPasscode.json`
 
 ---
 
@@ -547,6 +547,8 @@ Play Integrity is written as `SafetyNet` properties (Section 2.4). Strong integr
 
 Google deprecated password type and minimum length for personally owned work profiles on Android 12 and newer, which use password complexity instead. High is the only complexity level at or above Microsoft's Level 2 minimum of 6; Medium allows 4. Blocking USB debugging also stops users gathering device logs for support.
 
+**Rollout note:** on Android 12 and newer, complexity High means a PIN of at least 8 digits with no repeating or ordered sequences, or a password of at least 6 characters. By default the device and the work profile share one lock, and Intune enforces the higher complexity of the two, so this template sets the user's device unlock, not only the work profile's. Tell owners of personal devices in `ICB-Persona-BYODMobile` before deploying.
+
 **Security patch level:** left unset, as in ICB-AND001 (Section 8.9).
 
 **Actions for noncompliance:** email at 0 hours; mark noncompliant at 0 hours; add to retire list at 30 days (Section 5.3).
@@ -555,7 +557,7 @@ Google deprecated password type and minimum length for personally owned work pro
 
 **Validation:** tenant-validated, not device-validated. Device validation is a v1.0.1 follow-up.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-AND002-PersonalWorkProfile-IntegrityAndPasscode.json`
 
 ---
 
@@ -577,7 +579,15 @@ Google deprecated password type and minimum length for personally owned work pro
 | Composition minimums (digits, lowercase, uppercase, symbols) | not set | Principle 1.5 |
 | Expiry | not set (no Intune setting; Principle 1.5) | CIS 5.4.1.1 sets 365 days, the STIG 60; see Section 1.7 |
 
-Intune recognizes dm-crypt encryption, with LUKS through cryptsetup as the preferred setup, and ignores read-only, pseudo-filesystem, `/boot` and `/boot/efi` partitions.
+Intune recognizes dm-crypt encryption, with LUKS through cryptsetup as the preferred setup, and ignores read-only, pseudo-filesystem, `/boot` and `/boot/efi` partitions. Turn encryption on when the operating system is installed; Microsoft notes that encrypting an installed system is possible but can take a long time.
+
+**How the minimum length is evaluated (observed, not documented by Microsoft):** on Ubuntu 24.04 the setting passes or fails on the length of the local account's current password, not on the PAM password-quality configuration. In device validation, a device with no `minlen` configured, and then with `minlen=8` set explicitly in `/etc/pam.d/common-password`, stayed compliant while its password was 20 characters. Changing the password to 10 characters made it noncompliant at the next check-in. So the setting checks the password each user has actually set; it does not stop a user choosing a shorter one. To enforce the length when passwords are changed, also configure `pam_pwquality` (for example `minlen=14`) through your Linux configuration management.
+
+**Enrolling Linux devices where the Conditional Access Baseline is enforced:**
+
+- CA-COV008 requires a compliant device on Linux, so it blocks the Microsoft Intune app's own sign-ins before the device can enroll ("Get this app to continue", error 530003). Exclude the **Microsoft Intune** and **Microsoft Intune Enrollment** resources from CA-COV008. In tenants created recently the Microsoft Intune Enrollment service principal does not exist until an Entra administrator creates it (app ID `d4ebce55-015a-49b5-a083-c84d1797ae8c`), so it cannot be selected until then. Add both exclusions in the tenant before enrolling Linux devices.
+- A one-time Temporary Access Pass cannot complete enrollment: Microsoft's identity broker uses the credential once to register the device and again to obtain the device's sign-in token, and the second use fails (error 130507). Sign in with a credential the user can present twice, such as a password with Microsoft Authenticator.
+- Intune reports Ubuntu devices with the operating system `Linux (ubuntu)`, so reports or scripts that filter on `Linux` exactly miss them.
 
 **Not evaluated in v1.0:** mandatory access control (AppArmor on Ubuntu, SELinux on RHEL) and the host firewall (ufw, firewalld). The CIS benchmarks and the STIG all cover them, but Intune's Linux compliance settings cannot evaluate them; they need custom compliance scripts and are deferred to v1.1 (Section 9.3).
 
@@ -585,9 +595,9 @@ Intune recognizes dm-crypt encryption, with LUKS through cryptsetup as the prefe
 
 **License requirements:** Microsoft Intune Plan 1.
 
-**Validation:** device-validated on an Ubuntu 24.04 Desktop virtual machine under Hyper-V, a target Intune supports for Linux enrollment.
+**Validation:** device-validated on an encrypted Ubuntu 24.04 Desktop virtual machine under Hyper-V, a target Intune supports for Linux enrollment. The device enrolled and evaluated compliant on all LIN001 settings; a 10-character account password put it in the 168-hour grace period, and restoring a compliant password returned it to compliant.
 
-**JSON template:** not yet added to `Policies/`.
+**JSON template:** `../Policies/ICB-LIN001-Baseline-EncryptionAndPassword.json`
 
 ---
 

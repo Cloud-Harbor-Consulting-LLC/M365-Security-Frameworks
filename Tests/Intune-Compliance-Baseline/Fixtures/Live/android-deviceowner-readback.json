@@ -1,0 +1,55 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies(scheduledActionsForRule(scheduledActionConfigurations()))/$entity",
+  "@odata.type": "#microsoft.graph.androidDeviceOwnerCompliancePolicy",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "id": "e9951f62-0439-4446-a26a-e4d47523c464",
+  "createdDateTime": "2026-10-06T15:09:27.9655395Z",
+  "description": null,
+  "lastModifiedDateTime": "2026-10-06T15:09:27.9655395Z",
+  "displayName": "ZZ-ICB-SCHEMA-ANDCORP-DELETE",
+  "version": 1,
+  "deviceThreatProtectionEnabled": true,
+  "deviceThreatProtectionRequiredSecurityLevel": "unavailable",
+  "advancedThreatProtectionRequiredSecurityLevel": "medium",
+  "securityBlockJailbrokenDevices": true,
+  "securityRequireSafetyNetAttestationBasicIntegrity": null,
+  "securityRequireSafetyNetAttestationCertifiedDevice": true,
+  "osMinimumVersion": "10.0.0.0",
+  "osMaximumVersion": null,
+  "minAndroidSecurityPatchLevel": "2026-10-06",
+  "passwordRequired": true,
+  "passwordMinimumLength": 4,
+  "passwordMinimumLetterCharacters": null,
+  "passwordMinimumLowerCaseCharacters": null,
+  "passwordMinimumNonLetterCharacters": null,
+  "passwordMinimumNumericCharacters": null,
+  "passwordMinimumSymbolCharacters": null,
+  "passwordMinimumUpperCaseCharacters": null,
+  "passwordRequiredType": "numeric",
+  "passwordMinutesOfInactivityBeforeLock": null,
+  "passwordExpirationDays": null,
+  "passwordPreviousPasswordCountToBlock": null,
+  "storageRequireEncryption": true,
+  "securityRequireIntuneAppIntegrity": true,
+  "requireNoPendingSystemUpdates": null,
+  "securityRequiredAndroidSafetyNetEvaluationType": "hardwareBacked",
+  "scheduledActionsForRule@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('e9951f62-0439-4446-a26a-e4d47523c464')/microsoft.graph.androidDeviceOwnerCompliancePolicy/scheduledActionsForRule(scheduledActionConfigurations())",
+  "scheduledActionsForRule": [
+    {
+      "id": "e9951f62-0439-4446-a26a-e4d47523c464",
+      "ruleName": null,
+      "scheduledActionConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies('e9951f62-0439-4446-a26a-e4d47523c464')/microsoft.graph.androidDeviceOwnerCompliancePolicy/scheduledActionsForRule('e9951f62-0439-4446-a26a-e4d47523c464')/scheduledActionConfigurations",
+      "scheduledActionConfigurations": [
+        {
+          "id": "0c8b8a9e-7374-499f-b85b-8598e4d47df3",
+          "gracePeriodHours": 0,
+          "actionType": "block",
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000000",
+          "notificationMessageCCList": []
+        }
+      ]
+    }
+  ]
+}
