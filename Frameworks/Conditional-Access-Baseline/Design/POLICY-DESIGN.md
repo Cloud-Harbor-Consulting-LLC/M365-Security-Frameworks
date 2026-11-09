@@ -614,7 +614,7 @@ On a phone, users register most reliably from the Microsoft Authenticator app, s
 |---|---|
 | Users | `includeGroups: [CA-Persona-InternalUsers]` |
 | Exclusions | `excludeGroups: [EmergencyAccess, WorkloadIdentities, ServiceAccounts]` |
-| Applications | `includeApplications: ["All"]` |
+| Applications | `includeApplications: ["All"]`; `excludeApplications`: Microsoft Intune (`0000000a-0000-0000-c000-000000000000`) and Microsoft Intune Enrollment (`d4ebce55-015a-49b5-a083-c84d1797ae8c`) |
 | Client app types | `["browser", "mobileAppsAndDesktopClients"]` |
 | Platforms | `includePlatforms: ["windows", "macOS", "linux"]` |
 
@@ -632,6 +632,10 @@ On a phone, users register most reliably from the Microsoft Authenticator app, s
 4. After enforcement, monitor for blocked sign-ins from recently enrolled devices (enrollment lag).
 
 **Exclusion rationale:** Mobile platforms (iOS, Android) are excluded at the platform condition level — this policy targets desktop posture. Mobile device compliance is a separate future policy.
+
+**Application exclusions (Linux enrollment):** a Linux device becomes compliant only after it enrolls, and the Microsoft Intune app for Linux enrolls it by signing in to Microsoft Intune and then Microsoft Intune Enrollment. With this policy applied to All resources, both sign-ins are refused (error 530003, "Get this app to continue") and the device can never enroll. Both are excluded. The exclusion covers Intune's own enrollment and management traffic only; every other resource still requires a compliant device. Observed on an Ubuntu 24.04 device during Intune Compliance Baseline device validation on 2026-11-09.
+
+**Prerequisite:** Conditional Access can reference only applications with a service principal in the tenant. Microsoft Learn notes that Microsoft Intune Enrollment "isn't created automatically for new tenants"; an Entra administrator creates it with `New-MgServicePrincipal -AppId d4ebce55-015a-49b5-a083-c84d1797ae8c`. `Deploy-CABaseline.ps1` checks for it and stops this template with that instruction when it is missing (Scripts/README.md).
 
 Cross-framework integration with the Intune Compliance Baseline (signal flow, failure-mode matrix, rollout sequence) lives in `Design/CA-ICB-INTEGRATION.md`.
 
