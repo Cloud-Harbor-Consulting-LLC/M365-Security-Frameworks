@@ -519,7 +519,7 @@ The v1.3 release closes the Conditional Access Baseline development cycle that b
 
 ### Note on Intune Compliance Baseline timing
 
-The original repo roadmap targeted the Intune Compliance Baseline at Q3 2026 for framework completion. The MVP Strategy publishing calendar (Month 2 Week 2, May 2026) calls for the first Intune compliance policy templates earlier. This release reconciles the two: the framework skeleton and first Windows 10/11 template ship now under the v0.1.0-preview tag (2026-05-15); full framework completion (macOS, iOS, Android, Linux templates, Deploy-ICBaseline.ps1, cross-framework integration doc with the Conditional Access Baseline) remains targeted at Q3 2026.
+The original repo roadmap targeted the Intune Compliance Baseline at Q3 2026 for framework completion. To make the first Intune compliance policy template available earlier, the framework skeleton and first Windows 10/11 template ship now under the v0.1.0-preview tag (2026-05-15); full framework completion (macOS, iOS, Android, Linux templates, Deploy-ICBaseline.ps1, cross-framework integration doc with the Conditional Access Baseline) remains targeted at Q3 2026.
 
 ---
 
