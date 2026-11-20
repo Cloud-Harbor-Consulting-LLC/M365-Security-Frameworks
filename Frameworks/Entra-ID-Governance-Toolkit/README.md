@@ -11,7 +11,18 @@ Standing access that no one reviews is how guest sprawl and privilege creep take
 ## Scope
 
 - v0.1.0-preview: Access Reviews automation. 2 starter scripts (quarterly guest access review, dormant admin role review).
-- v1.0 target: Lifecycle Workflows and PIM governance scripts.
+- **Agent Identity Governance Delta Pack** (planned, target 2026-12-18, as `eig-v0.2.0-preview`):
+  - 5 to 7 tested, read-only evidence controls (`EIG-AG###`) for Microsoft Entra Agent ID, in `Agent-Identity/`.
+  - **Questions the controls answer:**
+    - Does each agent identity have a sponsor, and technical ownership where policy requires it?
+    - Is each sponsor active, with succession through a supported user or group?
+    - Does agent access expire or have a review path?
+    - Is the agent covered by documented Conditional Access?
+    - Do ownerless, sponsorless or high-risk agents have a defined response?
+  - **Outputs:** JSON and a Markdown administrator report, plus a sanitized sample that is labelled as sample data.
+  - **Not in the first release:** write operations, remediation and identity creation.
+  - **Licensing varies by feature:** Agent ID, Microsoft Entra ID Governance (for Lifecycle Workflows sponsor tasks) and Microsoft Agent 365 are not present in every tenant. Beta Microsoft Graph dependencies will be labelled.
+- v1.0 target: Lifecycle Workflows and PIM governance scripts, and a recurring Access Review over agent identities (candidate EIG-AR003).
 
 ## Framework principles
 

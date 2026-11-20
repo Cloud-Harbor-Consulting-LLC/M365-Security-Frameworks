@@ -1,22 +1,32 @@
 # Intune Compliance Baseline (ICB)
 
-> **Status:** Preview. v0.1.0-preview shipped Fri May 15, 2026, with the framework skeleton, design principles and the first Windows template. **v1.0 is in development for Q4 2026** and ships as a single release: 11 templates across Windows 11, macOS, iOS/iPadOS, Android and Linux, plus a deployer. The v1.0 design is complete in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md). Release history is tracked in the [root CHANGELOG](../../CHANGELOG.md).
+> **Status:** Preview, with **v1.0 as a release candidate on main** (target release 2026-11-27). The latest tagged release is still v0.1.0-preview (Fri May 15, 2026). All v1.0 content has merged: 11 templates across Windows 11, macOS, iOS/iPadOS, Android and Linux, the deployer and the business case. What remains is the release review and the `icb-v1.0.0` tag. The v1.0 design is in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md). Release history is tracked in the [root CHANGELOG](../../CHANGELOG.md).
 
 The Intune Compliance Baseline (ICB) is a public, opinionated set of Microsoft Intune device compliance policy templates and the design principles behind them. It is the second framework in the [M365-Security-Frameworks](../../README.md) repo, alongside the Conditional Access Baseline.
 
 ICB defines what "compliant" means at the device layer. The Conditional Access Baseline consumes that signal via the compliant-device grant control. The two frameworks are deliberately separable: an organization can adopt ICB without CA, or CA without ICB, but the combination is where the zero-trust story lands.
 
-## Shipped today (v0.1.0-preview)
+## Tagged release (v0.1.0-preview)
 
 - Framework skeleton and design principles.
 - ICB-WIN001, the first Windows compliance template. It is rebuilt for v1.0 (see below).
 
-## Coming in v1.0
+## v1.0 release candidate (on main, untagged)
 
-- **11 compliance templates**, each specified in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md) section 8. Values follow Microsoft's Zero Trust recommended compliance settings and its security configuration frameworks, cross-checked against the CIS Benchmarks for each platform.
-- **Deploy-ICBaseline.ps1**, a PowerShell 7 deployer on Microsoft Graph beta. It deploys in observation mode by default: devices report real compliance results while Conditional Access still treats them as compliant. `-Enforce` applies each template's designed schedule.
-- **An executive business case** for the baseline.
-- **Validation labels.** Every template is validated against a test tenant. The Windows and Linux templates are also validated on real devices; device validation for macOS, iOS and Android follows in v1.0.1.
+- **11 compliance templates** in [Policies/](./Policies/), each specified in [POLICY-DESIGN.md](./Design/POLICY-DESIGN.md) section 8. Values follow Microsoft's Zero Trust recommended compliance settings and its security configuration frameworks, cross-checked against the CIS Benchmarks for each platform.
+- **[Deploy-ICBaseline.ps1](./Scripts/Deploy-ICBaseline.ps1)**, a PowerShell 7 deployer on Microsoft Graph beta. It deploys in observation mode by default: devices report real compliance results while Conditional Access still treats them as compliant. `-Enforce` applies each template's designed schedule.
+- **[An executive business case](./Business-Case/ROI-INTUNE-COMPLIANCE.md)** for the baseline.
+- **Validation labels.** Every template is validated against a test tenant. The 6 Windows templates and the Linux template are also validated on real devices. The 4 macOS, iOS/iPadOS and Android templates are tenant-validated, not device-validated; device validation for them follows in v1.0.1.
+
+**Remaining before the `icb-v1.0.0` tag:**
+
+- the full test run;
+- a check that all 11 templates are present and referenced, and their validation labels are accurate;
+- a review of prerequisites, deployment order, exclusions, exception handling, rollback and evidence collection;
+- this README, the root status table and the CHANGELOG;
+- the tag and release notes.
+
+v1.0 contains only generally available Intune settings. Preview capabilities announced at Microsoft Ignite 2026 are not part of it (see the roadmap below).
 
 ## Naming convention
 
@@ -51,7 +61,12 @@ ICB-WIN006 (ELAM) and ICB-WIN007 (Healthy Device Report), listed on earlier vers
 Release-level milestones:
 
 - **v0.1.0-preview** (2026-05-15, shipped): Skeleton + design doc + ICB-WIN001.
-- **v1.0.0** (target Q4 2026): All 11 templates, Deploy-ICBaseline.ps1 and the business case.
+- **v1.0.0** (release candidate, target 2026-11-27): All 11 templates, Deploy-ICBaseline.ps1 and the business case.
+- **Ignite 2026 AI-agent addendum** (planned, target 2026-12-04):
+  - A documentation-only release, `Preview/IGNITE-2026-AI-AGENT-ADDENDUM.md`. It covers how Intune helps discover, restrict, contain and evidence supported local AI agents on managed Windows devices.
+  - It covers the software compliance (restricted software) policy and app inventory, both in public preview as of 2026-11-20, and Microsoft Execution Containers.
+  - Each capability carries its Microsoft source, release status and test status.
+  - It does not change the v1.0 templates. Preview controls stay out of the stable baseline.
 - **v1.0.1**: Device validation for the macOS, iOS and Android templates.
 
 ## Design principles
