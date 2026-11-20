@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Roadmap and status, 2026-11-20 (documentation only).
+  - **ICB:** `README.md` and `Frameworks/Intune-Compliance-Baseline/README.md` now show ICB v1.0 as a release candidate on main, target 2026-11-27, with the work that remains before the `icb-v1.0.0` tag. Each template's validation label is stated.
+  - **AI-agent addendum:** a post-v1.0 Ignite 2026 AI-agent addendum is planned for 2026-12-04 (preview capabilities, documentation only, outside the stable templates).
+  - **Delta Pack:** `Frameworks/Entra-ID-Governance-Toolkit/README.md` adds the planned Agent Identity Governance Delta Pack, target 2026-12-18.
+
 ### Added
 
 - `Frameworks/Entra-ID-Governance-Toolkit/Business-Case/ROI-ENTRA-ID-P2.md`: complete Entra ID P2 business case — P1 vs P2 feature comparison, P2-exclusive controls used in this repo (Identity Protection risk policies CA-SIG003/004/008/009/COV011, PIM future scope, Access Reviews EIG-AR001/EIG-AR002), per-user licensing cost verified from Microsoft pricing (standalone $10.00/user/mo, M365 E5 $60.00/user/mo), operational savings (Access Review automation: 10 to 28 hours/year per 100 users; risk policy enforcement after promotion to On: 30 to 90 min per avoided manual remediation), compliance mapping (SOC 2 CC6.1/CC6.3/CC6.6/CC7.2/CC7.4, ISO 27001:2022 A.5.15/A.5.18/A.5.25/A.5.26/A.8.15/A.8.16, NIST SP 800-53 Rev 5 AC-2/AC-6/AU-2/IA-4/RA-3), CFO summary with guest MAU billing note and 2-year vs 3-year licensing path, and cross-references to ROI-CONDITIONAL-ACCESS.md and ROI-ENTRA-GOVERNANCE.md.
