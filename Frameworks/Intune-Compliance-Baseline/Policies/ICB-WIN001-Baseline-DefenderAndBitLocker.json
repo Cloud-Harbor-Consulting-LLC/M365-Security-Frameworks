@@ -12,7 +12,7 @@
   "antivirusRequired": true,
   "antiSpywareRequired": true,
   "defenderEnabled": true,
-  "defenderVersion": "4.18.26040.7",
+  "defenderVersion": "4.18.26050.15",
   "signatureOutOfDate": true,
   "rtpEnabled": true,
   "scheduledActionsForRule": [
