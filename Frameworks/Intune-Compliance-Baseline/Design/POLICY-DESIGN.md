@@ -2,7 +2,7 @@
 
 This document specifies the design philosophy, naming convention, device persona model, actions for noncompliance, signal handoff to the Conditional Access Baseline, prerequisites, and rollout sequence for the Intune Compliance Baseline (ICB) framework. It is the prerequisite reading for anyone deploying, extending, or auditing the baseline.
 
-Section 8 specifies all 11 templates in the v1.0 set. Until v1.0.0 ships, a specification whose JSON template has not yet been added to `Policies/` says so.
+Section 8 specifies the 11 templates in v1.0.0, each with its JSON template in `Policies/` and its validation level (section 9.1).
 
 ---
 
@@ -97,7 +97,7 @@ Every floor follows one rule, reviewed annually: **the oldest version still in v
 
 | Platform | Floor at v1.0 | How the rule produced it |
 |---|---|---|
-| Windows 11 | Build 26200 (25H2) | 24H2 Home and Pro servicing ends 2026-10-13. The floor follows the Home/Pro timeline, which also covers Windows 11 Business on Microsoft 365 Business Premium (a Pro-edition upgrade). |
+| Windows 11 | Build 26200 (25H2) | 24H2 Home and Pro reached end of updates on 2026-10-13; 25H2 Home and Pro are serviced until 2027-10-12. 26H2 (build 26300) is newer and not the floor. The floor follows the Home/Pro timeline, which also covers Windows 11 Business on Microsoft 365 Business Premium (a Pro-edition upgrade). |
 | macOS | 15.0 | Intune's Supported tier starts at macOS 15 |
 | iOS / iPadOS | 18.0 | Intune's Supported tier starts at iOS 18 |
 | Android | 10.0 | Intune's Supported tier for user-based Android Enterprise starts at Android 10. Fleets of current devices should raise it. |

@@ -33,7 +33,7 @@ The templates target the Graph **beta** endpoint (POLICY-DESIGN.md section 2.4).
 | `ICB-AND002-PersonalWorkProfile-IntegrityAndPasscode.json` | Android 10 and later, Android Enterprise personally owned work profile | `ICB-Persona-BYODMobile` | Play Integrity basic, device and strong integrity, no rooted devices, Google Play Services, an up-to-date security provider, Company Portal runtime integrity, USB debugging blocked, encryption, passcode complexity High (Android 12 and later), 5-minute lock, Android 10 or later | Immediately; added to the retire list after 30 days |
 | `ICB-LIN001-Baseline-EncryptionAndPassword.json` | Ubuntu Desktop 24.04 LTS and later, RHEL 9 and later | `ICB-Persona-CorpLinux` | Disk encryption (dm-crypt or LUKS), the distribution and version, a 14-character minimum for the local account password | 7 days |
 
-Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. MAC001 and IOS001 are tenant-validated, not device-validated (POLICY-DESIGN.md section 9.1). The Android and Linux templates are added before v1.0.0.
+Every template also emails the user at 0 hours in enforce mode. In observation mode there is no email. The six Windows templates and LIN001 are device-validated; MAC001, IOS001, AND001 and AND002 are tenant-validated, not device-validated (POLICY-DESIGN.md section 9.1).
 
 Assign each persona group so that a new device joins it when it enrolls. A device that no template targets is marked noncompliant under the tenant prerequisite, so with Conditional Access enforced its first sign-ins are refused (POLICY-DESIGN.md section 3).
 
